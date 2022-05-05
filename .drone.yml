@@ -9,22 +9,15 @@ trigger:
     exclude:
       - main
 
-services:
-  - name: localstack
-    image: quay.io/ukhomeofficedigital/localstack
-    environment:
-      SERVICES: sqs, sns
-      DEFAULT_REGION: eu-west-2
-
 steps:
-  - name: setup localstack
-    image: quay.io/ukhomeofficedigital/localstack
-    commands:
-      - cd config/localstack
-      - ./1-setup-sqs.sh
-      - ./2-setup-sns.sh
-    depends_on:
-      - clone
+#  - name: setup localstack
+#    image: quay.io/ukhomeofficedigital/localstack
+#    commands:
+#      - cd config/localstack
+#      - ./1-setup-sqs.sh
+#      - ./2-setup-sns.sh
+#    depends_on:
+#      - clone
 
   - name: test project
     image: quay.io/ukhomeofficedigital/hocs-base-image-build
@@ -34,7 +27,7 @@ steps:
     commands:
       - ./gradlew clean build --no-daemon
     depends_on:
-      - setup localstack
+      - clone
 
   - name: sonar scanner
     image: quay.io/ukhomeofficedigital/sonar-scanner
@@ -92,7 +85,7 @@ steps:
     commands:
       - ./gradlew clean build --no-daemon
     depends_on:
-      - setup localstack
+      - clone
 
   - name: sonar scanner
     image: quay.io/ukhomeofficedigital/sonar-scanner

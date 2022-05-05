@@ -11,7 +11,7 @@ spec:
   replicas: {{.MIN_REPLICAS}}
   selector:
     matchLabels:
-      name: hocs-casework
+      name: hocs-cms-data-migrator
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
@@ -20,7 +20,7 @@ spec:
   template:
     metadata:
       labels:
-        name: hocs-casework
+        name: hocs-cms-data-migrator
         role: hocs-backend
         version: {{.VERSION}}
     spec:
@@ -74,43 +74,18 @@ spec:
             - name: DB_HOSTNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{.KUBE_NAMESPACE}}-rds
+                  name: {{.KUBE_NAMESPACE}}-mssql
                   key: endpoint
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{.KUBE_NAMESPACE}}-rds
+                  name: {{.KUBE_NAMESPACE}}-mssql
                   key: db_name
             - name: ROOT_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{.KUBE_NAMESPACE}}-rds
+                  name: {{.KUBE_NAMESPACE}}-mssql
                   key: password
-            - name: DB_SCHEMA_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: hocs-casework
-                  key: rds_schema
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: hocs-casework
-                  key: rds_user
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hocs-casework
-                  key: rds_password
-            - name: DB_READONLY_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: hocs-db-readonly
-                  key: rds_user
-            - name: DB_READONLY_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hocs-db-readonly
-                  key: rds_password
           resources:
             limits:
               cpu: 600m
