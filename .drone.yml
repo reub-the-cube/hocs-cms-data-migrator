@@ -10,15 +10,6 @@ trigger:
       - main
 
 steps:
-#  - name: setup localstack
-#    image: quay.io/ukhomeofficedigital/localstack
-#    commands:
-#      - cd config/localstack
-#      - ./1-setup-sqs.sh
-#      - ./2-setup-sns.sh
-#    depends_on:
-#      - clone
-
   - name: test project
     image: quay.io/ukhomeofficedigital/hocs-base-image-build
     environment:
