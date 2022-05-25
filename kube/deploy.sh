@@ -7,7 +7,7 @@ export KUBE_TOKEN=${KUBE_TOKEN}
 export VERSION=${VERSION}
 
 echo
-echo "Deploying hocs-casework to ${ENVIRONMENT}"
+echo "Deploying hocs-cms-data-migrator to ${ENVIRONMENT}"
 echo "Service version: ${VERSION}"
 echo
 
