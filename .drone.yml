@@ -98,7 +98,7 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: deploy
+name: deploy tag
 depends_on:
   - build
 
