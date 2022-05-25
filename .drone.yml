@@ -104,34 +104,6 @@ steps:
 ---
 kind: pipeline
 type: kubernetes
-name: build
-
-platform:
-  os: linux
-  arch: amd64
-
-trigger:
-  event:
-    - push
-
-steps:
-  - name: build & push
-    image: plugins/docker
-    depends_on:
-      - clone
-    settings:
-      registry: quay.io
-      repo: quay.io/ukhomeofficedigital/hocs-cms-data-migrator
-      tags:
-        - ${DRONE_COMMIT_SHA}
-    environment:
-      DOCKER_PASSWORD:
-        from_secret: QUAY_ROBOT_TOKEN
-      DOCKER_USERNAME: ukhomeofficedigital+hocs_quay_robot
-
----
-kind: pipeline
-type: kubernetes
 name: deploy tag
 depends_on:
   - build
