@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hocs-case-creator-queue-config
+data:
+  # property-like keys; each key maps to a simple value
+  aws-account-id: "449472082214"
+  aws-sqs-region: "eu-west-2"
+  access_key_id: "test"
+  secret_access_key: "test"
+  sqs_url: "test"
