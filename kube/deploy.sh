@@ -3,7 +3,6 @@ set -euo pipefail
 
 export KUBE_NAMESPACE=${ENVIRONMENT}
 export KUBE_SERVER=${KUBE_SERVER}
-export KUBE_TOKEN=${KUBE_TOKEN}
 export VERSION=${VERSION}
 
 echo
