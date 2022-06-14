@@ -9,11 +9,11 @@ public class FileReader {
 
     public static String getResourceFileAsString(String fileName) {
         InputStream is = getResourceFileAsInputStream(fileName);
-        if (is == null) {
-            throw new RuntimeException("resource not found");
-        } else {
+        if (is != null) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
             return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        } else {
+            throw new RuntimeException("resource not found");
         }
     }
 
