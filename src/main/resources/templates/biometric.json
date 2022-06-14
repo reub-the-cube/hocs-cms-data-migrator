@@ -1,0 +1,22 @@
+{
+  "creationDate": "@@TODAY@@",
+  "complaint": {
+    "complaintType": "BIOMETRIC_RESIDENCE_PERMIT",
+    "reference": {
+      "referenceType": "GWF_REF",
+      "reference": "@@REFERENCE@@"
+    },
+    "reporterDetails": {
+      "applicantType": "APPLICANT",
+      "applicantName": "@@APPLICANT_NAME@@",
+      "applicantNationality": "@@NATIONALITY@@",
+      "applicantDob": "@@DOB@@",
+      "applicantEmail": "@@APPLICANT_EMAIL@@",
+      "applicantPhone": "@@PHONE@@"
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "problemExperienced": "CARD_INCORRECT"
+    }
+  }
+}
