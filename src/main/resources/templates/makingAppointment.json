@@ -1,0 +1,23 @@
+{
+  "creationDate": "@@TODAY@@",
+  "complaint": {
+    "complaintType": "MAKING_APPOINTMENT",
+    "reference": {
+      "referenceType": "GWF_REF",
+      "reference": "@@REFERENCE@@"
+    },
+    "reporterDetails": {
+      "applicantType": "APPLICANT",
+      "applicantName": "@@APPLICANT_NAME@@",
+      "applicantNationality": "@@NATIONALITY@@",
+      "applicantDob": "@@DOB@@",
+      "applicantEmail": "@@APPLICANT_EMAIL@@",
+      "applicantPhone": "@@PHONE@@"
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "problemExperienced": "TECHNICAL_APPOINTMENTS",
+      "applicationLocation": "INSIDE_UK"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "creationDate": "@@TODAY@@",
+  "complaint": {
+    "complaintType": "IMMIGRATION_DECISION",
+    "reference": {
+      "referenceType": "IHS_REF",
+      "reference": "@@REFERENCE@@"
+    },
+    "reporterDetails": {
+      "applicantType": "APPLICANT",
+      "applicantName": "@@APPLICANT_NAME@@",
+      "applicantNationality": "@@NATIONALITY@@",
+      "applicantDob": "@@DOB@@",
+      "applicantEmail": "@@APPLICANT_EMAIL@@",
+      "applicantPhone": "@@PHONE@@"
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "decisionOutcome": "POSITIVE",
+      "applicationLocation": "INSIDE_UK"
+    }
+  }
+}
