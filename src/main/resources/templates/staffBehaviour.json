@@ -1,0 +1,34 @@
+{
+  "creationDate": "@@TODAY@@",
+  "complaint": {
+    "complaintType": "POOR_STAFF_BEHAVIOUR",
+    "reference": {
+      "referenceType": "IHS_REF",
+      "reference": "@@REFERENCE@@"
+    },
+    "reporterDetails": {
+      "applicantType": "AGENT",
+      "applicantDetails": {
+        "applicantName": "@@APPLICANT_NAME@@",
+        "applicantNationality": "@@NATIONALITY@@",
+        "applicantDob": "@@DOB@@"
+      },
+      "agentDetails": {
+        "agentName": "@@AGENT_NAME@@",
+        "agentType": "RELATIVE",
+        "agentEmail": "@@AGENT_EMAIL@@"
+      }
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "experience": {
+        "experienceType": "FACE_TO_FACE",
+        "location": {
+          "country": "@@COUNTRY@@",
+          "city": "@@CITY@@",
+          "centreType": "VAC"
+        }
+      }
+    }
+  }
+}

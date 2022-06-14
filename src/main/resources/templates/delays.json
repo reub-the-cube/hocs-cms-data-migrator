@@ -1,0 +1,24 @@
+{
+  "creationDate": "@@TODAY@@",
+  "complaint": {
+    "complaintType": "DELAYS",
+    "reference": {
+      "referenceType": "HO_REF",
+      "reference": "@@REFERENCE@@"
+    },
+    "reporterDetails": {
+      "applicantType": "APPLICANT",
+      "applicantName": "@@APPLICANT_NAME@@",
+      "applicantNationality": "@@NATIONALITY@@",
+      "applicantDob": "@@DOB@@",
+      "applicantEmail": "@@APPLICANT_EMAIL@@",
+      "applicantPhone": "@@PHONE@@"
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "delayedWaitingFor": "APPLICATION_DELAY",
+      "applicationSubmittedWhen": "Lorem",
+      "applicationLocation": "INSIDE_UK"
+    }
+  }
+}
