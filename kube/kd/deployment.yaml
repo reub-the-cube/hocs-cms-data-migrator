@@ -96,7 +96,7 @@ spec:
               cpu: 100m
 
         - name: hocs-cms-data-migrator
-          image: quay.digital.homeoffice.gov.uk/ukhomeofficedigital/hocs-cms-data-migrator:{{.VERSION}}
+          image: quay.io/ukhomeofficedigital/hocs-cms-data-migrator:{{.VERSION}}
           securityContext:
             runAsNonRoot: true
             capabilities:
