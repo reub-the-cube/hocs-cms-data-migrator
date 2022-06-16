@@ -1,4 +1,4 @@
-kube/kd/cs-dev-migration-case-migrator-sqs.yaml
+**/cs-dev-migration-case-creator-queue-cm.yaml
 
 HELP.md
 .gradle
