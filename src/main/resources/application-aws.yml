@@ -1,0 +1,8 @@
+aws:
+  region: eu-west-2
+  sqs:
+    access-key: ${sqs.access.key}
+    secret-key: ${sqs.secret.key}
+    name: ${sqs.queue.name}
+    url: ${sqs.queue.url}
+
