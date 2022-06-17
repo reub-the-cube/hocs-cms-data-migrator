@@ -35,6 +35,10 @@ dependencies {
 	testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:2.35.0'
 }
 
+jar {
+	enabled = false
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
