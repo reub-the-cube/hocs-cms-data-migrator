@@ -3,15 +3,15 @@ package uk.gov.digital.ho.hocs.payload;
 import com.github.javafaker.Faker;
 import com.github.javafaker.service.FakeValuesService;
 import com.github.javafaker.service.RandomService;
+import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.Locale;
 
+import static uk.gov.digital.ho.hocs.payload.util.DateHelper.convertToLocalDate;
+
+@Component
 public class TokenReplacer {
     private static final FakeValuesService fakeValuesService = new FakeValuesService(
             new Locale("en-GB"), new RandomService());
@@ -46,9 +46,5 @@ public class TokenReplacer {
     }
 
 
-    public static LocalDate convertToLocalDate(Date date) {
-        return Instant.ofEpochMilli(date.getTime())
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
-    }
+
 }
