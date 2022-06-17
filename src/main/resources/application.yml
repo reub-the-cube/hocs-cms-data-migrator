@@ -1,0 +1,30 @@
+info:
+  app:
+    fullname: Hocs Data Migrator Service
+    name: ${name:hocs-data-migrarator-service}
+    version: ${version:0.0.1}
+
+server:
+  http2:
+    enabled: true
+  port: 9088
+  shutdown: graceful
+
+spring:
+  main:
+    banner-mode: off
+
+management:
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      probes:
+        enabled: true
+
+aws:
+  sqs:
+    enabled: true
+  es:
+    version: 7
