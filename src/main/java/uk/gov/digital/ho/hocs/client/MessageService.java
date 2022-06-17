@@ -2,10 +2,10 @@ package uk.gov.digital.ho.hocs.client;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import uk.gov.digital.ho.hocs.payload.PayloadFile;
 import uk.gov.digital.ho.hocs.payload.TokenReplacer;
 
@@ -33,7 +33,7 @@ public class MessageService {
 
     public void startSending() {
 
-        if (!StringUtils.isEmpty(complaintType)) {
+        if (StringUtils.hasText(complaintType)) {
             for (int i = 0; i < numMessages; i++) {
                 String fileName = PayloadFile.valueOf(complaintType).getFileName();
                 log.debug("Sending {} : {}", complaintType, fileName);
