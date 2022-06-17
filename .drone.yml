@@ -126,8 +126,6 @@ steps:
     commands:
       - cd kube
       - ./deploy.sh
-    depends_on:
-      - clone
 ...
 
 
