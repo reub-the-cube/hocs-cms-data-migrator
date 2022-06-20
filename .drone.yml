@@ -30,7 +30,6 @@ steps:
       registry: quay.io
       repo: quay.io/ukhomeofficedigital/hocs-cms-data-migrator
       tags:
-        - ${DRONE_TAG}
         - ${DRONE_COMMIT_SHA}
         - latest
     environment:
