@@ -73,7 +73,7 @@ spec:
                 - SETGID
           args:
             - --certs=/certs
-            - --domain=hocs-case-creator.${KUBE_NAMESPACE}.svc.cluster.local
+            - --domain=hocs-cms-migrator.${KUBE_NAMESPACE}.svc.cluster.local
             - --expiry=8760h
             - --command=/usr/local/scripts/trigger_nginx_reload.sh
           env:
@@ -155,7 +155,7 @@ spec:
                   key: password
           resources:
             limits:
-              cpu: 2000m
+              cpu: 500m
               memory: 2204Mi
             requests:
               cpu: 350m
