@@ -24,20 +24,6 @@ steps:
     depends_on:
       - test project
 
-  - name: build & push
-    image: plugins/docker
-    settings:
-      registry: quay.io
-      repo: quay.io/ukhomeofficedigital/hocs-cms-data-migrator
-      tags:
-        - ${DRONE_COMMIT_SHA}
-    environment:
-      DOCKER_PASSWORD:
-        from_secret: QUAY_ROBOT_TOKEN
-      DOCKER_USERNAME: ukhomeofficedigital+hocs_quay_robot
-    depends_on:
-      - test project
-
   - name: sonar scanner
     image: quay.io/ukhomeofficedigital/sonar-scanner
     commands:
