@@ -113,9 +113,7 @@ spec:
               value: '/etc/keystore/truststore.jks'
             - name: SERVER_PORT
               value: '8080'
-            - name: SPRING_PROFILES_ACTIVE
-              value: 'sqs, s3'
-            - name: AWS_SQS_CASE_CREATOR_ACCOUNT_ACCESS_KEY
+            - name: AWS_SQS_CMS_DATA_MIGRATOR_ACCOUNT_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{.KUBE_NAMESPACE}}-case-migrator-sqs

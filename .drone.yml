@@ -12,9 +12,6 @@ trigger:
 steps:
   - name: test project
     image: quay.io/ukhomeofficedigital/hocs-base-image-build
-    environment:
-      SPRING_PROFILES_ACTIVE: "local"
-      LOCALSTACK_CONFIG_HOST: "localstack"
     commands:
       - ./gradlew clean build --no-daemon
     depends_on:
@@ -40,33 +37,6 @@ steps:
       DOCKER_USERNAME: ukhomeofficedigital+hocs_quay_robot
     depends_on:
       - test project
-
----
-kind: pipeline
-type: kubernetes
-name: build tag
-trigger:
-  event:
-    - tag
-  branch:
-    - main
-
-services:
-  - name: localstack
-    image: quay.io/ukhomeofficedigital/localstack
-    environment:
-      SERVICES: sqs, sns
-      DEFAULT_REGION: eu-west-2
-
-steps:
-  - name: setup localstack
-    image: quay.io/ukhomeofficedigital/localstack
-    commands:
-      - cd config/localstack
-      - ./1-setup-sqs.sh
-      - ./2-setup-sns.sh
-    depends_on:
-      - clone
 
   - name: test project
     image: quay.io/ukhomeofficedigital/hocs-base-image-build
@@ -112,7 +82,7 @@ trigger:
   branch:
     - main
   event:
-    - push
+    - tag
 
 steps:
   - name: cs-dev-migration
