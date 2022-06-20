@@ -1,0 +1,22 @@
+{
+  "creationDate": "@@TODA@@",
+  "complaint": {
+    "complaintType": "BIOMETRIC_RESIDENCE_PERMIT",
+    "reference": {
+      "referenceType": "GWF_REF",
+      "reference": "@@GWF_REF@@"
+    },
+    "reporterDetails": {
+      "applicantType": "APPLICANT",
+      "applicantName": "@@APPLICANT_NAME@@",
+      "applicantNationality": "Denmark",
+      "applicantDob": "2020-10-03",
+      "applicantEmail": "dorthea.weissnat@example.com",
+      "applicantPhone": "0114 4960999"
+    },
+    "complaintDetails": {
+      "complaintText": "@@COMPLAINT_TEXT@@",
+      "problemExperienced": "CARD_INCORRECT"
+    }
+  }
+}

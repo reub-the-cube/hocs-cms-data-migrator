@@ -1,11 +1,12 @@
 package uk.gov.digital.ho.hocs.cms;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class HocsCmsDataMigratorTests {
 
 	@Test
