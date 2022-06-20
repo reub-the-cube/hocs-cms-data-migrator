@@ -3,7 +3,6 @@ package uk.gov.digital.ho.hocs.client;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import uk.gov.digital.ho.hocs.payload.PayloadFile;
@@ -53,7 +52,7 @@ public class MessageService {
     }
 
     @Getter
-    static class Replacer {
+    static public class Replacer {
 
         private final String[] searchList = {
                 "@@TODAY@@",
