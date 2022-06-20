@@ -38,16 +38,6 @@ steps:
     depends_on:
       - test project
 
-  - name: test project
-    image: quay.io/ukhomeofficedigital/hocs-base-image-build
-    environment:
-      SPRING_PROFILES_ACTIVE: "local"
-      LOCALSTACK_CONFIG_HOST: "localstack"
-    commands:
-      - ./gradlew clean build --no-daemon
-    depends_on:
-      - clone
-
   - name: sonar scanner
     image: quay.io/ukhomeofficedigital/sonar-scanner
     commands:
