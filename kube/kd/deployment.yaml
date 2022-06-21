@@ -155,11 +155,11 @@ spec:
                   key: password
           resources:
             limits:
-              cpu: 500m
-              memory: 2204Mi
+              cpu: 1600m
+              memory: 1344Mi
             requests:
               cpu: 350m
-              memory: 2204Mi
+              memory: 1344Mi
           ports:
             - name: http
               containerPort: 8080
