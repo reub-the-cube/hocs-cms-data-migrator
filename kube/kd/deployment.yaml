@@ -73,7 +73,7 @@ spec:
                 - SETGID
           args:
             - --certs=/certs
-            - --domain=hocs-cms-migrator.${KUBE_NAMESPACE}.svc.cluster.local
+            - --domain=hocs-cms-data-migrator.${KUBE_NAMESPACE}.svc.cluster.local
             - --expiry=8760h
             - --command=/usr/local/scripts/trigger_nginx_reload.sh
           env:
