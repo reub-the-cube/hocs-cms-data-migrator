@@ -1,0 +1,14 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    app: hocs-cms-data-migrator
+  name: hocs-cms-data-migrator
+spec:
+  maxReplicas: {{.MAX_REPLICAS}}
+  minReplicas: {{.MIN_REPLICAS}}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hocs-cms-data-migrator
+  targetCPUUtilizationPercentage: 70
