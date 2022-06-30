@@ -1,0 +1,44 @@
+info:
+  app:
+    fullname: Hocs Data Migrator Service
+    name: ${name:hocs-data-migrarator-service}
+    version: ${version:0.0.1}
+
+spring:
+  main:
+    banner-mode: off
+  datasource:
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
+    username: ${db.username:sa}
+    password: ${db.password}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        # The SQL dialect makes Hibernate generate better SQL for the chosen database
+        dialect: org.hibernate.dialect.SQLServer2016Dialect
+        # Hibernate ddl auto (create, create-drop, validate, update)
+        ddl-auto: none
+
+server:
+  http2:
+    enabled: true
+  port: 9088
+  shutdown: graceful
+
+management:
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: true
+      probes:
+        enabled: true
+
+aws:
+  sqs:
+    enabled: true
+  es:
+    version: 7

@@ -1,0 +1,23 @@
+localstack:
+  host: localstack
+
+aws:
+  region: eu-west-2
+  sqs:
+    access-key: fake
+    secret-key: fake
+    queue-name: document-queue
+    url: http://${localstack.host}:4566/000000000000/${aws.sqs.queue-name}
+
+run:
+  config:
+    num-messages: 1
+    complaint-type: SOMETHING_ELSE
+
+spring:
+  datasource:
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
+    username: ${db.username:sa}
+    password: ${db.password:Sqladmin-1}
+
