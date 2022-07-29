@@ -6,7 +6,7 @@ aws:
   sqs:
     access-key: fake
     secret-key: fake
-    queue-name: document-queue
+    queue-name: migration-queue
     url: http://${localstack.host}:4566/000000000000/${aws.sqs.queue-name}
 
 run:
