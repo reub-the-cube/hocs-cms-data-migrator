@@ -21,7 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'com.github.javafaker:javafaker:1.0.2'
 	implementation 'org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE'
-	implementation  group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '6.1.0.jre8'
+	implementation  group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '11.1.2.jre8-preview'
 	implementation 'net.logstash.logback:logstash-logback-encoder:7.2'
 
 	implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
