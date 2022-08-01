@@ -5,7 +5,7 @@ plugins {
 }
 
 def lombokVersion = '1.18.24'
-def awsVersion = '1.12.271'
+def awsVersion = '1.12.272'
 
 group = 'uk.gov.digital.ho.hocs'
 sourceCompatibility = JavaVersion.VERSION_17
