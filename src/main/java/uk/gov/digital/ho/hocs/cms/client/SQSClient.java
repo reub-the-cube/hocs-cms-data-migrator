@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.client;
+package uk.gov.digital.ho.hocs.cms.client;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -19,8 +19,7 @@ public class SQSClient {
 
     private final String queueUrl;
 
-    public SQSClient(AmazonSQSAsync sqs,
-                     @Value("${aws.sqs.queue-name}")  String queueName) {
+    public SQSClient(AmazonSQSAsync sqs, @Value("${aws.sqs.queue-name}")  String queueName) {
         this.sqs = sqs;
         this.queueUrl = sqs.getQueueUrl(queueName).getQueueUrl();
     }

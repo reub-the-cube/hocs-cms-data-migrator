@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.payload;
+package uk.gov.digital.ho.hocs.cms.payload;
 
 import lombok.Getter;
 

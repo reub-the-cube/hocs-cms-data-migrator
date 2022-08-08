@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.payload.util;
+package uk.gov.digital.ho.hocs.cms.payload.util;
 
 import java.time.Instant;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.payload;
+package uk.gov.digital.ho.hocs.cms.payload;
 
 import com.github.javafaker.Faker;
 import com.github.javafaker.service.FakeValuesService;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-import static uk.gov.digital.ho.hocs.payload.util.DateHelper.convertToLocalDate;
+import static uk.gov.digital.ho.hocs.cms.payload.util.DateHelper.convertToLocalDate;
 
 @Component
 public class TokenReplacer {

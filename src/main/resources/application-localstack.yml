@@ -19,5 +19,5 @@ spring:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
     url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
     username: ${db.username:sa}
-    password: ${db.password:Sqladmin-1}
+    password: ${db.password:Password01}
 

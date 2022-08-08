@@ -30,6 +30,8 @@ updates:
         update-types: [ "version-update:semver-patch" ]
       - dependency-name: "com.amazonaws:aws-java-sdk-s3"
         update-types: [ "version-update:semver-patch" ]
+      - dependency-name: "com.microsoft.sqlserver:mssql-jdbc"
+        update-types: [ "version-update:semver-patch" ]
     labels:
       - "patch"
       - "dependencies"

@@ -1,17 +1,17 @@
-package uk.gov.digital.ho.hocs.client;
+package uk.gov.digital.ho.hocs.cms.client;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import uk.gov.digital.ho.hocs.payload.PayloadFile;
-import uk.gov.digital.ho.hocs.payload.TokenReplacer;
+import uk.gov.digital.ho.hocs.cms.payload.PayloadFile;
+import uk.gov.digital.ho.hocs.cms.payload.TokenReplacer;
 
 import java.util.Random;
 
 import static org.apache.commons.lang3.StringUtils.replaceEach;
-import static uk.gov.digital.ho.hocs.payload.FileReader.getResourceFileAsString;
+import static uk.gov.digital.ho.hocs.cms.payload.FileReader.getResourceFileAsString;
 
 @Service
 @Slf4j
