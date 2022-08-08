@@ -2,7 +2,6 @@ info:
   app:
     fullname: Hocs Data Migrator Service
     name: ${name:hocs-data-migrarator-service}
-    version: ${version:0.0.1}
 
 spring:
   main:

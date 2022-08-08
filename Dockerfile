@@ -1,8 +1,10 @@
 FROM quay.io/ukhomeofficedigital/hocs-base-image-build as builder
 
+ARG PACKAGE_TOKEN='INVALID'
+
 COPY . .
 
-RUN ./gradlew clean assemble --no-daemon && java -Djarmode=layertools -jar ./build/libs/hocs-cms-data-migrator.jar extract
+RUN PACKAGE_TOKEN=$PACKAGE_TOKEN ./gradlew clean assemble --no-daemon && java -Djarmode=layertools -jar ./build/libs/hocs-cms-data-migrator.jar extract
 
 FROM quay.io/ukhomeofficedigital/hocs-base-image
 
