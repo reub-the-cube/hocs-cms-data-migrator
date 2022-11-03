@@ -10,4 +10,5 @@ public class HocsCmsDataMigrator {
 		SpringApplication.run(HocsCmsDataMigrator.class, args);
 	}
 
+
 }
