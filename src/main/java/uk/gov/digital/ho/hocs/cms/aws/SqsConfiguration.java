@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.aws.sqs;
+package uk.gov.digital.ho.hocs.cms.aws;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -15,9 +15,9 @@ import org.springframework.context.annotation.Profile;
 
 @EnableSqs
 @Configuration
-@Profile("aws")
+@Profile("sqs")
 @ConditionalOnProperty(prefix = "aws.sqs", value = "enabled", havingValue = "true")
-public class AwsConfiguration {
+public class SqsConfiguration {
 
     @Primary
     @Bean

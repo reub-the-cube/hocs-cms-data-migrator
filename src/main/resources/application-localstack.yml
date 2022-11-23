@@ -1,5 +1,10 @@
 localstack:
   host: localstack
+  base-url: http://${localstack.config.host}:${localstack.config.port}
+  config:
+    host: localhost
+    port: 4566
+    region: eu-west-2
 
 aws:
   region: eu-west-2
@@ -8,6 +13,15 @@ aws:
     secret-key: fake
     queue-name: migration-queue
     url: http://${localstack.host}:4566/000000000000/${aws.sqs.queue-name}
+  s3:
+    config:
+      region: eu-west-2
+    untrusted:
+      account:
+        access-key: 12345
+        secret-key: 12345
+        bucket-kms-key:
+      bucket-name: untrusted-bucket
 
 run:
   config:
@@ -15,9 +29,13 @@ run:
     complaint-type: SOMETHING_ELSE
 
 spring:
+  main:
+    web-application-type: none
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
+    url: jdbc:sqlserver://${db.host:localhost}:${db.port:1433};databaseName=cms
     username: ${db.username:sa}
-    password: ${db.password:Password01}
+    password: ${db.password:Development01}
+
+
 
