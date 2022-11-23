@@ -2,15 +2,14 @@ package uk.gov.digital.ho.hocs.cms.client;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
-import com.amazonaws.util.StringInputStream;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 @Service
@@ -32,40 +31,23 @@ public class DocumentS3Client {
         this.bucketKmsKey = bucketKmsKey;
     }
 
-    public String storeUntrustedDocument(String originalFilename, String formattedDocument, int id) {
-        ObjectMetadata metaData = buildObjectMetadata(originalFilename, formattedDocument, id);
+    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) throws IOException {
+        ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
-        try {
-            PutObjectRequest uploadRequest = buildPutObjectRequest(formattedDocument, metaData, tempObjectName);
-            s3Client.putObject(uploadRequest);
-        } catch (UnsupportedEncodingException e) {
-            // Unless this code changes, this should never happen
-            log.error(e.getMessage());
-        }
+        s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
         return tempObjectName;
-    }
-
-    PutObjectRequest buildPutObjectRequest(String formattedDocument, ObjectMetadata metaData, String tempObjectName) throws UnsupportedEncodingException {
-        PutObjectRequest uploadRequest = new PutObjectRequest(bucketName, tempObjectName,
-                new StringInputStream(formattedDocument), metaData);
-
-        if (StringUtils.hasText(bucketKmsKey)) { // Will be empty when running local. Workaround because localstack doesn't use HTTPS
-            uploadRequest = uploadRequest.withSSEAwsKeyManagementParams(new SSEAwsKeyManagementParams(bucketKmsKey));
-        }
-
-        return uploadRequest;
     }
 
     String getTempObjectName() {
         return UUID.randomUUID().toString();
     }
 
-    ObjectMetadata buildObjectMetadata(String originalFilename, String formattedDocument, int id) {
+    ObjectMetadata buildObjectMetadata(String originalFilename, int length, int id) {
         ObjectMetadata metaData = new ObjectMetadata();
         metaData.setContentType("application/octet-stream");
         metaData.addUserMetadata(META_DATA_LABEL, originalFilename);
         metaData.addUserMetadata(META_DATA_ID, String.valueOf(id));
-        metaData.setContentLength(formattedDocument.length());
+        metaData.setContentLength(length);
         return metaData;
     }
 }

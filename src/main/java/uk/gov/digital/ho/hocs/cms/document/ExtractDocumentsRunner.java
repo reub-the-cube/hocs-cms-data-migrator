@@ -10,9 +10,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -47,11 +49,17 @@ public class ExtractDocumentsRunner implements CommandLineRunner {
             int id = res.getInt(1);
             String fileName = res.getString(2);
             InputStream is = res.getBinaryStream(3);
-            //byte[] bytes = IOUtils.toByteArray(is);
+            byte[] bytes = IOUtils.toByteArray(is);
             rowCount++;
-            documentS3Client.storeUntrustedDocument(fileName, IOUtils.toString(is, StandardCharsets.UTF_8), id);
+            //writeFile(is);
+            documentS3Client.storeUntrustedDocument(fileName, bytes, id);
         }
         System.out.println("Number of records : " + rowCount);
         log.info("Document extraction completed successfully, exiting");
+    }
+
+    private void writeFile(InputStream is) throws IOException {
+        File targetFile = new File("/Users/rjweeks/Downloads/outputFile.pdf");
+        Files.copy(is, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 }
