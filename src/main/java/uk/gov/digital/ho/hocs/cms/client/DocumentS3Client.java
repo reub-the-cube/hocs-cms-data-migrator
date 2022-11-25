@@ -1,15 +1,13 @@
 package uk.gov.digital.ho.hocs.cms.client;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.UUID;
 
 @Service
@@ -31,10 +29,17 @@ public class DocumentS3Client {
         this.bucketKmsKey = bucketKmsKey;
     }
 
-    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) throws IOException {
+    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
         ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
-        s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
+        try {
+            s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
+        }
+        catch (SdkClientException e) {
+            log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
+            return e.getMessage();
+        }
+        log.info("S3 Put Object success. ID = {}", id);
         return tempObjectName;
     }
 

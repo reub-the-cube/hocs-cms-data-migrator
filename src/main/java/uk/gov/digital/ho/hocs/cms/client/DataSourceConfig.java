@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.client;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +13,7 @@ import javax.sql.DataSource;
 @Configuration
 public class DataSourceConfig {
 
-        @Bean
-        @Primary
+        @Bean(name = "cmsDatasource")
         public DataSource dataSource(@Value("${spring.datasource.driverClassName}") String driverClassName,
                                      @Value("${spring.datasource.url}") String url,
                                      @Value("${spring.datasource.username}") String userName,
@@ -28,7 +28,7 @@ public class DataSourceConfig {
 
         @Bean
         @Primary
-        public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        public JdbcTemplate jdbcTemplate(@Qualifier("cmsDatasource") DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 }

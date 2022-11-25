@@ -29,11 +29,15 @@ run:
     complaint-type: SOMETHING_ELSE
 
 spring:
+  jpa:
+    hibernate:
+#      ddl-auto: create
+      dialect: org.hibernate.dialect.SQLServer2012Dialect
   main:
     web-application-type: none
   datasource:
     driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://${db.host:localhost}:${db.port:1433};databaseName=cms
+    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
     username: ${db.username:sa}
     password: ${db.password:Development01}
 

@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.hocs.cms.document;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
@@ -13,11 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import uk.gov.digital.ho.hocs.cms.client.SQSClient;
+import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.message.CaseDataItem;
+import uk.gov.digital.ho.hocs.cms.message.CaseDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
