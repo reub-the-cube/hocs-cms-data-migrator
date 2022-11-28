@@ -27,7 +27,7 @@ public class CaseDocumentRecord {
     private Long id;
 
     @Column
-    private UUID caseId;
+    private int caseId;
 
     @Column
     private int documentId;
