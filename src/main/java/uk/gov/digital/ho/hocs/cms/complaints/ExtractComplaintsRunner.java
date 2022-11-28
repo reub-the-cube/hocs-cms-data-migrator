@@ -5,40 +5,47 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
+import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.sql.SQLException;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.complaints", havingValue = "enabled", matchIfMissing = false)
+@ConditionalOnProperty(name = "cms.extract.documents", havingValue = "enabled", matchIfMissing = false)
 public class ExtractComplaintsRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
-    private final JdbcTemplate jdbcTemplate;
+    private final DocumentsRepository documentsRepository;
+    private final DocumentExtrator extractDocuments;
+    private final ComplaintsExtractor complaintsExtractor;
 
-    public ExtractComplaintsRunner(ApplicationContext applicationContext, JdbcTemplate jdbcTemplate) {
+
+    public ExtractComplaintsRunner(ApplicationContext applicationContext, DocumentsRepository documentsRepository, DocumentExtrator documentExtrator, ComplaintsExtractor complaintsExtractor) {
         this.applicationContext = applicationContext;
-        this.jdbcTemplate = jdbcTemplate;
+        this.documentsRepository = documentsRepository;
+        this.extractDocuments = documentExtrator;
+        this.complaintsExtractor = complaintsExtractor;
     }
 
     @Override
     public void run(String... args) {
-        log.info("Extract complaints started");
-        SqlRowSet res = jdbcTemplate.queryForRowSet("SELECT name, database_id, create_date FROM sys.databases;");
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(
-                "SELECT name, database_id, create_date FROM sys.databases;");
-        int rowCount = 0;
-        while (res.next()) {
-            System.out.println(res.getString("name") + " - "
-                    + res.getString("database_id") + " - "
-                    + res.getString("create_date"));
-            rowCount++;
+        log.info("Extract documents started");
+        DocumentExtractRecord cdr = new DocumentExtractRecord();
+        cdr.setCaseId(BigDecimal.valueOf(1000000));
+        try {
+            complaintsExtractor.getCaseIdsByDateRange("jan 25,2021","jan 25,2022");
+            DocumentExtractRecord res = extractDocuments.getDocument(1000000);
+            documentsRepository.save(res);
+        } catch (SQLException e) {
+            log.error("Document {} extraction failed: Reason {}", e.getMessage());
+            cdr.setFailureReason(e.getMessage());
+            documentsRepository.save(cdr);
         }
-        System.out.println("Number of records : " + rowCount);
-        log.info("Migration completed successfully, exiting");
-//        System.exit(SpringApplication.exit(applicationContext, () -> 0));
+        log.info("Document extraction completed successfully, exiting");
+
     }
+
 }

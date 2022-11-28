@@ -15,12 +15,12 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-public class CaseDataExtractor {
+public class ComplaintsExtractor {
 
     private final DataSource dataSource;
     private final String queryCaseIdsByDate = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
 
-    public CaseDataExtractor(DataSource dataSource) {
+    public ComplaintsExtractor(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

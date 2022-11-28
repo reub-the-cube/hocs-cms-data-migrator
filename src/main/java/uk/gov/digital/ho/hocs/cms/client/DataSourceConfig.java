@@ -13,7 +13,7 @@ import javax.sql.DataSource;
 @Configuration
 public class DataSourceConfig {
 
-        @Bean(name = "cmsDatasource")
+        @Bean
         public DataSource dataSource(@Value("${spring.datasource.driverClassName}") String driverClassName,
                                      @Value("${spring.datasource.url}") String url,
                                      @Value("${spring.datasource.username}") String userName,
@@ -28,7 +28,7 @@ public class DataSourceConfig {
 
         @Bean
         @Primary
-        public JdbcTemplate jdbcTemplate(@Qualifier("cmsDatasource") DataSource dataSource) {
+        public JdbcTemplate jdbcTemplate(DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 }
