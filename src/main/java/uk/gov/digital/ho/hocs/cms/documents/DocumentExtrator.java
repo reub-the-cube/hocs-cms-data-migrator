@@ -4,8 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
-import uk.gov.digital.ho.hocs.cms.domain.CaseDocumentRecord;
-import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
+import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -18,18 +17,27 @@ import java.util.regex.Pattern;
 
 @Component
 @Slf4j
-public class ExtractDocuments {
+public class DocumentExtrator {
 
     private final DataSource dataSource;
     private final DocumentS3Client documentS3Client;
 
-    public ExtractDocuments(DataSource dataSource, DocumentS3Client documentS3Client) {
+    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client) {
         this.dataSource = dataSource;
         this.documentS3Client = documentS3Client;
     }
 
-    public CaseDocumentRecord getDocument(int documentId) throws SQLException {
-        CaseDocumentRecord cdr = new CaseDocumentRecord();
+    public void getDocumentsForCase() {
+        String documentsForCase = """
+        SELECT '-' AS LinkedDocResults, dst.* FROM lgncc_logEvents lev 
+        inner join lgncc_noteAttachments nat on nat.noteId = lev.LogEventID 
+        inner join LGNCC_DOCUMENTSTORE dst on dst.id = nat.reference 
+        where lev.CaseId = ?
+        """;
+    }
+
+    public DocumentExtractRecord getDocument(int documentId) throws SQLException {
+        DocumentExtractRecord cdr = new DocumentExtractRecord();
         cdr.setDocumentId(documentId);
         Connection connection = dataSource.getConnection();
         String query = "select * from LGNCC_DOCUMENTSTORE where id = ?;";

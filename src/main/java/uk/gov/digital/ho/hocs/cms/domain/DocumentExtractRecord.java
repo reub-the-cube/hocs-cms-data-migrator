@@ -11,7 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.UUID;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -19,7 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "documents")
-public class CaseDocumentRecord {
+public class DocumentExtractRecord {
 
     @Id
     @Column(name = "id")
@@ -27,7 +27,7 @@ public class CaseDocumentRecord {
     private Long id;
 
     @Column
-    private int caseId;
+    private BigDecimal caseId;
 
     @Column
     private int documentId;

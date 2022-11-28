@@ -1,28 +1,16 @@
 package uk.gov.digital.ho.hocs.cms.documents;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-import uk.gov.digital.ho.hocs.cms.domain.CaseDocumentRecord;
-import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
+import uk.gov.digital.ho.hocs.cms.complaints.CaseDataExtractor;
+import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 
-import javax.sql.DataSource;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.regex.Pattern;
 
 @Configuration
 @Slf4j
@@ -31,22 +19,25 @@ public class ExtractDocumentsRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
     private final DocumentsRepository documentsRepository;
-    private final ExtractDocuments extractDocuments;
+    private final DocumentExtrator extractDocuments;
+    private final CaseDataExtractor extractCaseIdsByDateRange;
 
 
-    public ExtractDocumentsRunner(ApplicationContext applicationContext, DocumentsRepository documentsRepository, ExtractDocuments extractDocuments) {
+    public ExtractDocumentsRunner(ApplicationContext applicationContext, DocumentsRepository documentsRepository, DocumentExtrator documentExtrator, CaseDataExtractor caseDataExtractor) {
         this.applicationContext = applicationContext;
         this.documentsRepository = documentsRepository;
-        this.extractDocuments = extractDocuments;
+        this.extractDocuments = documentExtrator;
+        this.extractCaseIdsByDateRange = caseDataExtractor;
     }
 
     @Override
     public void run(String... args) {
         log.info("Extract documents started");
-        CaseDocumentRecord cdr = new CaseDocumentRecord();
-        cdr.setCaseId(1000000);
+        DocumentExtractRecord cdr = new DocumentExtractRecord();
+        cdr.setCaseId(BigDecimal.valueOf(1000000));
         try {
-            CaseDocumentRecord res = extractDocuments.getDocument(1000000);
+            extractCaseIdsByDateRange.getCaseIdsByDateRange("jan 25,2021","jan 25,2022");
+            DocumentExtractRecord res = extractDocuments.getDocument(1000000);
             documentsRepository.save(res);
         } catch (SQLException e) {
             log.error("Document {} extraction failed: Reason {}", e.getMessage());
