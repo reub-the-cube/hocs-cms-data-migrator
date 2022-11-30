@@ -27,7 +27,7 @@ public class DocumentExtrator {
 
     private static final String GET_DOCUMENT = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
 
-    private static final String DOCUMENTSFORCASE = """
+    private static final String DOCUMENTS_FOR_CASE = """
         SELECT dst.* FROM lgncc_logEvents lev 
         inner join lgncc_noteAttachments nat on nat.noteId = lev.LogEventID 
         inner join LGNCC_DOCUMENTSTORE dst on dst.id = nat.reference 
@@ -42,7 +42,7 @@ public class DocumentExtrator {
 
     public void copyDocumentsForCase(Integer caseId) throws SQLException {
         Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(DOCUMENTSFORCASE);
+        PreparedStatement stmt = connection.prepareStatement(DOCUMENTS_FOR_CASE);
         stmt.setInt(1, caseId);
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
