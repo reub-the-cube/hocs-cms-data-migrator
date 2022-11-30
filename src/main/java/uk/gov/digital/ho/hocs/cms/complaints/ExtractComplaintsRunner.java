@@ -4,6 +4,7 @@ import com.microsoft.sqlserver.jdbc.SQLServerException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeExceptionMapper;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -21,10 +22,10 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
     private final DocumentExtrator documentExtrator;
-    private final ComplaintsExtractor complaintsExtractor;
+    private final ComplaintExtractor complaintsExtractor;
 
 
-    public ExtractComplaintsRunner(ApplicationContext applicationContext, DocumentExtrator documentExtrator, ComplaintsExtractor complaintsExtractor) {
+    public ExtractComplaintsRunner(ApplicationContext applicationContext, DocumentExtrator documentExtrator, ComplaintExtractor complaintsExtractor) {
         this.applicationContext = applicationContext;
         this.documentExtrator = documentExtrator;
         this.complaintsExtractor = complaintsExtractor;
@@ -38,13 +39,13 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
                 documentExtrator.copyDocumentsForCase(complaint.intValue());
             }
         log.info("Complaints extraction between dates {} and {} finished.","2022-01-01","2022-12-30");
+        System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 
     @Bean
     public ExitCodeExceptionMapper exceptionBasedExitCode() {
         return exception -> {
-            if (exception.getCause() instanceof SQLServerException) {
-                SQLServerException sqlServerException = (SQLServerException) exception.getCause();
+            if (exception.getCause() instanceof SQLServerException sqlServerException) {
                 log.error("SQL Server exception: {}, SQL Server state: {}", sqlServerException.getMessage(), sqlServerException.getSQLState());
                 return 2;
             }

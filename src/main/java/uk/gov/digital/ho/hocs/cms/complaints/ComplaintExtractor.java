@@ -16,18 +16,18 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-public class ComplaintsExtractor {
+public class ComplaintExtractor {
 
     private final DataSource dataSource;
-    private final String CASEID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
+    private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
 
-    public ComplaintsExtractor(DataSource dataSource) {
+    public ComplaintExtractor(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
     public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) throws SQLException {
         Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(CASEID_BY_DATE_RANGE);
+        PreparedStatement stmt = connection.prepareStatement(COMPLAINT_ID_BY_DATE_RANGE);
         stmt.setString(1, start);
         stmt.setString(2, end);
         ResultSet rs = stmt.executeQuery();
