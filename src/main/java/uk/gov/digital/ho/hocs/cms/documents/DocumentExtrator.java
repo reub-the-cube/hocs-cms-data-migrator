@@ -5,10 +5,12 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,54 +23,65 @@ public class DocumentExtrator {
 
     private final DataSource dataSource;
     private final DocumentS3Client documentS3Client;
+    private final DocumentsRepository documentsRepository;
 
-    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client) {
-        this.dataSource = dataSource;
-        this.documentS3Client = documentS3Client;
-    }
+    private static final String GET_DOCUMENT = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
 
-    public void getDocumentsForCase() {
-        String documentsForCase = """
-        SELECT '-' AS LinkedDocResults, dst.* FROM lgncc_logEvents lev 
+    private static final String DOCUMENTSFORCASE = """
+        SELECT dst.* FROM lgncc_logEvents lev 
         inner join lgncc_noteAttachments nat on nat.noteId = lev.LogEventID 
         inner join LGNCC_DOCUMENTSTORE dst on dst.id = nat.reference 
         where lev.CaseId = ?
         """;
+
+    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
+        this.dataSource = dataSource;
+        this.documentS3Client = documentS3Client;
+        this.documentsRepository = documentsRepository;
     }
 
-    public DocumentExtractRecord getDocument(int documentId) throws SQLException {
-        DocumentExtractRecord cdr = new DocumentExtractRecord();
-        cdr.setDocumentId(documentId);
+    public void copyDocumentsForCase(Integer caseId) throws SQLException {
         Connection connection = dataSource.getConnection();
-        String query = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
-        PreparedStatement stmt = connection.prepareStatement(query);
+        PreparedStatement stmt = connection.prepareStatement(DOCUMENTSFORCASE);
+        stmt.setInt(1, caseId);
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            BigDecimal documentId = rs.getBigDecimal(1);
+            getDocument(documentId.intValue());
+        }
+    }
+
+    public void getDocument(int documentId) throws SQLException {
+        DocumentExtractRecord record = new DocumentExtractRecord();
+        record.setDocumentId(documentId);
+        Connection connection = dataSource.getConnection();
+        PreparedStatement stmt = connection.prepareStatement(GET_DOCUMENT);
         stmt.setInt(1, documentId);
         ResultSet res = stmt.executeQuery();
-        //stmt.close();
         String result ="";
         while (res.next()) {
             int id = res.getInt(1);
             String fileName = res.getString(2);
             InputStream is = res.getBinaryStream(3);
-            byte[] bytes = new byte[0];
+            byte[] bytes;
             try {
                 bytes = IOUtils.toByteArray(is);
+                result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
             } catch (IOException e) {
                 log.error("Error converting document to byte array {}", id);
-                cdr.setFailureReason(e.getMessage());
-                return cdr;
+                record.setFailureReason(e.getMessage());
             }
-            result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
         }
+        stmt.close();
         if (isValidUUID(result)) {
-            cdr.setDocumentExtracted(true);
-            cdr.setTempFileName(result);
+            record.setDocumentExtracted(true);
+            record.setTempFileName(result);
+            documentsRepository.save(record);
+        } else {
+            record.setDocumentExtracted(false);
+            record.setFailureReason(result);
+            documentsRepository.save(record);
         }
-        else {
-            cdr.setDocumentExtracted(false);
-            cdr.setFailureReason(result);
-        }
-        return cdr;
     }
 
     private final static Pattern UUID_REGEX_PATTERN =

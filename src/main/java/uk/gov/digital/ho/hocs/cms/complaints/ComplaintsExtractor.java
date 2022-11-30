@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,22 +19,23 @@ import java.util.Locale;
 public class ComplaintsExtractor {
 
     private final DataSource dataSource;
-    private final String queryCaseIdsByDate = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
+    private final String CASEID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
 
     public ComplaintsExtractor(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    public List<Integer> getCaseIdsByDateRange(String start, String end) throws SQLException {
+    public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) throws SQLException {
         Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(queryCaseIdsByDate);
-        LocalDate startDate = dateFormat(start);
-        LocalDate endDate = dateFormat(end);
-        stmt.setObject(1, startDate);
-        stmt.setObject(2, endDate);
+        PreparedStatement stmt = connection.prepareStatement(CASEID_BY_DATE_RANGE);
+        stmt.setString(1, start);
+        stmt.setString(2, end);
         ResultSet rs = stmt.executeQuery();
-        List<Integer> res = new ArrayList<>();
-        return res;
+        List<BigDecimal> cases = new ArrayList<>();
+        while (rs.next()) {
+            cases.add(rs.getBigDecimal(1));
+        }
+        return cases;
     }
 
     private LocalDate dateFormat(String strDate) {
