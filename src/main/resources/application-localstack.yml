@@ -30,6 +30,7 @@ run:
 
 spring:
   jpa:
+    show-sql: false
     hibernate:
 #      ddl-auto: create
       dialect: org.hibernate.dialect.SQLServer2012Dialect

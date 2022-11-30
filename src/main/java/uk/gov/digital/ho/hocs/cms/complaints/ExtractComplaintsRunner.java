@@ -1,15 +1,17 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ExitCodeExceptionMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -29,22 +31,24 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws SQLException {
         log.info("Extract documents started");
-        List<BigDecimal> cases = Collections.emptyList();
-        try {
-            cases = complaintsExtractor.getComplaintIdsByDateRange("2022-01-01","2022-12-30");
-        } catch (SQLException e) {
-            log.error("Complaints extraction failed for {} to {}", "2022-01-01","2022-12-30");
-        }
-        for (BigDecimal aCase : cases) {
-            try {
-                documentExtrator.copyDocumentsForCase(aCase.intValue());
-            } catch (SQLException e) {
-                log.error("Document extraction failed for complaint {}: Reason {}", aCase.intValue(), e.getMessage());
+        List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange("2022-01-01","2022-12-30");
+        for (BigDecimal complaint : complaints) {
+                documentExtrator.copyDocumentsForCase(complaint.intValue());
             }
-        }
-        log.info("Document extraction exiting");
+        log.info("Complaints extraction between dates {} and {} finished.","2022-01-01","2022-12-30");
     }
 
+    @Bean
+    public ExitCodeExceptionMapper exceptionBasedExitCode() {
+        return exception -> {
+            if (exception.getCause() instanceof SQLServerException) {
+                SQLServerException sqlServerException = (SQLServerException) exception.getCause();
+                log.error("SQL Server exception: {}, SQL Server state: {}", sqlServerException.getMessage(), sqlServerException.getSQLState());
+                return 2;
+            }
+            return 99;
+        };
+    }
 }
