@@ -1,6 +1,9 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
+import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -16,13 +19,16 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
+@Slf4j
 public class ComplaintExtractor {
 
     private final DataSource dataSource;
+    private final DocumentExtrator documentExtrator;
     private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
 
-    public ComplaintExtractor(DataSource dataSource) {
+    public ComplaintExtractor(DataSource dataSource, DocumentExtrator documentExtrator) {
         this.dataSource = dataSource;
+        this.documentExtrator = documentExtrator;
     }
 
     public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) throws SQLException {

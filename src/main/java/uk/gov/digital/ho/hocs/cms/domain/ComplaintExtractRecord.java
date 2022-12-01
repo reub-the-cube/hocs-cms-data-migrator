@@ -11,15 +11,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.math.BigDecimal;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "documents")
-public class DocumentExtractRecord {
+@Table(name = "complaints")
+public class ComplaintExtractRecord {
 
     @Id
     @Column(name = "id")
@@ -30,14 +29,6 @@ public class DocumentExtractRecord {
     private int caseId;
 
     @Column
-    private int documentId;
-
-    @Column
-    private boolean documentExtracted;
-
-    @Column
-    private String failureReason;
-
-    @Column
-    private String tempFileName;
+    private boolean complaintExtracted;
 }
+

@@ -40,20 +40,21 @@ public class DocumentExtrator {
         this.documentsRepository = documentsRepository;
     }
 
-    public void copyDocumentsForCase(Integer caseId) throws SQLException {
+    public void copyDocumentsForCase(int caseId) throws SQLException {
         Connection connection = dataSource.getConnection();
         PreparedStatement stmt = connection.prepareStatement(DOCUMENTS_FOR_CASE);
         stmt.setInt(1, caseId);
         ResultSet rs = stmt.executeQuery();
         while (rs.next()) {
             BigDecimal documentId = rs.getBigDecimal(1);
-            getDocument(documentId.intValue());
+            getDocument(documentId.intValue(), caseId);
         }
     }
 
-    public void getDocument(int documentId) throws SQLException {
+    public void getDocument(int documentId, int caseId) throws SQLException {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
+        record.setCaseId(caseId);
         Connection connection = dataSource.getConnection();
         PreparedStatement stmt = connection.prepareStatement(GET_DOCUMENT);
         stmt.setInt(1, documentId);
