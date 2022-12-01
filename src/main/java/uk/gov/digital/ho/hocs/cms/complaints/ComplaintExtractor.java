@@ -41,6 +41,7 @@ public class ComplaintExtractor {
         while (rs.next()) {
             cases.add(rs.getBigDecimal(1));
         }
+        connection.close();
         return cases;
     }
 

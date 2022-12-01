@@ -29,7 +29,6 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     public ExtractComplaintsRunner(ApplicationContext applicationContext, ComplaintsService complaintsService) {
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
-
     }
 
     @Override
@@ -37,10 +36,9 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
         log.info("Extract documents started");
         if (args.length != 2) {
             log.error("Need to supply date range for extraction");
-            System.exit(SpringApplication.exit(applicationContext, () -> 0));
+            System.exit(SpringApplication.exit(applicationContext, () -> 1));
         }
         complaintsService.migrate(args[0], args[1]);
-
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 

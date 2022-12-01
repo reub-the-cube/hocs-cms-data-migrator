@@ -51,7 +51,7 @@ public class DocumentExtrator {
         }
     }
 
-    public void getDocument(int documentId, int caseId) throws SQLException {
+    private void getDocument(int documentId, int caseId) throws SQLException {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
@@ -60,18 +60,19 @@ public class DocumentExtrator {
         stmt.setInt(1, documentId);
         ResultSet res = stmt.executeQuery();
         String result ="";
-        while (res.next()) {
+        if (res.next()) {
             int id = res.getInt(1);
             String fileName = res.getString(2);
             InputStream is = res.getBinaryStream(3);
-            byte[] bytes;
             try {
-                bytes = IOUtils.toByteArray(is);
+                byte[] bytes = IOUtils.toByteArray(is);
                 result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
             } catch (IOException e) {
                 log.error("Error converting document to byte array {}", id);
                 record.setFailureReason(e.getMessage());
             }
+        } else {
+            log.error("No document found for ID {}", documentId);
         }
         stmt.close();
         if (isValidUUID(result)) {
