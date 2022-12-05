@@ -2,8 +2,6 @@ package uk.gov.digital.ho.hocs.cms.message;
 
 import lombok.Builder;
 import lombok.Getter;
-import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
-import uk.gov.digital.ho.hocs.cms.message.CaseDataItem;
 
 import java.util.List;
 

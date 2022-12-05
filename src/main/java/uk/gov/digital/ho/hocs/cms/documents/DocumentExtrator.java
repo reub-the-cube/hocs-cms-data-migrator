@@ -3,9 +3,11 @@ package uk.gov.digital.ho.hocs.cms.documents;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
+import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -15,6 +17,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Component
@@ -40,18 +44,23 @@ public class DocumentExtrator {
         this.documentsRepository = documentsRepository;
     }
 
-    public void copyDocumentsForCase(int caseId) throws SQLException {
+    public List<CaseAttachment> copyDocumentsForCase(int caseId) throws SQLException {
         Connection connection = dataSource.getConnection();
         PreparedStatement stmt = connection.prepareStatement(DOCUMENTS_FOR_CASE);
         stmt.setInt(1, caseId);
         ResultSet rs = stmt.executeQuery();
+        List<CaseAttachment> attachments = new ArrayList<>();
         while (rs.next()) {
             BigDecimal documentId = rs.getBigDecimal(1);
-            getDocument(documentId.intValue(), caseId);
+            CaseAttachment attachment = getDocument(documentId.intValue(), caseId);
+            if (attachment.getDocumentPath() != null) {
+                attachments.add(attachment);
+            }
         }
+        return attachments;
     }
 
-    private void getDocument(int documentId, int caseId) throws SQLException {
+    private CaseAttachment getDocument(int documentId, int caseId) throws SQLException {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
@@ -59,10 +68,12 @@ public class DocumentExtrator {
         PreparedStatement stmt = connection.prepareStatement(GET_DOCUMENT);
         stmt.setInt(1, documentId);
         ResultSet res = stmt.executeQuery();
-        String result ="";
+        String result = "";
+        CaseAttachment caseAttachment = new CaseAttachment();
         if (res.next()) {
             int id = res.getInt(1);
             String fileName = res.getString(2);
+            caseAttachment.setDisplayName(fileName);
             InputStream is = res.getBinaryStream(3);
             try {
                 byte[] bytes = IOUtils.toByteArray(is);
@@ -78,12 +89,18 @@ public class DocumentExtrator {
         if (isValidUUID(result)) {
             record.setDocumentExtracted(true);
             record.setTempFileName(result);
-            documentsRepository.save(record);
+            saveDocumentResult(record);
+            caseAttachment.setDocumentPath(result);
         } else {
             record.setDocumentExtracted(false);
             record.setFailureReason(result);
-            documentsRepository.save(record);
+            saveDocumentResult(record);
         }
+        return caseAttachment;
+    }
+    @Transactional
+    void saveDocumentResult(DocumentExtractRecord record) {
+        documentsRepository.save(record);
     }
 
     private final static Pattern UUID_REGEX_PATTERN =

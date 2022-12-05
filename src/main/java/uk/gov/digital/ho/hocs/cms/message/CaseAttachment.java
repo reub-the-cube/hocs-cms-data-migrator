@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class CaseAttachment {
 
-    private String path;
-    private String label;
+    private String documentPath;
+    private String displayName;
     private String documentType;
 
 }

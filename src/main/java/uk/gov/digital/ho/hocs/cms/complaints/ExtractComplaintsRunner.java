@@ -19,7 +19,7 @@ import java.util.List;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.documents", havingValue = "enabled", matchIfMissing = false)
+@ConditionalOnProperty(name = "cms.extract.complaints", havingValue = "enabled", matchIfMissing = false)
 public class ExtractComplaintsRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
@@ -33,12 +33,8 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws SQLException {
-        log.info("Extract documents started");
-        if (args.length != 2) {
-            log.error("Need to supply date range for extraction");
-            System.exit(SpringApplication.exit(applicationContext, () -> 1));
-        }
-        complaintsService.migrate(args[0], args[1]);
+        log.info("Extract complaints started");
+        complaintsService.migrate();
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 

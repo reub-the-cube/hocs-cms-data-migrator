@@ -69,9 +69,8 @@ class CaseMigrationMessageTest {
 
         CaseAttachment caseAttachment = new CaseAttachment();
         caseAttachment.setDocumentType("pdf");
-        caseAttachment.setPath("s3://");
-        caseAttachment.setLabel("letter");
-        //List<CaseAttachment> attachments = Arrays.asList(caseAttachment);
+        caseAttachment.setDocumentPath("s3://");
+        caseAttachment.setDisplayName("letter");
         List<CaseAttachment> attachments = new ArrayList<>();
         attachments.add(caseAttachment);
 
