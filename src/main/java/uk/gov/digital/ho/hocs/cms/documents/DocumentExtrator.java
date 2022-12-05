@@ -94,15 +94,15 @@ public class DocumentExtrator {
         }
         ps.close();
         conn.close();
-        if (result.containsKey("Pass")) {
+        if (result.containsKey(DocumentS3Client.RESULT.PASS.label)) {
             record.setDocumentExtracted(true);
-            String fileName = result.get("Pass");
+            String fileName = result.get(DocumentS3Client.RESULT.PASS.label);
             record.setTempFileName(fileName);
             saveDocumentResult(record);
             caseAttachment.setDocumentPath(fileName);
         } else {
             record.setDocumentExtracted(false);
-            record.setFailureReason(result.get("Fail"));
+            record.setFailureReason(result.get(DocumentS3Client.RESULT.FAIL.label));
             saveDocumentResult(record);
         }
         return caseAttachment;

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class ComplaintsService {
     private final DocumentExtrator documentExtrator;
     private final ComplaintExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
+    private final DocumentsRepository documentsRepository;
 
     private final String startDate;
     private final String endDate;
@@ -28,12 +30,14 @@ public class ComplaintsService {
                              @Value("${complaint.end.date}") String endDate,
                              DocumentExtrator documentExtrator,
                              ComplaintExtractor complaintsExtractor,
-                             ComplaintsRepository complaintsRepository) {
+                             ComplaintsRepository complaintsRepository,
+                             DocumentsRepository documentsRepository) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.documentExtrator = documentExtrator;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
+        this.documentsRepository = documentsRepository;
     }
 
     public void migrate() throws SQLException {
@@ -43,6 +47,8 @@ public class ComplaintsService {
         for (BigDecimal complaint : complaints) {
             attachments = documentExtrator.copyDocumentsForCase(complaint.intValue());
             log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaint.intValue());
+            int documentFailures = documentsRepository.findFailedDocumentsForCase(complaint.intValue());
+            log.info("Failed documents for complaint ID {} = {}", complaint.intValue(), documentFailures);
         }
         log.info("Complaints extraction between dates {} and {} finished.", startDate, endDate);
     }

@@ -23,6 +23,13 @@ public class DocumentS3Client {
     private final String bucketName;
     private final String bucketKmsKey;
 
+    public enum RESULT {PASS("PASS"), FAIL("FAIL");
+        public final String label;
+        private RESULT(String label) {
+            this.label = label;
+        }
+    }
+
     public DocumentS3Client(AmazonS3 s3Client,
                             @Value("${aws.s3.untrusted.bucket-name}") String bucketName,
                             @Value("${aws.s3.untrusted.account.bucket-kms-key}") String bucketKmsKey) {
@@ -37,11 +44,11 @@ public class DocumentS3Client {
         Map<String, String> result = new HashMap<>();
         try {
             s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
-            result.put("Pass", tempObjectName);
+            result.put(RESULT.PASS.label, tempObjectName);
         }
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
-            result.put("Fail", e.getMessage());
+            result.put(RESULT.FAIL.label, e.getMessage());
         }
         log.info("S3 Put Object success. ID = {}", id);
         return result;
