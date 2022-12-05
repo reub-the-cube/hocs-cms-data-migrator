@@ -18,7 +18,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Component
@@ -68,7 +70,7 @@ public class DocumentExtrator {
         PreparedStatement stmt = connection.prepareStatement(GET_DOCUMENT);
         stmt.setInt(1, documentId);
         ResultSet res = stmt.executeQuery();
-        String result = "";
+        Map<String, String> result = new HashMap<>();
         CaseAttachment caseAttachment = new CaseAttachment();
         if (res.next()) {
             int id = res.getInt(1);
@@ -86,14 +88,15 @@ public class DocumentExtrator {
             log.error("No document found for ID {}", documentId);
         }
         stmt.close();
-        if (isValidUUID(result)) {
+        if (result.containsKey("Pass")) {
             record.setDocumentExtracted(true);
-            record.setTempFileName(result);
+            String fileName = result.get("Pass");
+            record.setTempFileName(fileName);
             saveDocumentResult(record);
-            caseAttachment.setDocumentPath(result);
+            caseAttachment.setDocumentPath(fileName);
         } else {
             record.setDocumentExtracted(false);
-            record.setFailureReason(result);
+            record.setFailureReason(result.get("Fail"));
             saveDocumentResult(record);
         }
         return caseAttachment;
@@ -103,13 +106,4 @@ public class DocumentExtrator {
         documentsRepository.save(record);
     }
 
-    private final static Pattern UUID_REGEX_PATTERN =
-            Pattern.compile("^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$");
-
-    public static boolean isValidUUID(String str) {
-        if (str == null) {
-            return false;
-        }
-        return UUID_REGEX_PATTERN.matcher(str).matches();
-    }
 }

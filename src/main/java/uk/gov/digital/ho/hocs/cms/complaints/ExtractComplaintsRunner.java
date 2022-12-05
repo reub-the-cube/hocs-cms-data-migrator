@@ -9,13 +9,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
-import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
-import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.List;
 
 @Configuration
 @Slf4j

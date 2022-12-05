@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,18 +31,20 @@ public class DocumentS3Client {
         this.bucketKmsKey = bucketKmsKey;
     }
 
-    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
+    public Map<String, String> storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
         ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
+        Map<String, String> result = new HashMap<>();
         try {
             s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
+            result.put("Pass", tempObjectName);
         }
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
-            return e.getMessage();
+            result.put("Fail", e.getMessage());
         }
         log.info("S3 Put Object success. ID = {}", id);
-        return tempObjectName;
+        return result;
     }
 
     String getTempObjectName() {

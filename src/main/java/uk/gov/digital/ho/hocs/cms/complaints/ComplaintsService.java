@@ -23,7 +23,11 @@ public class ComplaintsService {
     private final String startDate;
     private final String endDate;
 
-    public ComplaintsService(@Value("${complaint.start.date}") String startDate, @Value("${complaint.end.date}") String endDate, DocumentExtrator documentExtrator, ComplaintExtractor complaintsExtractor, ComplaintsRepository complaintsRepository) {
+    public ComplaintsService(@Value("${complaint.start.date}") String startDate,
+                             @Value("${complaint.end.date}") String endDate,
+                             DocumentExtrator documentExtrator,
+                             ComplaintExtractor complaintsExtractor,
+                             ComplaintsRepository complaintsRepository) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.documentExtrator = documentExtrator;
