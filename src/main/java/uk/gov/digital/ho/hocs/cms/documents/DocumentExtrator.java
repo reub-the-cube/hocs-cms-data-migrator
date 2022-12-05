@@ -47,18 +47,23 @@ public class DocumentExtrator {
     }
 
     public List<CaseAttachment> copyDocumentsForCase(int caseId) throws SQLException {
-        Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(DOCUMENTS_FOR_CASE);
-        stmt.setInt(1, caseId);
-        ResultSet rs = stmt.executeQuery();
+        Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
+        ps.setInt(1, caseId);
+        ResultSet rs = ps.executeQuery();
         List<CaseAttachment> attachments = new ArrayList<>();
         while (rs.next()) {
             BigDecimal documentId = rs.getBigDecimal(1);
             CaseAttachment attachment = getDocument(documentId.intValue(), caseId);
             if (attachment.getDocumentPath() != null) {
                 attachments.add(attachment);
+            } else {
+                log.error("Document ID {} failed to extract", documentId.intValue());
             }
         }
+        // Close resources unless SQLException is thrown which will terminate the application.
+        ps.close();
+        conn.close();
         return attachments;
     }
 
@@ -66,10 +71,10 @@ public class DocumentExtrator {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
-        Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(GET_DOCUMENT);
-        stmt.setInt(1, documentId);
-        ResultSet res = stmt.executeQuery();
+        Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT);
+        ps.setInt(1, documentId);
+        ResultSet res = ps.executeQuery();
         Map<String, String> result = new HashMap<>();
         CaseAttachment caseAttachment = new CaseAttachment();
         if (res.next()) {
@@ -87,7 +92,8 @@ public class DocumentExtrator {
         } else {
             log.error("No document found for ID {}", documentId);
         }
-        stmt.close();
+        ps.close();
+        conn.close();
         if (result.containsKey("Pass")) {
             record.setDocumentExtracted(true);
             String fileName = result.get("Pass");
