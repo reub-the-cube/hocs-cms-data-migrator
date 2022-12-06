@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
+import uk.gov.digital.ho.hocs.cms.exception.ExtractComplaintException;
+import uk.gov.digital.ho.hocs.cms.exception.ExtractDocumentException;
 import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
 
 import javax.sql.DataSource;
@@ -46,19 +48,19 @@ public class DocumentExtrator {
         this.documentsRepository = documentsRepository;
     }
 
-    public List<CaseAttachment> copyDocumentsForCase(int caseId) throws SQLException {
+    public List<CaseAttachment> copyDocumentsForCase(int complaintId) throws SQLException {
         Connection conn = dataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
-        ps.setInt(1, caseId);
+        ps.setInt(1, complaintId);
         ResultSet rs = ps.executeQuery();
         List<CaseAttachment> attachments = new ArrayList<>();
         while (rs.next()) {
             BigDecimal documentId = rs.getBigDecimal(1);
-            CaseAttachment attachment = getDocument(documentId.intValue(), caseId);
+            CaseAttachment attachment = getDocument(documentId.intValue(), complaintId);
             if (attachment.getDocumentPath() != null) {
                 attachments.add(attachment);
             } else {
-                log.error("Document ID {} failed to extract", documentId.intValue());
+                log.error("Document ID {} failed to extract for complaint ID {}", documentId.intValue(), complaintId);
             }
         }
         // Close resources unless SQLException is thrown which will terminate the application.
@@ -71,40 +73,39 @@ public class DocumentExtrator {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
+        String result = null;
+        CaseAttachment caseAttachment = new CaseAttachment();
         Connection conn = dataSource.getConnection();
         PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT);
         ps.setInt(1, documentId);
         ResultSet res = ps.executeQuery();
-        Map<String, String> result = new HashMap<>();
-        CaseAttachment caseAttachment = new CaseAttachment();
         if (res.next()) {
             int id = res.getInt(1);
             String fileName = res.getString(2);
             caseAttachment.setDisplayName(fileName);
             InputStream is = res.getBinaryStream(3);
+            byte[] bytes = null;
             try {
-                byte[] bytes = IOUtils.toByteArray(is);
-                result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
+                bytes = IOUtils.toByteArray(is);
             } catch (IOException e) {
                 log.error("Error converting document to byte array {}", id);
                 record.setFailureReason(e.getMessage());
+                throw new ExtractDocumentException("Error converting document to byte array.", e);
+            }
+            try {
+                result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
+            } catch (ExtractDocumentException e) {
+                throw new ExtractComplaintException("Error copying document for complaint", e);
             }
         } else {
             log.error("No document found for ID {}", documentId);
         }
         ps.close();
         conn.close();
-        if (result.containsKey(DocumentS3Client.RESULT.PASS.label)) {
-            record.setDocumentExtracted(true);
-            String fileName = result.get(DocumentS3Client.RESULT.PASS.label);
-            record.setTempFileName(fileName);
-            saveDocumentResult(record);
-            caseAttachment.setDocumentPath(fileName);
-        } else {
-            record.setDocumentExtracted(false);
-            record.setFailureReason(result.get(DocumentS3Client.RESULT.FAIL.label));
-            saveDocumentResult(record);
-        }
+        record.setDocumentExtracted(true);
+        record.setTempFileName(result);
+        saveDocumentResult(record);
+        caseAttachment.setDocumentPath(result);
         return caseAttachment;
     }
     @Transactional

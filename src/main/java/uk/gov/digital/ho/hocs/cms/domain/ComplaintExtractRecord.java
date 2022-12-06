@@ -30,5 +30,8 @@ public class ComplaintExtractRecord {
 
     @Column
     private boolean complaintExtracted;
+
+    @Column
+    private String stage;
 }
 

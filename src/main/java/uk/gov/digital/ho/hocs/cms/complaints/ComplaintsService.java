@@ -2,7 +2,6 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
@@ -39,17 +38,26 @@ public class ComplaintsService {
         this.complaintsRepository = complaintsRepository;
         this.documentsRepository = documentsRepository;
     }
-
     public void migrate() throws SQLException {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
         log.info("{} complaints found for dates {} to {}.", complaints.size(), startDate, endDate);
-        List<CaseAttachment> attachments = null;
         for (BigDecimal complaint : complaints) {
-            attachments = documentExtrator.copyDocumentsForCase(complaint.intValue());
+            ComplaintExtractRecord cer = new ComplaintExtractRecord();
+            List<CaseAttachment> attachments = documentExtrator.copyDocumentsForCase(complaint.intValue());
             log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaint.intValue());
-            int documentFailures = documentsRepository.findFailedDocumentsForCase(complaint.intValue());
-            log.info("Failed documents for complaint ID {} = {}", complaint.intValue(), documentFailures);
+            if (documentsRepository.findFailedDocumentsForCase(complaint.intValue()) == 0) {
+                cer.setCaseId(complaint.intValue());
+                cer.setComplaintExtracted(true);
+            } else {
+                cer.setCaseId(complaint.intValue());
+                cer.setComplaintExtracted(false);
+                log.error("Failed documents for complaint ID {}", complaint.intValue());
         }
+            cer.setStage("Documents");
+            complaintsRepository.save(cer);
+        }
+        // TODO: Extract additional complaint data
+        // TODO: Check case record and build migration message
         log.info("Complaints extraction between dates {} and {} finished.", startDate, endDate);
     }
 }

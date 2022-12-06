@@ -6,10 +6,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.hocs.cms.exception.ExtractDocumentException;
 
 import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -23,13 +22,6 @@ public class DocumentS3Client {
     private final String bucketName;
     private final String bucketKmsKey;
 
-    public enum RESULT {PASS("PASS"), FAIL("FAIL");
-        public final String label;
-        private RESULT(String label) {
-            this.label = label;
-        }
-    }
-
     public DocumentS3Client(AmazonS3 s3Client,
                             @Value("${aws.s3.untrusted.bucket-name}") String bucketName,
                             @Value("${aws.s3.untrusted.account.bucket-kms-key}") String bucketKmsKey) {
@@ -38,20 +30,18 @@ public class DocumentS3Client {
         this.bucketKmsKey = bucketKmsKey;
     }
 
-    public Map<String, String> storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
+    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
         ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
-        Map<String, String> result = new HashMap<>();
         try {
             s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
-            result.put(RESULT.PASS.label, tempObjectName);
+            log.info("S3 Put Object success. ID = {}", id);
         }
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
-            result.put(RESULT.FAIL.label, e.getMessage());
+            throw new ExtractDocumentException("Failed to save document ID: " + id, e);
         }
-        log.info("S3 Put Object success. ID = {}", id);
-        return result;
+        return tempObjectName;
     }
 
     String getTempObjectName() {

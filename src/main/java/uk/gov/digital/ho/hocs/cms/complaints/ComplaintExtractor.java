@@ -32,16 +32,17 @@ public class ComplaintExtractor {
     }
 
     public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) throws SQLException {
-        Connection connection = dataSource.getConnection();
-        PreparedStatement stmt = connection.prepareStatement(COMPLAINT_ID_BY_DATE_RANGE);
-        stmt.setString(1, start);
-        stmt.setString(2, end);
-        ResultSet rs = stmt.executeQuery();
+        Connection conn = dataSource.getConnection();
+        PreparedStatement ps = conn.prepareStatement(COMPLAINT_ID_BY_DATE_RANGE);
+        ps.setString(1, start);
+        ps.setString(2, end);
+        ResultSet rs = ps.executeQuery();
         List<BigDecimal> cases = new ArrayList<>();
         while (rs.next()) {
             cases.add(rs.getBigDecimal(1));
         }
-        connection.close();
+        ps.close();
+        conn.close();
         return cases;
     }
 
