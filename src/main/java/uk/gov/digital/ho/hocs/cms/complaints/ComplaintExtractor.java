@@ -1,15 +1,13 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
-import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,33 +15,32 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Component
 @Slf4j
 public class ComplaintExtractor {
 
-    private final DataSource dataSource;
-    private final DocumentExtrator documentExtrator;
-    private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN ? AND ?";
+    private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ComplaintExtractor(DataSource dataSource, DocumentExtrator documentExtrator) {
-        this.dataSource = dataSource;
-        this.documentExtrator = documentExtrator;
+    public ComplaintExtractor(NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
+        this.jdbcTemplate = namedParametersJdbcTemplate;
     }
 
-    public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) throws SQLException {
-        Connection conn = dataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement(COMPLAINT_ID_BY_DATE_RANGE);
-        ps.setString(1, start);
-        ps.setString(2, end);
-        ResultSet rs = ps.executeQuery();
+    public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) {
+        MapSqlParameterSource mapParameters = new MapSqlParameterSource();
+        mapParameters.addValue("startDate", start);
+        mapParameters.addValue("endDate", end);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(COMPLAINT_ID_BY_DATE_RANGE, mapParameters);
         List<BigDecimal> cases = new ArrayList<>();
-        while (rs.next()) {
-            cases.add(rs.getBigDecimal(1));
+        for (Map row : rows) {
+                Object result = row.get("caseId");
+                if (result instanceof BigDecimal bd) {
+                    cases.add(bd);
+                }
         }
-        ps.close();
-        conn.close();
-        return cases;
+        return  cases;
     }
 
     private LocalDate dateFormat(String strDate) {

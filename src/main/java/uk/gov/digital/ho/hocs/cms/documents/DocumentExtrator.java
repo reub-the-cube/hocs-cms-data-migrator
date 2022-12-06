@@ -2,13 +2,13 @@ package uk.gov.digital.ho.hocs.cms.documents;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
-import uk.gov.digital.ho.hocs.cms.exception.ExtractComplaintException;
-import uk.gov.digital.ho.hocs.cms.exception.ExtractDocumentException;
+import uk.gov.digital.ho.hocs.cms.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
 
 import javax.sql.DataSource;
@@ -20,10 +20,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.COMPLAINT_DOCUMENT_IDS_NOT_FOUND;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_FAILED_TO_COPY;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_NOT_FOUND;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
 
 @Component
 @Slf4j
@@ -32,6 +34,7 @@ public class DocumentExtrator {
     private final DataSource dataSource;
     private final DocumentS3Client documentS3Client;
     private final DocumentsRepository documentsRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_DOCUMENT = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
 
@@ -42,75 +45,134 @@ public class DocumentExtrator {
         where lev.CaseId = ?
         """;
 
-    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
+    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository, JdbcTemplate jdbcTemplate) {
         this.dataSource = dataSource;
         this.documentS3Client = documentS3Client;
         this.documentsRepository = documentsRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<CaseAttachment> copyDocumentsForCase(int complaintId) throws SQLException {
-        Connection conn = dataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
-        ps.setInt(1, complaintId);
-        ResultSet rs = ps.executeQuery();
+    public List<CaseAttachment> copyDocumentsForCase(int complaintId) {
+
         List<CaseAttachment> attachments = new ArrayList<>();
-        while (rs.next()) {
-            BigDecimal documentId = rs.getBigDecimal(1);
-            CaseAttachment attachment = getDocument(documentId.intValue(), complaintId);
-            if (attachment.getDocumentPath() != null) {
-                attachments.add(attachment);
-            } else {
-                log.error("Document ID {} failed to extract for complaint ID {}", documentId.intValue(), complaintId);
+        List<BigDecimal> documentIds = queryDocumentIdsForCase(complaintId);
+        for (BigDecimal documentId : documentIds) {
+            try {
+                CaseAttachment attachment = getDocument(documentId.intValue(), complaintId);
+                if (attachment.getDocumentPath() != null) {
+                    attachments.add(attachment);
+                } else {
+                    log.error("Document ID {} failed to extract for complaint ID {}", documentId, complaintId);
+                }
+            } catch (ApplicationExceptions.ExtractComplaintException e) {
+                log.error("Document extract failed for complaint ID :" + complaintId + " " + e.getEvent() + " skipping complaint...");
             }
         }
-        // Close resources unless SQLException is thrown which will terminate the application.
-        ps.close();
-        conn.close();
         return attachments;
     }
 
-    private CaseAttachment getDocument(int documentId, int caseId) throws SQLException {
+    private CaseAttachment getDocument(int documentId, int complaintId) {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
-        record.setCaseId(caseId);
-        String result = null;
+        record.setCaseId(complaintId);
+        String fileName = null;
         CaseAttachment caseAttachment = new CaseAttachment();
-        Connection conn = dataSource.getConnection();
-        PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT);
-        ps.setInt(1, documentId);
-        ResultSet res = ps.executeQuery();
-        if (res.next()) {
-            int id = res.getInt(1);
-            String fileName = res.getString(2);
-            caseAttachment.setDisplayName(fileName);
-            InputStream is = res.getBinaryStream(3);
-            byte[] bytes = null;
-            try {
-                bytes = IOUtils.toByteArray(is);
-            } catch (IOException e) {
-                log.error("Error converting document to byte array {}", id);
-                record.setFailureReason(e.getMessage());
-                throw new ExtractDocumentException("Error converting document to byte array.", e);
-            }
-            try {
-                result = documentS3Client.storeUntrustedDocument(fileName, bytes, id);
-            } catch (ExtractDocumentException e) {
-                throw new ExtractComplaintException("Error copying document for complaint", e);
-            }
-        } else {
-            log.error("No document found for ID {}", documentId);
+        DocStore doc = null;
+        try {
+            doc = queryForDocument(documentId);
+        } catch (ApplicationExceptions.ExtractDocumentException e) {
+            record.setDocumentExtracted(false);
+            record.setFailureReason(e.getMessage());
+            saveDocumentResult(record);
+            throw new ApplicationExceptions.ExtractComplaintException(
+                    String.format("Failed to extract document for complaint: " + complaintId), DOCUMENT_RETRIEVAL_FAILED);
         }
-        ps.close();
-        conn.close();
+
+        try {
+            fileName = documentS3Client.storeUntrustedDocument(doc.fileName(), doc.bytes(), documentId);
+        } catch (ApplicationExceptions.ExtractDocumentException e) {
+            record.setDocumentExtracted(false);
+            record.setFailureReason(e.getMessage());
+            saveDocumentResult(record);
+            throw new ApplicationExceptions.ExtractComplaintException(
+                    String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_FAILED_TO_COPY);
+        }
+
         record.setDocumentExtracted(true);
-        record.setTempFileName(result);
+        record.setTempFileName(fileName);
         saveDocumentResult(record);
-        caseAttachment.setDocumentPath(result);
+        caseAttachment.setDocumentPath(fileName);
         return caseAttachment;
     }
+
+    private List<BigDecimal> queryDocumentIdsForCase(int complaintId) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        List<BigDecimal> documentIds = new ArrayList<>();
+        try {
+            conn = dataSource.getConnection();
+            ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
+            ps.setInt(1, complaintId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                BigDecimal documentId = rs.getBigDecimal(1);
+                documentIds.add(documentId);
+            }
+        } catch (SQLException e) {
+            log.error(e.getMessage());
+            throw new ApplicationExceptions.ExtractComplaintException(
+                    String.format("Failed to retrieve document IDs for complaint: " + complaintId), COMPLAINT_DOCUMENT_IDS_NOT_FOUND);
+        } finally {
+            try {
+                if (ps != null) ps.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+            }
+        }
+        return documentIds;
+    }
+
+    private DocStore queryForDocument(int documentId) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        DocStore docStore = null;
+        try {
+            conn = dataSource.getConnection();
+            ps = conn.prepareStatement(GET_DOCUMENT);
+            ps.setInt(1, documentId);
+            ResultSet res = ps.executeQuery();
+            if (res.next()) {
+                String fileName = res.getString(2);
+                InputStream is = res.getBinaryStream(3);
+                byte[] bytes = IOUtils.toByteArray(is);
+                docStore = new DocStore(fileName, bytes);
+            } else {
+                log.error("No document found for ID {}", documentId);
+            }
+        } catch (SQLException | IOException e){
+            log.error(e.getMessage());
+            throw new ApplicationExceptions.ExtractDocumentException(
+                    String.format("Failed to retrieve document ID: ", documentId), DOCUMENT_NOT_FOUND);
+            } finally {
+            try {
+                if (ps != null)
+                    ps.close();
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException e) {
+
+            }
+        }
+        return docStore;
+        }
+
+
     @Transactional
     void saveDocumentResult(DocumentExtractRecord record) {
         documentsRepository.save(record);
     }
 
+}
+
+record DocStore(String fileName, byte[] bytes) {
 }

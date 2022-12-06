@@ -21,7 +21,7 @@ aws:
         access-key: 12345
         secret-key: 12345
         bucket-kms-key:
-      bucket-name: untrusted-bucket
+      bucket-name: untrusted-bucket2
 
 run:
   config:

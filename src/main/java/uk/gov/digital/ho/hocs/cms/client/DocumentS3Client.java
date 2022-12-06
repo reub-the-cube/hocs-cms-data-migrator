@@ -6,10 +6,12 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.hocs.cms.exception.ExtractDocumentException;
+import uk.gov.digital.ho.hocs.cms.exception.ApplicationExceptions;
 
 import java.io.ByteArrayInputStream;
 import java.util.UUID;
+
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
 
 @Service
 @Slf4j
@@ -39,7 +41,8 @@ public class DocumentS3Client {
         }
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
-            throw new ExtractDocumentException("Failed to save document ID: " + id, e);
+            throw new ApplicationExceptions.ExtractDocumentException(
+                    String.format("Failed to retrieve document ID: " + id), DOCUMENT_RETRIEVAL_FAILED);
         }
         return tempObjectName;
     }
