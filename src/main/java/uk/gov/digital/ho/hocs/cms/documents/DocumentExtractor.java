@@ -2,7 +2,6 @@ package uk.gov.digital.ho.hocs.cms.documents;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
@@ -22,19 +21,19 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.COMPLAINT_DOCUMENT_IDS_NOT_FOUND;
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_FAILED_TO_COPY;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_BYTE_CONVERSION_FAILED;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_COPY_FAILED;
 import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_NOT_FOUND;
 import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.SQL_EXCEPTION;
 
 @Component
 @Slf4j
-public class DocumentExtrator {
+public class DocumentExtractor {
 
     private final DataSource dataSource;
     private final DocumentS3Client documentS3Client;
     private final DocumentsRepository documentsRepository;
-    private final JdbcTemplate jdbcTemplate;
 
     private static final String GET_DOCUMENT = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
 
@@ -45,15 +44,13 @@ public class DocumentExtrator {
         where lev.CaseId = ?
         """;
 
-    public DocumentExtrator(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository, JdbcTemplate jdbcTemplate) {
+    public DocumentExtractor(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
         this.dataSource = dataSource;
         this.documentS3Client = documentS3Client;
         this.documentsRepository = documentsRepository;
-        this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<CaseAttachment> copyDocumentsForCase(int complaintId) {
-
         List<CaseAttachment> attachments = new ArrayList<>();
         List<BigDecimal> documentIds = queryDocumentIdsForCase(complaintId);
         for (BigDecimal documentId : documentIds) {
@@ -95,7 +92,7 @@ public class DocumentExtrator {
             record.setFailureReason(e.getMessage());
             saveDocumentResult(record);
             throw new ApplicationExceptions.ExtractComplaintException(
-                    String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_FAILED_TO_COPY);
+                    String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_COPY_FAILED);
         }
 
         record.setDocumentExtracted(true);
@@ -121,7 +118,7 @@ public class DocumentExtrator {
         } catch (SQLException e) {
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractComplaintException(
-                    String.format("Failed to retrieve document IDs for complaint: " + complaintId), COMPLAINT_DOCUMENT_IDS_NOT_FOUND);
+                    String.format("Failed to retrieve document IDs for complaint: " + complaintId), SQL_EXCEPTION);
         } finally {
             try {
                 if (ps != null) ps.close();
@@ -147,20 +144,26 @@ public class DocumentExtrator {
                 byte[] bytes = IOUtils.toByteArray(is);
                 docStore = new DocStore(fileName, bytes);
             } else {
-                log.error("No document found for ID {}", documentId);
+                log.error("Could not find document ID {}", documentId);
+                throw new ApplicationExceptions.ExtractDocumentException(
+                        String.format("Failed to retrieve document ID: ", documentId), DOCUMENT_NOT_FOUND);
             }
-        } catch (SQLException | IOException e){
+        } catch (SQLException e){
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document ID: ", documentId), DOCUMENT_NOT_FOUND);
-            } finally {
-            try {
-                if (ps != null)
-                    ps.close();
-                if (conn != null)
-                    conn.close();
-            } catch (SQLException e) {
-
+                    String.format("Failed to retrieve document ID: ", documentId), SQL_EXCEPTION);
+        } catch (IOException e) {
+            log.error("Failed to convert document ID: {} to bytes.", documentId);
+            throw new ApplicationExceptions.ExtractDocumentException(
+                    String.format("Failed to convert document ID: {} to bytes.", documentId), DOCUMENT_BYTE_CONVERSION_FAILED);
+        } finally {
+        try {
+            if (ps != null)
+                ps.close();
+            if (conn != null)
+                conn.close();
+        } catch (SQLException e) {
+            log.error(e.getMessage());
             }
         }
         return docStore;

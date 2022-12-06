@@ -3,7 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.gov.digital.ho.hocs.cms.documents.DocumentExtrator;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class ComplaintsService {
 
-    private final DocumentExtrator documentExtrator;
+    private final DocumentExtractor documentExtrator;
     private final ComplaintExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
     private final DocumentsRepository documentsRepository;
@@ -27,7 +27,7 @@ public class ComplaintsService {
 
     public ComplaintsService(@Value("${complaint.start.date}") String startDate,
                              @Value("${complaint.end.date}") String endDate,
-                             DocumentExtrator documentExtrator,
+                             DocumentExtractor documentExtrator,
                              ComplaintExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
                              DocumentsRepository documentsRepository) {
