@@ -32,7 +32,7 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws SQLException {
+    public void run(String... args) {
         log.info("Extract complaints started for dates {} until {}", startDate, endDate);
         complaintsService.migrateComplaints(startDate, endDate);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
