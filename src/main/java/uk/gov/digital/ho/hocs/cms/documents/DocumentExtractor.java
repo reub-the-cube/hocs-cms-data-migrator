@@ -152,16 +152,16 @@ public class DocumentExtractor {
             } else {
                 log.error("Could not find document ID {}", documentId);
                 throw new ApplicationExceptions.ExtractDocumentException(
-                        String.format("Failed to retrieve document ID: ", documentId), DOCUMENT_NOT_FOUND);
+                        String.format("Failed to retrieve document ID: %s", documentId), DOCUMENT_NOT_FOUND);
             }
         } catch (SQLException e){
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document ID: ", documentId), SQL_EXCEPTION);
+                    String.format("Failed to retrieve document ID: %s", documentId), SQL_EXCEPTION);
         } catch (IOException e) {
             log.error("Failed to convert document ID: {} to bytes.", documentId);
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to convert document ID: {} to bytes.", documentId), DOCUMENT_BYTE_CONVERSION_FAILED);
+                    String.format("Failed to convert document ID: %s to bytes.", documentId), DOCUMENT_BYTE_CONVERSION_FAILED);
         } finally {
         try {
             if (ps != null)
