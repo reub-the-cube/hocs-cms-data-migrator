@@ -68,6 +68,7 @@ public class DocumentExtractor {
                 log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent() + " skipping case...");
             }
         }
+        // TODO: This could be a partial list of attachments
         return attachments;
     }
 
