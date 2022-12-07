@@ -31,7 +31,7 @@ import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.SQL_EXCEPTION
 @Slf4j
 public class DocumentExtractor {
 
-    record DocStore(String fileName, byte[] bytes) {
+    private record DocStore(String fileName, byte[] bytes) {
     }
 
     private final DataSource dataSource;
