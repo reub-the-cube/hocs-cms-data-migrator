@@ -17,21 +17,18 @@ import java.util.List;
 public class ComplaintsService {
 
     private final DocumentExtractor documentExtrator;
+    private final DocumentsRepository documentsRepository;
     private final ComplaintExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
-    private final DocumentsRepository documentsRepository;
-
-
-
 
     public ComplaintsService(DocumentExtractor documentExtrator,
+                             DocumentsRepository documentsRepository,
                              ComplaintExtractor complaintsExtractor,
-                             ComplaintsRepository complaintsRepository,
-                             DocumentsRepository documentsRepository) {
+                             ComplaintsRepository complaintsRepository) {
         this.documentExtrator = documentExtrator;
+        this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
-        this.documentsRepository = documentsRepository;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
