@@ -84,7 +84,7 @@ public class DocumentExtractor {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
-            throw new ApplicationExceptions.ExtractDocumentException(
+            throw new ApplicationExceptions.ExtractCaseException(
                     String.format("Failed to extract document for complaint: " + complaintId), DOCUMENT_RETRIEVAL_FAILED);
         }
 
