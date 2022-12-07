@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
@@ -73,7 +72,7 @@ public class DocumentExtractor {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(complaintId);
-        String fileName = null;
+        String tempFileName = null;
         CaseAttachment caseAttachment = new CaseAttachment();
         DocStore doc = null;
         try {
@@ -87,7 +86,7 @@ public class DocumentExtractor {
         }
 
         try {
-            fileName = documentS3Client.storeUntrustedDocument(doc.fileName(), doc.bytes(), documentId);
+            tempFileName = documentS3Client.storeUntrustedDocument(doc.fileName(), doc.bytes(), documentId);
         } catch (ApplicationExceptions.ExtractDocumentException e) {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
@@ -97,9 +96,10 @@ public class DocumentExtractor {
         }
 
         record.setDocumentExtracted(true);
-        record.setTempFileName(fileName);
+        record.setTempFileName(tempFileName);
         documentsRepository.save(record);
-        caseAttachment.setDocumentPath(fileName);
+        caseAttachment.setDocumentPath(tempFileName);
+        caseAttachment.setDisplayName(doc.fileName());
         return caseAttachment;
     }
 
@@ -169,13 +169,6 @@ public class DocumentExtractor {
         }
         return docStore;
         }
-
-
-    @Transactional
-    void saveDocumentResult(DocumentExtractRecord record) {
-        documentsRepository.save(record);
-    }
-
 }
 
 record DocStore(String fileName, byte[] bytes) {

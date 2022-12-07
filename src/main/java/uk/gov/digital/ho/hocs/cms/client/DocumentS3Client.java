@@ -11,6 +11,7 @@ import uk.gov.digital.ho.hocs.cms.exception.ApplicationExceptions;
 import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
+import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_COPY_FAILED;
 import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
 
 @Service
@@ -42,7 +43,7 @@ public class DocumentS3Client {
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document ID: " + id), DOCUMENT_RETRIEVAL_FAILED);
+                    String.format("Failed to retrieve document ID: " + id), DOCUMENT_COPY_FAILED);
         }
         return tempObjectName;
     }
