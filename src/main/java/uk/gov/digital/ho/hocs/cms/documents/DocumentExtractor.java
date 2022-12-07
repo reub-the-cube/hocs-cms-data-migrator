@@ -62,7 +62,7 @@ public class DocumentExtractor {
                 if (attachment.getDocumentPath() != null) {
                     attachments.add(attachment);
                 } else {
-                    log.error("Document ID {} failed to extract for caset ID {}", documentId, caseId);
+                    log.error("Document ID {} failed to extract for case ID {}", documentId, caseId);
                 }
             } catch (ApplicationExceptions.ExtractCaseException e) {
                 log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent() + " skipping case...");
