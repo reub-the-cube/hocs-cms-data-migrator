@@ -20,17 +20,17 @@ import java.util.Map;
 public class ComplaintExtractor {
 
     private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public ComplaintExtractor(@Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
-        this.jdbcTemplate = namedParametersJdbcTemplate;
+        this.namedParameterJdbcTemplate = namedParametersJdbcTemplate;
     }
 
     public List<BigDecimal> getComplaintIdsByDateRange(String start, String end) {
         MapSqlParameterSource mapParameters = new MapSqlParameterSource();
         mapParameters.addValue("startDate", start);
         mapParameters.addValue("endDate", end);
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(COMPLAINT_ID_BY_DATE_RANGE, mapParameters);
+        List<Map<String, Object>> rows = namedParameterJdbcTemplate.queryForList(COMPLAINT_ID_BY_DATE_RANGE, mapParameters);
         List<BigDecimal> cases = new ArrayList<>();
         for (Map row : rows) {
                 Object result = row.get("caseId");

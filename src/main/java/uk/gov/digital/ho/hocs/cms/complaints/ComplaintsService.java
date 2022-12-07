@@ -1,13 +1,12 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 
 import java.math.BigDecimal;
 import java.util.List;
