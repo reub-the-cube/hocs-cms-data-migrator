@@ -53,28 +53,28 @@ public class DocumentExtractor {
         this.documentsRepository = documentsRepository;
     }
 
-    public List<CaseAttachment> copyDocumentsForCase(int complaintId) {
+    public List<CaseAttachment> copyDocumentsForCase(int caseId) {
         List<CaseAttachment> attachments = new ArrayList<>();
-        List<BigDecimal> documentIds = queryDocumentIdsForCase(complaintId);
+        List<BigDecimal> documentIds = queryDocumentIdsForCase(caseId);
         for (BigDecimal documentId : documentIds) {
             try {
-                CaseAttachment attachment = getDocument(documentId.intValue(), complaintId);
+                CaseAttachment attachment = getDocument(documentId.intValue(), caseId);
                 if (attachment.getDocumentPath() != null) {
                     attachments.add(attachment);
                 } else {
-                    log.error("Document ID {} failed to extract for complaint ID {}", documentId, complaintId);
+                    log.error("Document ID {} failed to extract for complaint ID {}", documentId, caseId);
                 }
             } catch (ApplicationExceptions.ExtractCaseException e) {
-                log.error("Document extract failed for complaint ID :" + complaintId + " " + e.getEvent() + " skipping complaint...");
+                log.error("Document extract failed for complaint ID :" + caseId + " " + e.getEvent() + " skipping complaint...");
             }
         }
         return attachments;
     }
 
-    private CaseAttachment getDocument(int documentId, int complaintId) {
+    private CaseAttachment getDocument(int documentId, int caseId) {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
-        record.setCaseId(complaintId);
+        record.setCaseId(caseId);
         String tempFileName = null;
         CaseAttachment caseAttachment = new CaseAttachment();
         DocStore doc = null;
@@ -85,7 +85,7 @@ public class DocumentExtractor {
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractCaseException(
-                    String.format("Failed to extract document for complaint: " + complaintId), DOCUMENT_RETRIEVAL_FAILED);
+                    String.format("Failed to extract document for complaint: " + caseId), DOCUMENT_RETRIEVAL_FAILED);
         }
 
         try {
@@ -95,7 +95,7 @@ public class DocumentExtractor {
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractCaseException(
-                    String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_COPY_FAILED);
+                    String.format("Failed to copy document for complaint: " + caseId), DOCUMENT_COPY_FAILED);
         }
 
         record.setDocumentExtracted(true);
@@ -106,14 +106,14 @@ public class DocumentExtractor {
         return caseAttachment;
     }
 
-    private List<BigDecimal> queryDocumentIdsForCase(int complaintId) {
+    private List<BigDecimal> queryDocumentIdsForCase(int caseId) {
         Connection conn = null;
         PreparedStatement ps = null;
         List<BigDecimal> documentIds = new ArrayList<>();
         try {
             conn = dataSource.getConnection();
             ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
-            ps.setInt(1, complaintId);
+            ps.setInt(1, caseId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 BigDecimal documentId = rs.getBigDecimal(1);
@@ -122,7 +122,7 @@ public class DocumentExtractor {
         } catch (SQLException e) {
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document IDs for complaint: " + complaintId), SQL_EXCEPTION);
+                    String.format("Failed to retrieve document IDs for complaint: " + caseId), SQL_EXCEPTION);
         } finally {
             try {
                 if (ps != null) ps.close();
