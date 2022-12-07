@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,8 +18,15 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     private final ApplicationContext applicationContext;
     private final ComplaintsService complaintsService;
 
-    public ExtractComplaintsRunner(ApplicationContext applicationContext,
+    private final String startDate;
+    private final String endDate;
+
+    public ExtractComplaintsRunner(@Value("${complaint.start.date}") String startDate,
+                                   @Value("${complaint.end.date}") String endDate,
+                                   ApplicationContext applicationContext,
                                    ComplaintsService complaintsService) {
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
     }
@@ -26,7 +34,7 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws SQLException {
         log.info("Extract complaints started");
-        complaintsService.migrateComplaints();
+        complaintsService.migrateComplaints(startDate, endDate);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 }

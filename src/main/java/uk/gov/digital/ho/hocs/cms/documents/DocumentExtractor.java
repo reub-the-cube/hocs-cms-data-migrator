@@ -61,7 +61,7 @@ public class DocumentExtractor {
                 } else {
                     log.error("Document ID {} failed to extract for complaint ID {}", documentId, complaintId);
                 }
-            } catch (ApplicationExceptions.ExtractComplaintException e) {
+            } catch (ApplicationExceptions.ExtractDocumentException e) {
                 log.error("Document extract failed for complaint ID :" + complaintId + " " + e.getEvent() + " skipping complaint...");
             }
         }
@@ -81,7 +81,7 @@ public class DocumentExtractor {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
-            throw new ApplicationExceptions.ExtractComplaintException(
+            throw new ApplicationExceptions.ExtractDocumentException(
                     String.format("Failed to extract document for complaint: " + complaintId), DOCUMENT_RETRIEVAL_FAILED);
         }
 
@@ -91,7 +91,7 @@ public class DocumentExtractor {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
-            throw new ApplicationExceptions.ExtractComplaintException(
+            throw new ApplicationExceptions.ExtractDocumentException(
                     String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_COPY_FAILED);
         }
 

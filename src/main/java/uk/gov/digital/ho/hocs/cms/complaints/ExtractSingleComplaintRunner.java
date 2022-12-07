@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,8 +18,12 @@ public class ExtractSingleComplaintRunner implements CommandLineRunner {
     private final ApplicationContext applicationContext;
     private final ComplaintsService complaintsService;
 
-    public ExtractSingleComplaintRunner(ApplicationContext applicationContext,
+    private final String complaintId;
+
+    public ExtractSingleComplaintRunner(@Value("${complaint.id}") String complaintId,
+                                        ApplicationContext applicationContext,
                                         ComplaintsService complaintsService) {
+        this.complaintId = complaintId;
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
     }
@@ -26,7 +31,7 @@ public class ExtractSingleComplaintRunner implements CommandLineRunner {
     @Override
     public void run(String... args) throws SQLException {
         log.info("Extract a single complaint started");
-        complaintsService.migrateComplaint();
+        complaintsService.migrateComplaint(complaintId);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 }

@@ -21,26 +21,21 @@ public class ComplaintsService {
     private final ComplaintsRepository complaintsRepository;
     private final DocumentsRepository documentsRepository;
 
-    private final String startDate;
-    private final String endDate;
-    private final String complaintId;
 
-    public ComplaintsService(@Value("${complaint.start.date}") String startDate,
-                             @Value("${complaint.end.date}") String endDate,
-                             @Value("${complaint.id}") String complaintId,
+
+
+    public ComplaintsService(
+
                              DocumentExtractor documentExtrator,
                              ComplaintExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
                              DocumentsRepository documentsRepository) {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.complaintId = complaintId;
         this.documentExtrator = documentExtrator;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
         this.documentsRepository = documentsRepository;
     }
-    public void migrateComplaints() {
+    public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
         log.info("{} complaints found for dates {} to {}.", complaints.size(), startDate, endDate);
         for (BigDecimal complaint : complaints) {
@@ -49,7 +44,7 @@ public class ComplaintsService {
         log.info("Complaints extraction between dates {} and {} finished.", startDate, endDate);
     }
 
-    public void migrateComplaint() {
+    public void migrateComplaint(String complaintId) {
         extractComplaint(Integer.parseInt(complaintId));
     }
 
