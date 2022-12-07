@@ -125,6 +125,7 @@ public class DocumentExtractor {
                 if (ps != null) ps.close();
                 if (conn != null) conn.close();
             } catch (SQLException e) {
+                log.error(e.getMessage());
             }
         }
         return documentIds;
