@@ -118,7 +118,7 @@ public class DocumentExtractor {
             }
         } catch (SQLException e) {
             log.error(e.getMessage());
-            throw new ApplicationExceptions.ExtractComplaintException(
+            throw new ApplicationExceptions.ExtractDocumentException(
                     String.format("Failed to retrieve document IDs for complaint: " + complaintId), SQL_EXCEPTION);
         } finally {
             try {
