@@ -7,7 +7,7 @@ import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
-import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
-import uk.gov.digital.ho.hocs.cms.exception.ApplicationExceptions;
-import uk.gov.digital.ho.hocs.cms.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -21,11 +21,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_BYTE_CONVERSION_FAILED;
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_COPY_FAILED;
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_NOT_FOUND;
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
-import static uk.gov.digital.ho.hocs.cms.exception.LogEvent.SQL_EXCEPTION;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_BYTE_CONVERSION_FAILED;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_COPY_FAILED;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_NOT_FOUND;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.SQL_EXCEPTION;
 
 @Component
 @Slf4j

@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.exception;
+package uk.gov.digital.ho.hocs.cms.domain.exception;
 
 public interface ApplicationExceptions {
 

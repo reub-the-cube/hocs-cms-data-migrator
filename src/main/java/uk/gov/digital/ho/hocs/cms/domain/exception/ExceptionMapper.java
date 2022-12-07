@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.exception;
+package uk.gov.digital.ho.hocs.cms.domain.exception;
 
 import com.microsoft.sqlserver.jdbc.SQLServerException;
 import lombok.extern.slf4j.Slf4j;

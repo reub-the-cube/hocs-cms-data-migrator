@@ -30,7 +30,21 @@ This brings up the LocalStack docker image and creates the necessary AWS resourc
 docker-compose down
 ```
 
-## Using the Service
+## Using the Command Runners
+
+These will be run using Helm and Kubernetes jobs. These instructions will be updated.
+
+### Extract single CMS complaint
+
+CMS_EXTRACT_SINGLE_COMPLAINT=enabled;COMPLAINT_ID=2000000;
+
+### Extract complaints by date range
+
+CMS_EXTRACT_COMPLAINTS=false;COMPLAINT_START_DATE=2022-01-01;COMPLAINT_END_DATE=2022-12-31
+
+
+
+
 ### Versioning
 
 For versioning this project uses SemVer.
