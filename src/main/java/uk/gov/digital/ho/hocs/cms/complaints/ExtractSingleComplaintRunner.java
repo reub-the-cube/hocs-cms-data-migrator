@@ -14,22 +14,22 @@ import java.sql.SQLException;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.complaints", havingValue = "enabled", matchIfMissing = false)
-public class ExtractComplaintsRunner implements CommandLineRunner {
+@ConditionalOnProperty(name = "cms.extract.single.complaint", havingValue = "enabled", matchIfMissing = false)
+public class ExtractSingleComplaintRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
     private final ComplaintsService complaintsService;
 
 
-    public ExtractComplaintsRunner(ApplicationContext applicationContext, ComplaintsService complaintsService) {
+    public ExtractSingleComplaintRunner(ApplicationContext applicationContext, ComplaintsService complaintsService) {
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
     }
 
     @Override
     public void run(String... args) throws SQLException {
-        log.info("Extract complaints started");
-        complaintsService.migrateComplaints();
+        log.info("Extract a single complaint started");
+        complaintsService.migrateComplaint();
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 
