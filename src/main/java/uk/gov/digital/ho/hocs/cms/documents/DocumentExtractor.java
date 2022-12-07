@@ -62,10 +62,10 @@ public class DocumentExtractor {
                 if (attachment.getDocumentPath() != null) {
                     attachments.add(attachment);
                 } else {
-                    log.error("Document ID {} failed to extract for complaint ID {}", documentId, caseId);
+                    log.error("Document ID {} failed to extract for caset ID {}", documentId, caseId);
                 }
             } catch (ApplicationExceptions.ExtractCaseException e) {
-                log.error("Document extract failed for complaint ID :" + caseId + " " + e.getEvent() + " skipping complaint...");
+                log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent() + " skipping case...");
             }
         }
         return attachments;
@@ -85,7 +85,7 @@ public class DocumentExtractor {
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractCaseException(
-                    String.format("Failed to extract document for complaint: " + caseId), DOCUMENT_RETRIEVAL_FAILED);
+                    String.format("Failed to extract document for case: " + caseId), DOCUMENT_RETRIEVAL_FAILED);
         }
 
         try {
@@ -95,7 +95,7 @@ public class DocumentExtractor {
             record.setFailureReason(e.getMessage());
             documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractCaseException(
-                    String.format("Failed to copy document for complaint: " + caseId), DOCUMENT_COPY_FAILED);
+                    String.format("Failed to copy document for case: " + caseId), DOCUMENT_COPY_FAILED);
         }
 
         record.setDocumentExtracted(true);
@@ -122,7 +122,7 @@ public class DocumentExtractor {
         } catch (SQLException e) {
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document IDs for complaint: " + caseId), SQL_EXCEPTION);
+                    String.format("Failed to retrieve document IDs for case: " + caseId), SQL_EXCEPTION);
         } finally {
             try {
                 if (ps != null) ps.close();
