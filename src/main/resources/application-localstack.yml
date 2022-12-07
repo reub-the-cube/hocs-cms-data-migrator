@@ -21,7 +21,7 @@ aws:
         access-key: 12345
         secret-key: 12345
         bucket-kms-key:
-      bucket-name: untrusted-bucket2
+      bucket-name: untrusted-bucket
 
 run:
   config:
@@ -30,17 +30,22 @@ run:
 
 spring:
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
+    generate-ddl: false
     hibernate:
-      ddl-auto: create
-      dialect: org.hibernate.dialect.SQLServer2012Dialect
+      ddl-auto: none
+      dialect: org.hibernate.dialect.PostgreSQLDialect
   main:
     web-application-type: none
   datasource:
-    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
-    username: ${db.username:sa}
-    password: ${db.password:Development01}
-
-
+    cms:
+      driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
+      username: ${db.username:sa}
+      password: ${db.password:Development01}
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${db.host:localhost}:${db.port:5432}/${db.name:postgres}?currentSchema=${db.schema.name:cms}&user=${db.username:root}&password=${db.password:dev}&stringtype=unspecified
+    username: ${db.username:root}
+    password: ${db.password:dev}
 

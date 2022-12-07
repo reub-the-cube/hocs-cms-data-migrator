@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class ComplaintExtractor {
     private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public ComplaintExtractor(NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
+    public ComplaintExtractor(@Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
         this.jdbcTemplate = namedParametersJdbcTemplate;
     }
 

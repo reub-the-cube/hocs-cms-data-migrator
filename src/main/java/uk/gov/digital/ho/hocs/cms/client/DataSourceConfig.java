@@ -14,28 +14,36 @@ import javax.sql.DataSource;
 @Configuration
 public class DataSourceConfig {
 
-        @Bean
-        public DataSource dataSource(@Value("${spring.datasource.driverClassName}") String driverClassName,
-                                     @Value("${spring.datasource.url}") String url,
-                                     @Value("${spring.datasource.username}") String userName,
-                                     @Value("${spring.datasource.password}") String password){
-            DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setDriverClassName(driverClassName);
-            dataSource.setUrl(url);
-            dataSource.setUsername(userName);
-            dataSource.setPassword(password);
-            return dataSource;
-        }
+    @Bean(name="cms")
+    public DataSource dataSource(@Value("${spring.datasource.cms.driverClassName}") String driverClassName,
+                                 @Value("${spring.datasource.cms.url}") String url,
+                                 @Value("${spring.datasource.cms.username}") String userName,
+                                 @Value("${spring.datasource.cms.password}") String password){
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
 
-//        @Bean
-//        @Primary
-//        public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-//            return new JdbcTemplate(dataSource);
-//        }
+    @Bean()
+    @Primary
+    public DataSource postgresDataSource(@Value("${spring.datasource.driverClassName}") String driverClassName,
+                                 @Value("${spring.datasource.url}") String url,
+                                 @Value("${spring.datasource.username}") String userName,
+                                 @Value("${spring.datasource..password}") String password){
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(driverClassName);
+        dataSource.setUrl(url);
+        dataSource.setUsername(userName);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
 
-        @Bean
-        public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-            return new NamedParameterJdbcTemplate(dataSource);
-        }
+    @Bean(name="cms-template")
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(@Qualifier("cms") DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
 
 }

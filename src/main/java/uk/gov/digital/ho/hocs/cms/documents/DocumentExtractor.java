@@ -2,6 +2,7 @@ package uk.gov.digital.ho.hocs.cms.documents;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
@@ -44,7 +45,7 @@ public class DocumentExtractor {
         where lev.CaseId = ?
         """;
 
-    public DocumentExtractor(DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
+    public DocumentExtractor(@Qualifier("cms") DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
         this.dataSource = dataSource;
         this.documentS3Client = documentS3Client;
         this.documentsRepository = documentsRepository;
@@ -80,7 +81,7 @@ public class DocumentExtractor {
         } catch (ApplicationExceptions.ExtractDocumentException e) {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
-            saveDocumentResult(record);
+            documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractComplaintException(
                     String.format("Failed to extract document for complaint: " + complaintId), DOCUMENT_RETRIEVAL_FAILED);
         }
@@ -90,14 +91,14 @@ public class DocumentExtractor {
         } catch (ApplicationExceptions.ExtractDocumentException e) {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());
-            saveDocumentResult(record);
+            documentsRepository.save(record);
             throw new ApplicationExceptions.ExtractComplaintException(
                     String.format("Failed to copy document for complaint: " + complaintId), DOCUMENT_COPY_FAILED);
         }
 
         record.setDocumentExtracted(true);
         record.setTempFileName(fileName);
-        saveDocumentResult(record);
+        documentsRepository.save(record);
         caseAttachment.setDocumentPath(fileName);
         return caseAttachment;
     }

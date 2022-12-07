@@ -21,8 +21,8 @@ import javax.persistence.Table;
 public class ComplaintExtractRecord {
 
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="id")
     private Long id;
 
     @Column
