@@ -30,7 +30,7 @@ public class ExtractSingleComplaintRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        log.info("Extract a single complaint started");
+        log.info("Extract a single complaint started for complaint ID {}", complaintId);
         complaintsService.migrateComplaint(complaintId);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
