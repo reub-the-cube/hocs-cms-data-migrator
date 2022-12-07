@@ -17,12 +17,12 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class ComplaintExtractor {
+public class ComplaintsExtractor {
 
     private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public ComplaintExtractor(@Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
+    public ComplaintsExtractor(@Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParametersJdbcTemplate;
     }
 

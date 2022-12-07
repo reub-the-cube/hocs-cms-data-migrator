@@ -17,12 +17,12 @@ public class ComplaintsService {
 
     private final DocumentExtractor documentExtrator;
     private final DocumentsRepository documentsRepository;
-    private final ComplaintExtractor complaintsExtractor;
+    private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
 
     public ComplaintsService(DocumentExtractor documentExtrator,
                              DocumentsRepository documentsRepository,
-                             ComplaintExtractor complaintsExtractor,
+                             ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository) {
         this.documentExtrator = documentExtrator;
         this.documentsRepository = documentsRepository;
