@@ -8,8 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
-import java.sql.SQLException;
-
 @Configuration
 @Slf4j
 @ConditionalOnProperty(name = "cms.extract.single.complaint", havingValue = "enabled", matchIfMissing = false)

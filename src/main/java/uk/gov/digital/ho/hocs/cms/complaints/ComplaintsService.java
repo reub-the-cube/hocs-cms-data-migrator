@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class ComplaintsService {
 
-    private final DocumentExtractor documentExtrator;
+    private final DocumentExtractor documentExtractor;
     private final DocumentsRepository documentsRepository;
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
@@ -24,7 +24,7 @@ public class ComplaintsService {
                              DocumentsRepository documentsRepository,
                              ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository) {
-        this.documentExtrator = documentExtrator;
+        this.documentExtractor = documentExtrator;
         this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
@@ -45,7 +45,7 @@ public class ComplaintsService {
 
     private void extractComplaint(int complaintId) {
         ComplaintExtractRecord cer = new ComplaintExtractRecord();
-        List<CaseAttachment> attachments = documentExtrator.copyDocumentsForCase(complaintId);
+        List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
         log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
         if (documentsRepository.findFailedDocumentsForCase(complaintId) == 0) {
             cer.setCaseId(complaintId);
