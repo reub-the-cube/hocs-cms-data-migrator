@@ -29,7 +29,7 @@ public class ExtractSingleComplaintRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws SQLException {
+    public void run(String... args) {
         log.info("Extract a single complaint started");
         complaintsService.migrateComplaint(complaintId);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
