@@ -42,7 +42,7 @@ public class DocumentS3Client {
         catch (SdkClientException e) {
             log.error("S3 PutObject failure. Reason: {}, ID = {}", e.getMessage(), id);
             throw new ApplicationExceptions.ExtractDocumentException(
-                    String.format("Failed to retrieve document ID: " + id), DOCUMENT_COPY_FAILED);
+                    String.format("Failed to put document ID: " + id), DOCUMENT_COPY_FAILED);
         }
         return tempObjectName;
     }
