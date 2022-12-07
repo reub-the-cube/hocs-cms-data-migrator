@@ -40,6 +40,7 @@ public class ComplaintsService {
 
     public void migrateComplaint(String complaintId) {
         extractComplaint(Integer.parseInt(complaintId));
+        log.info("Complaint extraction for complaint ID {} finished", complaintId);
     }
 
     private void extractComplaint(int complaintId) {
