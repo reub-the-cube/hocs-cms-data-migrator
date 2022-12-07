@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS documents cascade;
 
-CREATE TABLE IF NOT EXISTS cms.documents
+CREATE TABLE IF NOT EXISTS documents
 (
     id                         BIGSERIAL PRIMARY KEY,
     case_id                    INT,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS cms.documents
 
 DROP TABLE IF EXISTS complaints cascade;
 
-CREATE TABLE IF NOT EXISTS cms.complaints
+CREATE TABLE IF NOT EXISTS complaints
 (
     id                         BIGSERIAL PRIMARY KEY,
     case_id                    INT,

@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -30,14 +29,10 @@ public class DataSourceConfig {
     @Bean()
     @Primary
     public DataSource postgresDataSource(@Value("${spring.datasource.driverClassName}") String driverClassName,
-                                 @Value("${spring.datasource.url}") String url,
-                                 @Value("${spring.datasource.username}") String userName,
-                                 @Value("${spring.datasource..password}") String password){
+                                 @Value("${spring.datasource.url}") String url){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(driverClassName);
         dataSource.setUrl(url);
-        dataSource.setUsername(userName);
-        dataSource.setPassword(password);
         return dataSource;
     }
 
