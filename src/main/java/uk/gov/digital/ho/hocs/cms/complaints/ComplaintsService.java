@@ -46,17 +46,17 @@ public class ComplaintsService {
         extractComplaint(Integer.parseInt(complaintId));
     }
 
-    private void extractComplaint(int complaint) {
+    private void extractComplaint(int complaintId) {
         ComplaintExtractRecord cer = new ComplaintExtractRecord();
-        List<CaseAttachment> attachments = documentExtrator.copyDocumentsForCase(complaint);
-        log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaint);
-        if (documentsRepository.findFailedDocumentsForCase(complaint) == 0) {
-            cer.setCaseId(complaint);
+        List<CaseAttachment> attachments = documentExtrator.copyDocumentsForCase(complaintId);
+        log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
+        if (documentsRepository.findFailedDocumentsForCase(complaintId) == 0) {
+            cer.setCaseId(complaintId);
             cer.setComplaintExtracted(true);
         } else {
-            cer.setCaseId(complaint);
+            cer.setCaseId(complaintId);
             cer.setComplaintExtracted(false);
-            log.error("Failed documents for complaint ID {}", complaint);
+            log.error("Failed documents for complaint ID {}", complaintId);
     }
         cer.setStage("Documents");
         complaintsRepository.save(cer);
