@@ -24,9 +24,7 @@ public class ComplaintsService {
 
 
 
-    public ComplaintsService(
-
-                             DocumentExtractor documentExtrator,
+    public ComplaintsService(DocumentExtractor documentExtrator,
                              ComplaintExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
                              DocumentsRepository documentsRepository) {
