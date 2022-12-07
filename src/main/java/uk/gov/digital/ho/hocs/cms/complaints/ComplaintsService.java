@@ -20,11 +20,11 @@ public class ComplaintsService {
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
 
-    public ComplaintsService(DocumentExtractor documentExtrator,
+    public ComplaintsService(DocumentExtractor documentExtractor,
                              DocumentsRepository documentsRepository,
                              ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository) {
-        this.documentExtractor = documentExtrator;
+        this.documentExtractor = documentExtractor;
         this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
