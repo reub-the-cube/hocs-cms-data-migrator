@@ -20,8 +20,8 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     private final ApplicationContext applicationContext;
     private final ComplaintsService complaintsService;
 
-
-    public ExtractComplaintsRunner(ApplicationContext applicationContext, ComplaintsService complaintsService) {
+    public ExtractComplaintsRunner(ApplicationContext applicationContext,
+                                   ComplaintsService complaintsService) {
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
     }
@@ -32,18 +32,4 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
         complaintsService.migrateComplaints();
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
-
-    @Bean
-    public ExitCodeExceptionMapper exceptionBasedExitCode() {
-        return exception -> {
-            if (exception.getCause() instanceof SQLServerException sqlServerException) {
-                log.error("SQL Server exception: {}, SQL Server state: {}", sqlServerException.getMessage(), sqlServerException.getSQLState());
-                return 2;
-            }
-            return 99;
-        };
-    }
-
-
-
 }
