@@ -108,12 +108,10 @@ public class DocumentExtractor {
     }
 
     private List<BigDecimal> queryDocumentIdsForCase(int caseId) {
-        Connection conn = null;
-        PreparedStatement ps = null;
         List<BigDecimal> documentIds = new ArrayList<>();
-        try {
-            conn = dataSource.getConnection();
-            ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);
+        try (
+            Connection conn = dataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);) {
             ps.setInt(1, caseId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -124,24 +122,15 @@ public class DocumentExtractor {
             log.error(e.getMessage());
             throw new ApplicationExceptions.ExtractDocumentException(
                     String.format("Failed to retrieve document IDs for case: " + caseId), SQL_EXCEPTION);
-        } finally {
-            try {
-                if (ps != null) ps.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {
-                log.error(e.getMessage());
-            }
         }
         return documentIds;
     }
 
     private DocStore queryForDocument(int documentId) {
-        Connection conn = null;
-        PreparedStatement ps = null;
         DocStore docStore = null;
-        try {
-            conn = dataSource.getConnection();
-            ps = conn.prepareStatement(GET_DOCUMENT);
+        try (
+            Connection conn = dataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT); ) {
             ps.setInt(1, documentId);
             ResultSet res = ps.executeQuery();
             if (res.next()) {
@@ -162,15 +151,6 @@ public class DocumentExtractor {
             log.error("Failed to convert document ID: {} to bytes.", documentId);
             throw new ApplicationExceptions.ExtractDocumentException(
                     String.format("Failed to convert document ID: %s to bytes.", documentId), DOCUMENT_BYTE_CONVERSION_FAILED);
-        } finally {
-        try {
-            if (ps != null)
-                ps.close();
-            if (conn != null)
-                conn.close();
-        } catch (SQLException e) {
-            log.error(e.getMessage());
-            }
         }
         return docStore;
         }
