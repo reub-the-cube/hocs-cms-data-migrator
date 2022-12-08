@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_COPY_FAILED;
@@ -32,7 +33,7 @@ public class DocumentS3Client {
         this.bucketKmsKey = bucketKmsKey;
     }
 
-    public String storeUntrustedDocument(String originalFilename, byte[] bytes, int id) {
+    public String storeUntrustedDocument(String originalFilename, byte[] bytes, BigDecimal id) {
         ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
         try {
@@ -51,7 +52,7 @@ public class DocumentS3Client {
         return UUID.randomUUID().toString();
     }
 
-    ObjectMetadata buildObjectMetadata(String originalFilename, int length, int id) {
+    ObjectMetadata buildObjectMetadata(String originalFilename, int length, BigDecimal id) {
         ObjectMetadata metaData = new ObjectMetadata();
         metaData.setContentType("application/octet-stream");
         metaData.addUserMetadata(META_DATA_LABEL, originalFilename);

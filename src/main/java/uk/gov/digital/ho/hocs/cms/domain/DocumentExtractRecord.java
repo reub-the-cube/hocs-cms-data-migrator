@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -26,10 +27,10 @@ public class DocumentExtractRecord {
     private Long id;
 
     @Column
-    private int caseId;
+    private BigDecimal caseId;
 
     @Column
-    private int documentId;
+    private BigDecimal documentId;
 
     @Column
     private boolean documentExtracted;

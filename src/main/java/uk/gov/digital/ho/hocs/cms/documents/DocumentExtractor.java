@@ -53,12 +53,12 @@ public class DocumentExtractor {
         this.documentsRepository = documentsRepository;
     }
 
-    public List<CaseAttachment> copyDocumentsForCase(int caseId) {
+    public List<CaseAttachment> copyDocumentsForCase(BigDecimal caseId) {
         List<CaseAttachment> attachments = new ArrayList<>();
         List<BigDecimal> documentIds = queryDocumentIdsForCase(caseId);
         for (BigDecimal documentId : documentIds) {
             try {
-                CaseAttachment attachment = getDocument(documentId.intValue(), caseId);
+                CaseAttachment attachment = getDocument(documentId, caseId);
                 if (attachment.getDocumentPath() != null) {
                     attachments.add(attachment);
                 } else {
@@ -72,7 +72,7 @@ public class DocumentExtractor {
         return attachments;
     }
 
-    private CaseAttachment getDocument(int documentId, int caseId) {
+    private CaseAttachment getDocument(BigDecimal documentId, BigDecimal caseId) {
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
@@ -107,12 +107,12 @@ public class DocumentExtractor {
         return caseAttachment;
     }
 
-    private List<BigDecimal> queryDocumentIdsForCase(int caseId) {
+    private List<BigDecimal> queryDocumentIdsForCase(BigDecimal caseId) {
         List<BigDecimal> documentIds = new ArrayList<>();
         try (
             Connection conn = dataSource.getConnection();
             PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);) {
-            ps.setInt(1, caseId);
+            ps.setBigDecimal(1, caseId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 BigDecimal documentId = rs.getBigDecimal(1);
@@ -126,12 +126,12 @@ public class DocumentExtractor {
         return documentIds;
     }
 
-    private DocStore queryForDocument(int documentId) {
+    private DocStore queryForDocument(BigDecimal documentId) {
         DocStore docStore = null;
         try (
             Connection conn = dataSource.getConnection();
             PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT); ) {
-            ps.setInt(1, documentId);
+            ps.setBigDecimal(1, documentId);
             ResultSet res = ps.executeQuery();
             if (res.next()) {
                 String fileName = res.getString(2);

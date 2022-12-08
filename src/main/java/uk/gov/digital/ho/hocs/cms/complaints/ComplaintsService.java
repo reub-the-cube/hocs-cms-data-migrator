@@ -33,21 +33,22 @@ public class ComplaintsService {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
         log.info("{} complaints found for dates {} to {}.", complaints.size(), startDate, endDate);
         for (BigDecimal complaint : complaints) {
-            extractComplaint(complaint.intValue());
+            extractComplaint(complaint);
         }
         log.info("Complaints extraction between dates {} and {} finished.", startDate, endDate);
     }
 
     public void migrateComplaint(String complaintId) {
-        extractComplaint(Integer.parseInt(complaintId));
+        extractComplaint(new BigDecimal(complaintId));
         log.info("Complaint extraction for complaint ID {} finished", complaintId);
     }
 
-    private void extractComplaint(int complaintId) {
+    private void extractComplaint(BigDecimal complaintId) {
         ComplaintExtractRecord cer = new ComplaintExtractRecord();
         List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
         log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
-        if (documentsRepository.findFailedDocumentsForCase(complaintId) == 0) {
+        BigDecimal bd = documentsRepository.findFailedDocumentsForCase(complaintId);
+        if (bd.intValue() == 0) {
             cer.setCaseId(complaintId);
             cer.setComplaintExtracted(true);
         } else {
