@@ -40,12 +40,4 @@ public class ComplaintsExtractor {
         }
         return  cases;
     }
-
-    private LocalDate dateFormat(String strDate) {
-        DateTimeFormatter dtf = new DateTimeFormatterBuilder()
-                .parseCaseInsensitive()
-                .appendPattern("MMM d,uuuu")
-                .toFormatter(Locale.ENGLISH);
-        return LocalDate.parse(strDate, dtf);
-    }
 }

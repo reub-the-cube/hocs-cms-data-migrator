@@ -109,8 +109,7 @@ public class DocumentExtractor {
 
     private List<BigDecimal> queryDocumentIdsForCase(BigDecimal caseId) {
         List<BigDecimal> documentIds = new ArrayList<>();
-        try (
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();
             PreparedStatement ps = conn.prepareStatement(DOCUMENTS_FOR_CASE);) {
             ps.setBigDecimal(1, caseId);
             ResultSet rs = ps.executeQuery();
@@ -128,9 +127,8 @@ public class DocumentExtractor {
 
     private DocStore queryForDocument(BigDecimal documentId) {
         DocStore docStore = null;
-        try (
-            Connection conn = dataSource.getConnection();
-            PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT); ) {
+        try (Connection conn = dataSource.getConnection();
+            PreparedStatement ps = conn.prepareStatement(GET_DOCUMENT);) {
             ps.setBigDecimal(1, documentId);
             ResultSet res = ps.executeQuery();
             if (res.next()) {
