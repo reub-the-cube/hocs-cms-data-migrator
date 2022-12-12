@@ -65,10 +65,11 @@ public class DocumentExtractor {
                     log.error("Document ID {} failed to extract for case ID {}", documentId, caseId);
                 }
             } catch (ApplicationExceptions.ExtractDocumentException e) {
-                log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent() + " skipping case...");
+                log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent());
+                throw new ApplicationExceptions.ExtractCaseException(
+                        String.format("Failed to extract document for case: " + caseId), DOCUMENT_RETRIEVAL_FAILED);
             }
         }
-        // TODO: This could be a partial list of attachments
         return attachments;
     }
 

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
@@ -45,17 +46,18 @@ public class ComplaintsService {
 
     private void extractComplaint(BigDecimal complaintId) {
         ComplaintExtractRecord cer = new ComplaintExtractRecord();
-        List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
-        log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
-        BigDecimal bd = documentsRepository.findFailedDocumentsForCase(complaintId);
-        if (bd.intValue() == 0) {
-            cer.setCaseId(complaintId);
-            cer.setComplaintExtracted(true);
-        } else {
+        try {
+            List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
+            log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
+        } catch (ApplicationExceptions.ExtractCaseException e) {
             cer.setCaseId(complaintId);
             cer.setComplaintExtracted(false);
-            log.error("Failed documents for complaint ID {}", complaintId);
-    }
+            cer.setStage("Documents");
+            complaintsRepository.save(cer);
+            log.error("Failed documents for complaint ID {}", complaintId + " skipping case...");
+        }
+        cer.setCaseId(complaintId);
+        cer.setComplaintExtracted(true);
         cer.setStage("Documents");
         complaintsRepository.save(cer);
 
