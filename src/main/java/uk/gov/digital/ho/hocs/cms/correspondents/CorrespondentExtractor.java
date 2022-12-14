@@ -14,12 +14,11 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.COMPLAINANT_ID_INVALID;
-import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.REPRESENTATIV_ID_INVALID;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.REPRESENTATIVE_ID_INVALID;
 
 @Component
 @Slf4j
@@ -28,7 +27,7 @@ public class CorrespondentExtractor {
     private static final String GET_CORRESPONDENT_IDS_FOR_CASE = "select complainantid, representativeid from FLODS_UKBACOMPLAINTS_D00 where caseid = :caseId";
     private static final String GET_CORRESPONDENT_NAME = "select forename1, surname from LGNOM_partyName where partyId = :partyId";
     private static final String GET_CORRESPONDENT_INDIVIDUAL_DETAILS = "select dateofbirth, nationality from LGNOM_individual where partyId = :partyId";
-    private static final String GET_CORRESPONDENT_PHONENUMBER = "select phonenum from LGNOM_phoneDetails where partyId = :partyId";
+    private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select phonenum from LGNOM_phoneDetails where partyId = :partyId";
     private static final String GET_CORRESPONDENT_EMAIL = "select emailaddress from LGNOM_emailDetails where partyId = :partyId";
     private static final String GET_CORRESPONDENT_ADDRESS = "select addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = :partyId";
     private static final String GET_CORRESPONDENT_REFERENCE = "select reftype, reference from LGNUK_REFERENCE where partyId = :partyId";
@@ -44,14 +43,15 @@ public class CorrespondentExtractor {
     public void getCorrespondentsForCase(BigDecimal caseId) {
         MapSqlParameterSource mapParameters = new MapSqlParameterSource();
         mapParameters.addValue("caseId", caseId);
-        List<Map<String, Object>> rows = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_IDS_FOR_CASE, mapParameters);
+        List<Map<String, Object>> rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_IDS_FOR_CASE, mapParameters);
         BigDecimal complainantId = null;
         BigDecimal representativeId = null;
-        Individual individual = null;
-        //TODO: Check rows == 1
-        for (Map row : rows) {
-            Object complainantidResult = row.get("complainantid");
-            Object representativeidResult = row.get("representativeid");
+        Individual primaryCorrespondent = null;
+        Individual otherCorrespondent = null;
+        if (rs.size() == 1) {
+            Map result = rs.get(0);
+            Object complainantidResult = result.get("complainantid");
+            Object representativeidResult = result.get("representativeid");
             try {
                 if (complainantidResult instanceof String s) {
                     complainantId = new BigDecimal(s);
@@ -67,17 +67,22 @@ public class CorrespondentExtractor {
 
             } catch (NumberFormatException e) {
                 throw new ApplicationExceptions.ExtractCorrespondentException(
-                        String.format("Failed convert ID for correspondent: " + caseId), REPRESENTATIV_ID_INVALID);
+                        String.format("Failed to convert ID for representative: " + caseId), REPRESENTATIVE_ID_INVALID);
             }
             log.debug("Case ID {} Complainent ID {} Representative ID {}", caseId, complainantId, representativeId);
         }
+
        if (complainantId.compareTo(representativeId) == 0){
-           // complainent is primary correspondent
+           // complainant is primary correspondent
+           primaryCorrespondent = getCorrespondentDetails(representativeId);
+           primaryCorrespondent.setAddress(getAddress(representativeId));
 
        } else {
-           // representitive is primary correspondent
-           individual = getCorrespondentDetails(representativeId);
-           individual.setAddress(getAddress(representativeId));
+           // representative is primary correspondent
+           primaryCorrespondent = getCorrespondentDetails(representativeId);
+           primaryCorrespondent.setAddress(getAddress(representativeId));
+           otherCorrespondent = getCorrespondentDetails(complainantId);
+           otherCorrespondent.setAddress(getAddress(representativeId));
        }
 
        log.debug("Representative {} data extracted", representativeId);
@@ -104,7 +109,7 @@ public class CorrespondentExtractor {
             Map result = rs.get(0);
             Object dateofbirth = result.get("dateofbirth");
             if (dateofbirth instanceof Timestamp ts) {
-                individual.setDateOfBirth(ts);
+                individual.setDateOfBirth(ts.toLocalDateTime().toLocalDate());
             }
             Object nationality = result.get("nationality");
             if (nationality instanceof String s) {
@@ -112,7 +117,7 @@ public class CorrespondentExtractor {
             }
         }
 
-        rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_PHONENUMBER, mapParameters);
+        rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_PHONE_NUMBER, mapParameters);
         if (rs.size() == 1) {
             Map row = rs.get(0);
             Object telephone = row.get("phonenum");
@@ -132,13 +137,13 @@ public class CorrespondentExtractor {
 
         rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_REFERENCE, mapParameters);
         List<Reference> references = new ArrayList<>();
-        for(Map row: rs) {
+        for(Map result: rs) {
             Reference reference = new Reference();
-            Object refType = row.get("reftype");
+            Object refType = result.get("reftype");
             if (refType instanceof String s) {
                 reference.setRefType(s);
             }
-            Object referenceType = row.get("reference");
+            Object referenceType = result.get("reference");
             if (referenceType instanceof String s) {
                 reference.setReference(s);
             }
