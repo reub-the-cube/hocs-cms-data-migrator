@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.document;
+package uk.gov.digital.ho.hocs.cms.domain.message;
 
 import lombok.Getter;
 import lombok.Setter;

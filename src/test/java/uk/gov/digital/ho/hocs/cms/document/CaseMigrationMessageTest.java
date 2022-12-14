@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.hocs.cms.document;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.JsonSchema;
@@ -13,11 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import uk.gov.digital.ho.hocs.cms.client.SQSClient;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -68,9 +69,8 @@ class CaseMigrationMessageTest {
 
         CaseAttachment caseAttachment = new CaseAttachment();
         caseAttachment.setDocumentType("pdf");
-        caseAttachment.setPath("s3://");
-        caseAttachment.setLabel("letter");
-        //List<CaseAttachment> attachments = Arrays.asList(caseAttachment);
+        caseAttachment.setDocumentPath("s3://");
+        caseAttachment.setDisplayName("letter");
         List<CaseAttachment> attachments = new ArrayList<>();
         attachments.add(caseAttachment);
 

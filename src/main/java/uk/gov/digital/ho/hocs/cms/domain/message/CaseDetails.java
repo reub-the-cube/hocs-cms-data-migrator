@@ -1,10 +1,8 @@
-package uk.gov.digital.ho.hocs.cms.document;
+package uk.gov.digital.ho.hocs.cms.domain.message;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -18,9 +16,6 @@ public class CaseDetails {
     private String caseStatus;
     private String caseStatusDate;
     private String creationDate;
-    // getters required for Jackson marshalling
-    @Getter
     private List<CaseDataItem> caseData;
-    @Getter
     private List<CaseAttachment> caseAttachments;
 }

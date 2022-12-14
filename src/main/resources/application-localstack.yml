@@ -1,5 +1,10 @@
 localstack:
   host: localstack
+  base-url: http://${localstack.config.host}:${localstack.config.port}
+  config:
+    host: localhost
+    port: 4566
+    region: eu-west-2
 
 aws:
   region: eu-west-2
@@ -8,6 +13,15 @@ aws:
     secret-key: fake
     queue-name: migration-queue
     url: http://${localstack.host}:4566/000000000000/${aws.sqs.queue-name}
+  s3:
+    config:
+      region: eu-west-2
+    untrusted:
+      account:
+        access-key: 12345
+        secret-key: 12345
+        bucket-kms-key:
+      bucket-name: untrusted-bucket
 
 run:
   config:
@@ -15,9 +29,24 @@ run:
     complaint-type: SOMETHING_ELSE
 
 spring:
+  flyway:
+    locations: classpath:/db/migration
+    schema: ${db.schema.name:cms}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+  main:
+    web-application-type: none
   datasource:
-    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
-    username: ${db.username:sa}
-    password: ${db.password:Password01}
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${db.host:localhost}:${db.port:5432}/${db.name:postgres}?currentSchema=${db.schema.name:cms}&user=${db.username:root}&password=${db.password:dev}&stringtype=unspecified
+    cms:
+      driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
+      username: ${db.username:sa}
+      password: ${db.password:Development01}
 
