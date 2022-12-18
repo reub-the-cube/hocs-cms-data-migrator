@@ -17,6 +17,6 @@ public class Individual {
     private String telephone;
     private String email;
     private Address address;
-    private List<Reference> references;
+    private List<References> references;
 
 }

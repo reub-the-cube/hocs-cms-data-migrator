@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.cms.Address;
 import uk.gov.digital.ho.hocs.cms.domain.cms.Individual;
-import uk.gov.digital.ho.hocs.cms.domain.cms.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.cms.References;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 
 import javax.sql.DataSource;
@@ -82,7 +82,7 @@ public class CorrespondentExtractor {
            primaryCorrespondent = getCorrespondentDetails(representativeId);
            primaryCorrespondent.setAddress(getAddress(representativeId));
            otherCorrespondent = getCorrespondentDetails(complainantId);
-           otherCorrespondent.setAddress(getAddress(representativeId));
+           otherCorrespondent.setAddress(getAddress(complainantId));
        }
 
        log.debug("Representative {} data extracted", representativeId);
@@ -136,9 +136,9 @@ public class CorrespondentExtractor {
         }
 
         rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_REFERENCE, mapParameters);
-        List<Reference> references = new ArrayList<>();
+        List<References> references = new ArrayList<>();
         for(Map result: rs) {
-            Reference reference = new Reference();
+            References reference = new References();
             Object refType = result.get("reftype");
             if (refType instanceof String s) {
                 reference.setRefType(s);
