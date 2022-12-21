@@ -2,6 +2,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
@@ -20,15 +21,18 @@ public class ComplaintsService {
     private final DocumentsRepository documentsRepository;
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
+    private final CorrespondentExtractor correspondentExtractor;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              DocumentsRepository documentsRepository,
                              ComplaintsExtractor complaintsExtractor,
-                             ComplaintsRepository complaintsRepository) {
+                             ComplaintsRepository complaintsRepository,
+                             CorrespondentExtractor correspondentExtractor) {
         this.documentExtractor = documentExtractor;
         this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
+        this.correspondentExtractor = correspondentExtractor;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
@@ -49,17 +53,21 @@ public class ComplaintsService {
         try {
             List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
             log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
+            cer.setCaseId(complaintId);
+            cer.setComplaintExtracted(true);
+            cer.setStage("Documents");
+            complaintsRepository.save(cer);
+            correspondentExtractor.getCorrespondentsForCase(complaintId);
         } catch (ApplicationExceptions.ExtractCaseException e) {
             cer.setCaseId(complaintId);
             cer.setComplaintExtracted(false);
             cer.setStage("Documents");
             complaintsRepository.save(cer);
             log.error("Failed documents for complaint ID {}", complaintId + " skipping case...");
+        } catch (ApplicationExceptions.ExtractCorrespondentException e) {
+
         }
-        cer.setCaseId(complaintId);
-        cer.setComplaintExtracted(true);
-        cer.setStage("Documents");
-        complaintsRepository.save(cer);
+
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message

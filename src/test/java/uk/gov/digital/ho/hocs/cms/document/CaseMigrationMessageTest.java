@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.document;
+package uk.gov.digital.ho.hocs.cms.domain.message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,9 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 import uk.gov.digital.ho.hocs.cms.client.SQSClient;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,20 +68,34 @@ class CaseMigrationMessageTest {
         caseAttachment.setDocumentType("pdf");
         caseAttachment.setDocumentPath("s3://");
         caseAttachment.setDisplayName("letter");
+
+        Correspondent correspondent = getCorrespondent();
+        List<Correspondent> additionalCorrespondents = new ArrayList<>();
+        additionalCorrespondents.add(correspondent);
+        //List<CaseAttachment> attachments = Arrays.asList(caseAttachment);
         List<CaseAttachment> attachments = new ArrayList<>();
         attachments.add(caseAttachment);
 
-        CaseDetails caseDetails = CaseDetails.builder().caseType("cms")
+        CaseDetails caseDetails = CaseDetails.builder()
+                .caseType("cms")
                 .sourceCaseId("001")
+                .primaryCorrespondent(correspondent)
+                .additionalCorrespondents(additionalCorrespondents)
                 .creationDate("2020-07-01")
                 .caseStatus("Closed")
                 .caseStatusDate("2020-07-01")
-                .correspondentName("test")
-                .correspondenceEmail("test@email.com")
+                .creationDate("2020-07-01")
                 .caseData(items)
                 .caseAttachments(attachments)
                 .build();
         return caseDetails;
+    }
+
+    private Correspondent getCorrespondent() {
+        Correspondent correspondent = new Correspondent();
+        correspondent.setFullName("Full name");
+        correspondent.setCorrespondentType("Correspondent Type");
+        return correspondent;
     }
 
     private static InputStream inputStreamFromClasspath(String path) {
