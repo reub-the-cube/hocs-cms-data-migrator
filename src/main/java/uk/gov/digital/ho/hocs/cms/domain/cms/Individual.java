@@ -40,8 +40,7 @@ public class Individual {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "individual", referencedColumnName = "id")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "individual")
     private List<References> references;
 
 }

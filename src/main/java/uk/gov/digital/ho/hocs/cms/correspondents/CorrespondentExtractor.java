@@ -35,7 +35,7 @@ public class CorrespondentExtractor {
     private final DataSource dataSource;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public CorrespondentExtractor(@Qualifier("cms") DataSource dataSource, @Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
+    public CorrespondentExtractor(@Qualifier("sqlServerDataSource") DataSource dataSource, @Qualifier("cms-template") NamedParameterJdbcTemplate namedParametersJdbcTemplate) {
         this.dataSource = dataSource;
         this.namedParameterJdbcTemplate = namedParametersJdbcTemplate;
     }

@@ -16,7 +16,7 @@ public class References {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="id", nullable=false)
+    @JoinColumn(name="individual_id", nullable=false)
     private Individual individual;
 
     @Column

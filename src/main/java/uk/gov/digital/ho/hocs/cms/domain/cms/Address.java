@@ -16,6 +16,9 @@ public class Address {
     @Column(name="id")
     private Long id;
 
+    @OneToOne(mappedBy = "address")
+    private Individual individual;
+
     @Column
     private String name;
 
