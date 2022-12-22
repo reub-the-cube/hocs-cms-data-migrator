@@ -41,13 +41,13 @@ public class DocumentExtractor {
     private static final String GET_DOCUMENT = "select * from LGNCC_DOCUMENTSTORE where id = ?;";
 
     private static final String DOCUMENTS_FOR_CASE = """
-        SELECT dst.* FROM lgncc_logEvents lev 
-        inner join lgncc_noteAttachments nat on nat.noteId = lev.LogEventID 
-        inner join LGNCC_DOCUMENTSTORE dst on dst.id = nat.reference 
+        SELECT dst.* FROM lgncc_logEvents lev
+        inner join lgncc_noteAttachments nat on nat.noteId = lev.LogEventID
+        inner join LGNCC_DOCUMENTSTORE dst on dst.id = nat.reference
         where lev.CaseId = ?
         """;
 
-    public DocumentExtractor(@Qualifier("cms") DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
+    public DocumentExtractor(@Qualifier("sqlServerDataSource") DataSource dataSource, DocumentS3Client documentS3Client, DocumentsRepository documentsRepository) {
         this.dataSource = dataSource;
         this.documentS3Client = documentS3Client;
         this.documentsRepository = documentsRepository;
