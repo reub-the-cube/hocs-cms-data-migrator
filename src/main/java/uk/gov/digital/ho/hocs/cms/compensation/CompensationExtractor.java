@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.compensation;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import uk.gov.digital.ho.hocs.cms.compensation.repository.CompensationRowMapper;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class CompensationExtractor {
             """;
 
     public Compensation getCompensationDetails(BigDecimal caseId) {
-        return null;
+        Compensation compensation = jdbcTemplate.queryForObject(FETCH_COMPENSATION_DETAILS, new CompensationRowMapper(), caseId);
+        return compensation;
     }
 }
