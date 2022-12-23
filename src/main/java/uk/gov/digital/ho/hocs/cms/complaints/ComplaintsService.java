@@ -63,6 +63,7 @@ public class ComplaintsService {
             cer.setComplaintExtracted(false);
             cer.setStage("Documents");
             cer.setError(e.getEvent().toString());
+            cer.setErrorMessage(e.getMessage());
             complaintsRepository.save(cer);
             log.error("Failed documents for complaint ID {}", complaintId + " skipping case...");
             return;
@@ -71,6 +72,7 @@ public class ComplaintsService {
             cer.setComplaintExtracted(false);
             cer.setStage("Correspondents");
             cer.setError(e.getEvent().toString());
+            cer.setErrorMessage(e.getMessage());
             complaintsRepository.save(cer);
             log.error("Failed extracting correspondents for complaint ID {}", complaintId + " skipping case...");
             return;
