@@ -34,5 +34,11 @@ public class ComplaintExtractRecord {
 
     @Column
     private String stage;
+
+    @Column
+    private String error;
+
+    @Column(name = "errormessage")
+    private String errorMessage;
 }
 

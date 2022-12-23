@@ -62,16 +62,24 @@ public class ComplaintsService {
             cer.setCaseId(complaintId);
             cer.setComplaintExtracted(false);
             cer.setStage("Documents");
+            cer.setError(e.getEvent().toString());
+            cer.setErrorMessage(e.getMessage());
             complaintsRepository.save(cer);
             log.error("Failed documents for complaint ID {}", complaintId + " skipping case...");
+            return;
         } catch (ApplicationExceptions.ExtractCorrespondentException e) {
-
+            cer.setCaseId(complaintId);
+            cer.setComplaintExtracted(false);
+            cer.setStage("Correspondents");
+            cer.setError(e.getEvent().toString());
+            cer.setErrorMessage(e.getMessage());
+            complaintsRepository.save(cer);
+            log.error("Failed extracting correspondents for complaint ID {}", complaintId + " skipping case...");
+            return;
         }
 
-
+        log.debug("");
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message
     }
-
-
 }
