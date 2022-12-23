@@ -19,8 +19,11 @@ public class Individual {
     @Column(name="individual_id")
     private Long id;
 
-    @Column(name = "party_id")
+    @Column(name = "partyid")
     private BigDecimal partyId;
+
+    @Column(name = "caseid")
+    private BigDecimal caseId;
 
     @Column
     private String forename;
@@ -44,7 +47,7 @@ public class Individual {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "individual")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "individual")
     private List<References> references;
 
 }
