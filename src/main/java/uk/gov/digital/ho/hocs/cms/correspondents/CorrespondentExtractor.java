@@ -6,9 +6,9 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-import uk.gov.digital.ho.hocs.cms.domain.cms.Address;
-import uk.gov.digital.ho.hocs.cms.domain.cms.Individual;
-import uk.gov.digital.ho.hocs.cms.domain.cms.References;
+import uk.gov.digital.ho.hocs.cms.domain.model.Address;
+import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
+import uk.gov.digital.ho.hocs.cms.domain.model.References;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 
