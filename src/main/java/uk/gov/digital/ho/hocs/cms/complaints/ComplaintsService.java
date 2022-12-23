@@ -18,18 +18,15 @@ import java.util.List;
 public class ComplaintsService {
 
     private final DocumentExtractor documentExtractor;
-    private final DocumentsRepository documentsRepository;
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
     private final CorrespondentExtractor correspondentExtractor;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
-                             DocumentsRepository documentsRepository,
                              ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
                              CorrespondentExtractor correspondentExtractor) {
         this.documentExtractor = documentExtractor;
-        this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
         this.correspondentExtractor = correspondentExtractor;
