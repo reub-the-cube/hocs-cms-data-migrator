@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.hocs.cms.client;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class MessageService {
         this.complaintType = complaintType;
     }
 
-    public void startSending() {
+    public void sendMessage() {
 
         if (StringUtils.hasText(complaintType)) {
             for (int i = 0; i < numMessages; i++) {
@@ -36,25 +35,4 @@ public class MessageService {
         }
 
     }
-
-    @Getter
-    static public class Replacer {
-
-        private final String[] searchList = {
-                "@@TODAY@@",
-                "@@COMPLAINT_TEXT@@",
-                "@@APPLICANT_NAME@@",
-                "@@AGENT_NAME@@",
-                "@@NATIONALITY@@",
-                "@@COUNTRY@@",
-                "@@CITY@@",
-                "@@DOB@@",
-                "@@APPLICANT_EMAIL@@",
-                "@@AGENT_EMAIL@@",
-                "@@PHONE@@",
-                "@@REFERENCE@@"
-        };
-
-    }
-
 }

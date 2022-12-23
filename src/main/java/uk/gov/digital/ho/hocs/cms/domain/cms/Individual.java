@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,8 +16,11 @@ public class Individual {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name="individual_id")
     private Long id;
+
+    @Column(name = "party_id")
+    private BigDecimal partyId;
 
     @Column
     private String forename;
@@ -24,7 +28,7 @@ public class Individual {
     @Column
     private String surname;
 
-    @Column
+    @Column(name = "dateofbirth")
     private LocalDate dateOfBirth;
 
     @Column

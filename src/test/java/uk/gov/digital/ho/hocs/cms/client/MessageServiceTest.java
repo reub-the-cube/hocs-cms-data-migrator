@@ -19,7 +19,7 @@ public class MessageServiceTest {
 	public void shouldSendCountMessagesWithComplaintType() {
 		int numMessages = 2;
 		MessageService messageService = new MessageService(sqsClient, numMessages, "BIOMETRIC");
-		messageService.startSending();
+		messageService.sendMessage();
 		verify(sqsClient, times(numMessages)).sendMessage(anyString());
 	}
 
@@ -27,7 +27,7 @@ public class MessageServiceTest {
 	public void shouldSendCountMessagesWithoutComplaintType() {
 		int numMessages = 2;
 		MessageService messageService = new MessageService(sqsClient, numMessages, "");
-		messageService.startSending();
+		messageService.sendMessage();
 		verify(sqsClient, times(numMessages)).sendMessage(anyString());
 	}
 }
