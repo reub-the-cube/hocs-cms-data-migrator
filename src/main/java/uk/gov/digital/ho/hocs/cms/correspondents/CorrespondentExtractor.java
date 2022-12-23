@@ -2,6 +2,7 @@ package uk.gov.digital.ho.hocs.cms.correspondents;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import uk.gov.digital.ho.hocs.cms.domain.cms.Address;
 import uk.gov.digital.ho.hocs.cms.domain.cms.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.cms.References;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -17,8 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.COMPLAINANT_ID_INVALID;
-import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.REPRESENTATIVE_ID_INVALID;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.*;
 
 @Component
 @Slf4j
@@ -40,7 +41,7 @@ public class CorrespondentExtractor {
         this.namedParameterJdbcTemplate = namedParametersJdbcTemplate;
     }
 
-    public void getCorrespondentsForCase(BigDecimal caseId) {
+    public Correspondent getCorrespondentsForCase(BigDecimal caseId) {
         MapSqlParameterSource mapParameters = new MapSqlParameterSource();
         mapParameters.addValue("caseId", caseId);
         List<Map<String, Object>> rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_IDS_FOR_CASE, mapParameters);
@@ -57,39 +58,58 @@ public class CorrespondentExtractor {
                     complainantId = new BigDecimal(s);
                 }
             } catch (NumberFormatException e) {
-                    throw new ApplicationExceptions.ExtractCorrespondentException(
-                            String.format("Failed to convert ID for complainant: " + caseId), COMPLAINANT_ID_INVALID);
-                }
+                log.error("Failed to convert ID for case {}", caseId);
+                throw new ApplicationExceptions.ExtractCorrespondentException(
+                        String.format("Failed to convert ID for case {}", caseId), COMPLAINANT_ID_INVALID, e);
+            }
+
             try {
                 if (representativeidResult instanceof String s) {
                     representativeId = new BigDecimal(s);
                 }
-
             } catch (NumberFormatException e) {
+                log.error("Failed to convert ID for case {}", caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(
-                        String.format("Failed to convert ID for representative: " + caseId), REPRESENTATIVE_ID_INVALID);
+                        String.format("Failed to convert ID for case {} ", caseId), REPRESENTATIVE_ID_INVALID, e);
             }
-            log.debug("Case ID {} Complainent ID {} Representative ID {}", caseId, complainantId, representativeId);
+            log.debug("Case ID {} Complainant ID {} Representative ID {}", caseId, complainantId, representativeId);
         }
 
-       if (complainantId.compareTo(representativeId) == 0){
-           // complainant is primary correspondent
-           primaryCorrespondent = getCorrespondentDetails(representativeId);
-           primaryCorrespondent.setAddress(getAddress(representativeId));
+        if (complainantId.compareTo(representativeId) == 0){
+            // complainant is primary correspondent
+            try {
+                primaryCorrespondent = getCorrespondentDetails(complainantId);
+                primaryCorrespondent.setAddress(getAddress(complainantId));
+                log.debug("Complainant ID {} data extracted. Case ID {}", complainantId, caseId);
+            } catch (DataAccessException e) {
+                log.error("Failed extracting correspondent details for complainant ID {} and case ID", complainantId, caseId);
+                throw new ApplicationExceptions.ExtractCorrespondentException(
+                        String.format("Failed extracting correspondent details for complainantID {} and case ID {}", complainantId, caseId),  CORRESPONDENT_EXTRACTION_FAILED, e);
+            }
+        } else {
+            // representative is primary correspondent
+            try {
+                primaryCorrespondent = getCorrespondentDetails(representativeId);
+                primaryCorrespondent.setAddress(getAddress(representativeId));
+                otherCorrespondent = getCorrespondentDetails(complainantId);
+                otherCorrespondent.setAddress(getAddress(complainantId));
+                log.debug("Representative {} data extracted. Case ID {}", representativeId, caseId);
+                log.debug("Complainant {} data extracted. Case ID {}", complainantId, caseId);
+            } catch (DataAccessException e) {
+                log.error("Failed extracting correspondent details for complainant ID {} representative ID {} and case ID", complainantId, representativeId, caseId);
+                throw new ApplicationExceptions.ExtractCorrespondentException(
+                        String.format("Failed extracting correspondent details for complainantID {}, representativeID {} and case ID {}", complainantId, representativeId, caseId),  CORRESPONDENT_EXTRACTION_FAILED, e);
+            }
 
-       } else {
-           // representative is primary correspondent
-           primaryCorrespondent = getCorrespondentDetails(representativeId);
-           primaryCorrespondent.setAddress(getAddress(representativeId));
-           otherCorrespondent = getCorrespondentDetails(complainantId);
-           otherCorrespondent.setAddress(getAddress(complainantId));
-       }
+        }
 
-       log.debug("Representative {} data extracted", representativeId);
+
+        return null;
     }
 
     private Individual getCorrespondentDetails(BigDecimal partyId) {
         Individual individual = new Individual();
+        individual.setPartyId(partyId);
         MapSqlParameterSource mapParameters = new MapSqlParameterSource();
         mapParameters.addValue("partyId", partyId);
         List<Map<String, Object>> rs = namedParameterJdbcTemplate.queryForList(GET_CORRESPONDENT_NAME, mapParameters);
@@ -194,7 +214,4 @@ public class CorrespondentExtractor {
         }
         return address;
     }
-
-
-
 }
