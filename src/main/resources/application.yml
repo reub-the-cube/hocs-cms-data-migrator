@@ -7,19 +7,22 @@ spring:
   main:
     banner-mode: off
   datasource:
-    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=LaganECM
-    username: ${db.username:sa}
-    password: ${db.password}
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${db.host:localhost}:${db.port:5432}/${db.name:postgres}?currentSchema=${db.schema.name:cms}&user=${db.username:root}&password=${db.password:dev}&stringtype=unspecified
+    cms:
+      driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
+      username: ${db.username:sa}
+      password: ${db.password:Development01}
   jpa:
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         # The SQL dialect makes Hibernate generate better SQL for the chosen database
-        dialect: org.hibernate.dialect.SQLServer2016Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         # Hibernate ddl auto (create, create-drop, validate, update)
-        ddl-auto: none
+        ddl-auto: create
 
 server:
   http2:
@@ -41,3 +44,5 @@ aws:
     enabled: true
   es:
     version: 7
+
+

@@ -1,3 +1,10 @@
+logging:
+  level:
+    org.springframework.jdbc.core: ERROR
+    org.springframework.beans: ERROR
+    org.springframework.boot.autoconfigure.jdbc: DEBUG
+    org.hibernate: ERROR
+
 localstack:
   host: localstack
   base-url: http://${localstack.config.host}:${localstack.config.port}
