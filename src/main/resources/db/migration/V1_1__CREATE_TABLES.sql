@@ -17,5 +17,7 @@ CREATE TABLE IF NOT EXISTS complaints
     id                         BIGSERIAL PRIMARY KEY,
     case_id                    NUMERIC,
     complaint_extracted        BOOLEAN,
-    stage                      TEXT
+    stage                      TEXT,
+    error                      TEXT,
+    error_message              TEXT
 );

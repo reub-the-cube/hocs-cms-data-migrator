@@ -26,10 +26,10 @@ public class ComplaintExtractRecord {
     @Column(name="id")
     private Long id;
 
-    @Column
+    @Column(name = "case_id")
     private BigDecimal caseId;
 
-    @Column
+    @Column(name = "complaint_extracted")
     private boolean complaintExtracted;
 
     @Column
@@ -38,7 +38,7 @@ public class ComplaintExtractRecord {
     @Column
     private String error;
 
-    @Column(name = "errormessage")
+    @Column(name = "error_message")
     private String errorMessage;
 }
 

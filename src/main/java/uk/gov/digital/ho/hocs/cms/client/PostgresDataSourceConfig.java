@@ -48,7 +48,7 @@ public class PostgresDataSourceConfig {
 
     @Bean
     @Primary
-    public PlatformTransactionManager postgresTransactionManager(LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory) {
+    public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory) {
         return new JpaTransactionManager(Objects.requireNonNull(postgresEntityManagerFactory.getObject()));
     }
 }

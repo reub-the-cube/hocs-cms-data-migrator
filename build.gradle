@@ -54,7 +54,7 @@ dependencies {
 	compileOnly "org.projectlombok:lombok:${lombokVersion}"
 	annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	annotationProcessor 'org.springframework:spring-context-indexer:6.0.3'
+	annotationProcessor 'org.springframework:spring-context-indexer:5.3.22'
 
 	testImplementation group: 'com.h2database', name: 'h2', version: '2.1.214'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

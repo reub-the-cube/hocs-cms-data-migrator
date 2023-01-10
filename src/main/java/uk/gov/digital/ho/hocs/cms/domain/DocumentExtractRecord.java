@@ -26,18 +26,18 @@ public class DocumentExtractRecord {
     @Column(name="id")
     private Long id;
 
-    @Column
+    @Column(name = "case_id")
     private BigDecimal caseId;
 
-    @Column
+    @Column(name = "document_id")
     private BigDecimal documentId;
 
-    @Column
+    @Column(name = "document_extracted")
     private boolean documentExtracted;
 
-    @Column
+    @Column(name = "failure_reason")
     private String failureReason;
 
-    @Column
+    @Column(name = "temp_file_name")
     private String tempFileName;
 }
