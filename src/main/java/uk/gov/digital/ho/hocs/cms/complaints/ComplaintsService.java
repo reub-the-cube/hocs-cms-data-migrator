@@ -2,12 +2,14 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.digital.ho.hocs.cms.client.MessageService;
+import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
-import uk.gov.digital.ho.hocs.cms.domain.ComplaintExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
-import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,18 +19,21 @@ import java.util.List;
 public class ComplaintsService {
 
     private final DocumentExtractor documentExtractor;
-    private final DocumentsRepository documentsRepository;
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
+    private final CorrespondentExtractor correspondentExtractor;
+    private final MessageService messageService;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
-                             DocumentsRepository documentsRepository,
                              ComplaintsExtractor complaintsExtractor,
-                             ComplaintsRepository complaintsRepository) {
+                             ComplaintsRepository complaintsRepository,
+                             CorrespondentExtractor correspondentExtractor,
+                             MessageService messageService) {
         this.documentExtractor = documentExtractor;
-        this.documentsRepository = documentsRepository;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
+        this.correspondentExtractor = correspondentExtractor;
+        this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
@@ -45,25 +50,50 @@ public class ComplaintsService {
     }
 
     private void extractComplaint(BigDecimal complaintId) {
-        ComplaintExtractRecord cer = new ComplaintExtractRecord();
         try {
+            CaseDetails caseDetails = new CaseDetails();
+            // extract documents
             List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(complaintId);
+            caseDetails.setCaseAttachments(attachments);
             log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
+            ComplaintExtractRecord documentsStage = getComplaintExtractRecord(complaintId, "Documents", true);
+            complaintsRepository.save(documentsStage);
+            // extract correspondents
+            caseDetails.setSourceCaseId(complaintId.toString());
+            correspondentExtractor.getCorrespondentsForCase(complaintId, caseDetails);
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Correspondents", true);
+            complaintsRepository.save(correspondentStage);
+            messageService.sendMigrationMessage(caseDetails);
+            // TODO: Extract additional complaint data
+            // TODO: Check case record and build migration message
         } catch (ApplicationExceptions.ExtractCaseException e) {
-            cer.setCaseId(complaintId);
-            cer.setComplaintExtracted(false);
-            cer.setStage("Documents");
-            complaintsRepository.save(cer);
+            ComplaintExtractRecord documentsStage = getComplaintExtractRecord(complaintId, "Documents", false);
+            documentsStage.setError(e.getEvent().toString());
+            documentsStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(documentsStage);
             log.error("Failed documents for complaint ID {}", complaintId + " skipping case...");
+            return;
+        } catch (ApplicationExceptions.ExtractCorrespondentException e) {
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Correspondents", false);
+            correspondentStage.setError(e.getEvent().toString());
+            correspondentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(correspondentStage);
+            log.error("Failed extracting correspondents for complaint ID {}", complaintId + " skipping case...");
+            return;
+        } catch (ApplicationExceptions.SendMigrationMessageException e) {
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
+            correspondentStage.setError(e.getEvent().toString());
+            correspondentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(correspondentStage);
+            log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
         }
-        cer.setCaseId(complaintId);
-        cer.setComplaintExtracted(true);
-        cer.setStage("Documents");
-        complaintsRepository.save(cer);
-
-        // TODO: Extract additional complaint data
-        // TODO: Check case record and build migration message
     }
 
-
+    private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal complaintId, String stage, boolean extracted) {
+        ComplaintExtractRecord cer = new ComplaintExtractRecord();
+        cer.setCaseId(complaintId);
+        cer.setComplaintExtracted(extracted);
+        cer.setStage(stage);
+        return cer;
+    }
 }

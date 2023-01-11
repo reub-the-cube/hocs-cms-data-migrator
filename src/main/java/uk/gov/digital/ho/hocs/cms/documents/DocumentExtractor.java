@@ -5,7 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
-import uk.gov.digital.ho.hocs.cms.domain.DocumentExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.model.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;

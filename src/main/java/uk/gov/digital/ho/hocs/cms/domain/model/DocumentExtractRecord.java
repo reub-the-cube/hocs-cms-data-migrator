@@ -1,4 +1,4 @@
-package uk.gov.digital.ho.hocs.cms.domain;
+package uk.gov.digital.ho.hocs.cms.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,21 +18,26 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "complaints")
-public class ComplaintExtractRecord {
+@Table(name = "documents")
+public class DocumentExtractRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
 
-    @Column
+    @Column(name = "case_id")
     private BigDecimal caseId;
 
-    @Column
-    private boolean complaintExtracted;
+    @Column(name = "document_id")
+    private BigDecimal documentId;
 
-    @Column
-    private String stage;
+    @Column(name = "document_extracted")
+    private boolean documentExtracted;
+
+    @Column(name = "failure_reason")
+    private String failureReason;
+
+    @Column(name = "temp_file_name")
+    private String tempFileName;
 }
-

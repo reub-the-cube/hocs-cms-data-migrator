@@ -1,82 +1,62 @@
 package uk.gov.digital.ho.hocs.cms.client;
 
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import uk.gov.digital.ho.hocs.cms.payload.PayloadFile;
-import uk.gov.digital.ho.hocs.cms.payload.TokenReplacer;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 
-import java.util.Random;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
 
-import static org.apache.commons.lang3.StringUtils.replaceEach;
-import static uk.gov.digital.ho.hocs.cms.payload.FileReader.getResourceFileAsString;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.MIGRATION_MESSAGE_FAILED;
 
 @Service
 @Slf4j
 public class MessageService {
 
     private final SQSClient sqsClient;
-    private final int numMessages;
-    private final String complaintType;
-    private final Replacer replacer = new Replacer();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
 
-    public MessageService(SQSClient sqsClient,
-                          @Value("${run.config.num-messages}") int numMessages,
-                          @Value("${run.config.complaint-type}")  String complaintType) {
+    public MessageService(SQSClient sqsClient) {
         this.sqsClient = sqsClient;
-        this.numMessages = numMessages;
-        this.complaintType = complaintType;
     }
 
-    public void startSending() {
-
-        if (StringUtils.hasText(complaintType)) {
-            for (int i = 0; i < numMessages; i++) {
-                String fileName = PayloadFile.valueOf(complaintType).getFileName();
-                log.debug("Sending {} : {}", complaintType, fileName);
-                String msg= replaceEach(getResourceFileAsString(fileName), replacer.getSearchList(), replacer.getReplaceList());
-                sqsClient.sendMessage(msg);
-            }
-            log.debug("Successfully sent {}, {} messages.", numMessages, complaintType);
-        } else {
-            new Random().ints(numMessages, 1, PayloadFile.values().length).forEach((typeIndex) -> {
-                String fileName = PayloadFile.values()[typeIndex].getFileName();
-                log.debug("Sending Random : {}", fileName);
-                sqsClient.sendMessage(replaceEach(getResourceFileAsString(fileName), replacer.getSearchList(), replacer.getReplaceList()));
-            });
-            log.debug("Successfully sent {}, random messages.", numMessages);
+    public void sendMigrationMessage(CaseDetails caseDetails) {
+        String message = null;
+        try {
+            message = validateMigrationMessage(caseDetails);
+        } catch(IOException e) {
+            log.error("Failed sending migration message for case ID {}", caseDetails.getSourceCaseId());
+            throw new ApplicationExceptions.SendMigrationMessageException(
+                    String.format("Failed sending migration message for case ID %s", caseDetails.getSourceCaseId()),  MIGRATION_MESSAGE_FAILED, e);
         }
-
+        log.debug("Sending {}", message);
+        sqsClient.sendMessage(message);
+        log.debug("Successfully sent message");
     }
 
-    @Getter
-    static public class Replacer {
-
-        private final String[] searchList = {
-                "@@TODAY@@",
-                "@@COMPLAINT_TEXT@@",
-                "@@APPLICANT_NAME@@",
-                "@@AGENT_NAME@@",
-                "@@NATIONALITY@@",
-                "@@COUNTRY@@",
-                "@@CITY@@",
-                "@@DOB@@",
-                "@@APPLICANT_EMAIL@@",
-                "@@AGENT_EMAIL@@",
-                "@@PHONE@@",
-                "@@REFERENCE@@"
-        };
-
-        public String[] getReplaceList() {
-            String[] replaceList = new String[searchList.length];
-            for (int i = 0; i < searchList.length; i++) {
-                String token = searchList[i];
-                replaceList[i] = TokenReplacer.replaceToken(token);
+    private String validateMigrationMessage(CaseDetails caseDetails) throws IOException {
+        InputStream schemaStream = new ClassPathResource("hocs-migration-schema.json").getInputStream();
+        JsonSchema schema = schemaFactory.getSchema(schemaStream);
+        String migrationMessage = objectMapper.writeValueAsString(caseDetails);
+        JsonNode migrationJsonNode = objectMapper.readTree(migrationMessage);
+        Set<ValidationMessage> validationResult = schema.validate(migrationJsonNode);
+        if (!validationResult.isEmpty()) {
+            for (ValidationMessage validationMessage : validationResult) {
+                log.error(validationMessage.getMessage());
             }
-            return replaceList;
+            throw new ApplicationExceptions.SendMigrationMessageException(
+                    String.format("Migration message failed validation for case ID %s", caseDetails.getSourceCaseId()),  MIGRATION_MESSAGE_FAILED);
         }
+        return migrationMessage;
     }
-
 }
