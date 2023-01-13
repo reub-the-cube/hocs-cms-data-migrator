@@ -60,7 +60,7 @@ public class CorrespondentExtractor {
 
         if (correspondents.isRepresentativeIdNull() || correspondents.isComplainantIdNull()) {
             throw new ApplicationExceptions.ExtractCorrespondentException(
-                    String.format("Failed extracting correspondent IDs for case ID %s", correspondents.getComplainantId(), caseId),  CORRESPONDENT_EXTRACTION_FAILED);
+                    String.format("Failed extracting correspondent IDs for case ID %s", caseId),  CORRESPONDENT_EXTRACTION_FAILED);
         }
 
         if (correspondents.isComplainantPrimaryCorrespondent()) {
