@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
+import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
@@ -25,18 +26,21 @@ public class ComplaintsService {
     private final CorrespondentExtractor correspondentExtractor;
     private final CaseDataExtractor caseDataExtractor;
     private final MessageService messageService;
+    private final CompensationExtractor compensationExtractor;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
                              CorrespondentExtractor correspondentExtractor,
                              CaseDataExtractor caseDataExtractor,
+                             CompensationExtractor compensationExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
         this.correspondentExtractor = correspondentExtractor;
         this.caseDataExtractor = caseDataExtractor;
+        this.compensationExtractor = compensationExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -97,6 +101,19 @@ public class ComplaintsService {
             correspondentStage.setErrorMessage(e.getMessage());
             complaintsRepository.save(correspondentStage);
             log.error("Failed extracting case data for complaint ID {}", complaintId);
+        }
+
+        // extract compensation data
+        try {
+            compensationExtractor.getCompensationDetails(complaintId);
+            ComplaintExtractRecord caseDataStage = getComplaintExtractRecord(complaintId, "Compensation", true);
+            complaintsRepository.save(caseDataStage);
+        } catch (ApplicationExceptions.ExtractCompensationDataException e) {
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Compensation Data", false);
+            correspondentStage.setError(e.getEvent().toString());
+            correspondentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(correspondentStage);
+            log.error("Failed extracting compensation data for complaint ID {}", complaintId);
         }
 
         // TODO: Extract additional complaint data
