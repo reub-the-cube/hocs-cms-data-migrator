@@ -121,8 +121,17 @@ public class ComplaintsService {
         }
 
         // extract case links
-
-        caseLinkExtractor.getCaseLinks(complaintId);
+        try {
+            caseLinkExtractor.getCaseLinks(complaintId);
+            ComplaintExtractRecord caseLinksStage = getComplaintExtractRecord(complaintId, "Case links", true);
+            complaintsRepository.save(caseLinksStage);
+        } catch (ApplicationExceptions.ExtractCaseLinksException e) {
+            ComplaintExtractRecord caseLinksStage = getComplaintExtractRecord(complaintId, "Case links", false);
+            caseLinksStage.setError(e.getEvent().toString());
+            caseLinksStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(caseLinksStage);
+            log.error("Failed extracting compensation data for complaint ID {}", complaintId);
+        }
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message

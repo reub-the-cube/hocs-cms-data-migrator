@@ -5,11 +5,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CASE_LINKS_EXTRACTION_FAILED;
 
 @Component
 @Slf4j
@@ -45,7 +48,9 @@ public class CaseLinkExtractor {
            return cl;
        }, sourceCaseId);
     } catch (DataAccessException e) {
-            log.error("Case links failed");
+            log.error("Case links extraction failed for case ID: {}", sourceCaseId);
+            throw new ApplicationExceptions.ExtractCaseLinksException(
+                    String.format("Failed to extract case links for case: %s", sourceCaseId), CASE_LINKS_EXTRACTION_FAILED, e);
+            }
         }
     }
-}
