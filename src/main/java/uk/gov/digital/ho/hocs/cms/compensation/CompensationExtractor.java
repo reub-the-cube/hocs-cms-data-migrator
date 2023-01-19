@@ -54,9 +54,9 @@ public class CompensationExtractor {
             compensation.setCaseId(caseId);
             compensationRepository.save(compensation);
         } catch (DataAccessException e) {
-            log.error("No compensation data for Case ID: {}", caseId);
+            log.error("Failed extracting compensation data for Case ID: {}", caseId);
             throw new ApplicationExceptions.ExtractCompensationDataException(
-                    String.format("Failed to extract compensation for case: %s", caseId), COMPENSATION_DATA_EXTRACTION_FAILED);
+                    String.format("Failed to extract compensation for case: %s", caseId), COMPENSATION_DATA_EXTRACTION_FAILED, e);
         }
         return compensation;
     }

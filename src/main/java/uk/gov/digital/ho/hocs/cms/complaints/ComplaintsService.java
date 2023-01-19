@@ -12,6 +12,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ComplaintsService {
     private final CaseDataExtractor caseDataExtractor;
     private final MessageService messageService;
     private final CompensationExtractor compensationExtractor;
+    private final RiskAssessmentExtractor riskAssessmentExtractor;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -34,6 +36,7 @@ public class ComplaintsService {
                              CorrespondentExtractor correspondentExtractor,
                              CaseDataExtractor caseDataExtractor,
                              CompensationExtractor compensationExtractor,
+                             RiskAssessmentExtractor riskAssessmentExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -41,6 +44,7 @@ public class ComplaintsService {
         this.correspondentExtractor = correspondentExtractor;
         this.caseDataExtractor = caseDataExtractor;
         this.compensationExtractor = compensationExtractor;
+        this.riskAssessmentExtractor = riskAssessmentExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -106,14 +110,27 @@ public class ComplaintsService {
         // extract compensation data
         try {
             compensationExtractor.getCompensationDetails(complaintId);
-            ComplaintExtractRecord caseDataStage = getComplaintExtractRecord(complaintId, "Compensation", true);
-            complaintsRepository.save(caseDataStage);
+            ComplaintExtractRecord compensationStage = getComplaintExtractRecord(complaintId, "Compensation", true);
+            complaintsRepository.save(compensationStage);
         } catch (ApplicationExceptions.ExtractCompensationDataException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Compensation Data", false);
-            correspondentStage.setError(e.getEvent().toString());
-            correspondentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(correspondentStage);
+            ComplaintExtractRecord compensationStage = getComplaintExtractRecord(complaintId, "Compensation", false);
+            compensationStage.setError(e.getEvent().toString());
+            compensationStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(compensationStage);
             log.error("Failed extracting compensation data for complaint ID {}", complaintId);
+        }
+
+        // extract risk assessment
+        try {
+            riskAssessmentExtractor.getRiskAssessment(complaintId);
+            ComplaintExtractRecord riskAssessmentStage = getComplaintExtractRecord(complaintId, "Risk assessment", true);
+            complaintsRepository.save(riskAssessmentStage);
+        } catch (ApplicationExceptions.ExtractRiskAssessmentException e) {
+            ComplaintExtractRecord riskAssessmentStage = getComplaintExtractRecord(complaintId, "Risk assessment", false);
+            riskAssessmentStage.setError(e.getEvent().toString());
+            riskAssessmentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(riskAssessmentStage);
+            log.error("Failed extracting risk assessment for complaint ID {}", complaintId);
         }
 
         // TODO: Extract additional complaint data
