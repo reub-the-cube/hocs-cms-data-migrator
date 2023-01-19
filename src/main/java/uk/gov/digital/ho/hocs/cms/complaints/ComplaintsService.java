@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
+import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
@@ -25,6 +26,7 @@ public class ComplaintsService {
     private final ComplaintsRepository complaintsRepository;
     private final CorrespondentExtractor correspondentExtractor;
     private final CaseDataExtractor caseDataExtractor;
+    private final CaseLinkExtractor caseLinkExtractor;
     private final MessageService messageService;
     private final CompensationExtractor compensationExtractor;
 
@@ -34,6 +36,7 @@ public class ComplaintsService {
                              CorrespondentExtractor correspondentExtractor,
                              CaseDataExtractor caseDataExtractor,
                              CompensationExtractor compensationExtractor,
+                             CaseLinkExtractor caseLinkExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -41,6 +44,7 @@ public class ComplaintsService {
         this.correspondentExtractor = correspondentExtractor;
         this.caseDataExtractor = caseDataExtractor;
         this.compensationExtractor = compensationExtractor;
+        this.caseLinkExtractor = caseLinkExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -115,6 +119,10 @@ public class ComplaintsService {
             complaintsRepository.save(correspondentStage);
             log.error("Failed extracting compensation data for complaint ID {}", complaintId);
         }
+
+        // extract case links
+
+        caseLinkExtractor.getCaseLinks(complaintId);
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message
