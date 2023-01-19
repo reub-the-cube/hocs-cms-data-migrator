@@ -40,13 +40,13 @@ public class CaseLinkExtractor {
 
     public void getCaseLinks(BigDecimal sourceCaseId) {
         try {
-       CaseLinks caseLinks = jdbcTemplate.queryForObject(FETCH_CASE_LINKS, (rs, rowNum) -> {
-           CaseLinks cl = new CaseLinks();
-           cl.setSourceCaseId(rs.getBigDecimal("sourceCaseId"));
-           cl.setTargetCaseId(rs.getBigDecimal("TargetCaseID"));
-           cl.setDescription(rs.getString("Description"));
-           return cl;
-       }, sourceCaseId);
+            CaseLinks caseLinks = jdbcTemplate.queryForObject(FETCH_CASE_LINKS, (rs, rowNum) -> {
+            CaseLinks cl = new CaseLinks();
+            cl.setSourceCaseId(rs.getBigDecimal("sourceCaseId"));
+            cl.setTargetCaseId(rs.getBigDecimal("TargetCaseID"));
+            cl.setDescription(rs.getString("Description"));
+            return cl;
+        }, sourceCaseId);
     } catch (DataAccessException e) {
             log.error("Case links extraction failed for case ID: {}", sourceCaseId);
             throw new ApplicationExceptions.ExtractCaseLinksException(
