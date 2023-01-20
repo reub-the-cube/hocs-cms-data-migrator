@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
+import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
@@ -26,9 +27,10 @@ public class ComplaintsService {
     private final ComplaintsRepository complaintsRepository;
     private final CorrespondentExtractor correspondentExtractor;
     private final CaseDataExtractor caseDataExtractor;
-    private final MessageService messageService;
     private final CompensationExtractor compensationExtractor;
     private final RiskAssessmentExtractor riskAssessmentExtractor;
+    private final CaseLinkExtractor caseLinkExtractor;
+    private final MessageService messageService;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -37,6 +39,7 @@ public class ComplaintsService {
                              CaseDataExtractor caseDataExtractor,
                              CompensationExtractor compensationExtractor,
                              RiskAssessmentExtractor riskAssessmentExtractor,
+                             CaseLinkExtractor caseLinkExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -45,6 +48,7 @@ public class ComplaintsService {
         this.caseDataExtractor = caseDataExtractor;
         this.compensationExtractor = compensationExtractor;
         this.riskAssessmentExtractor = riskAssessmentExtractor;
+        this.caseLinkExtractor = caseLinkExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -131,6 +135,19 @@ public class ComplaintsService {
             riskAssessmentStage.setErrorMessage(e.getMessage());
             complaintsRepository.save(riskAssessmentStage);
             log.error("Failed extracting risk assessment for complaint ID {}", complaintId);
+        }
+
+        // extract case links
+        try {
+            caseLinkExtractor.getCaseLinks(complaintId);
+            ComplaintExtractRecord caseLinksStage = getComplaintExtractRecord(complaintId, "Case links", true);
+            complaintsRepository.save(caseLinksStage);
+        } catch (ApplicationExceptions.ExtractCaseLinksException e) {
+            ComplaintExtractRecord caseLinksStage = getComplaintExtractRecord(complaintId, "Case links", false);
+            caseLinksStage.setError(e.getEvent().toString());
+            caseLinksStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(caseLinksStage);
+            log.error("Failed extracting compensation data for complaint ID {}", complaintId);
         }
 
         // TODO: Extract additional complaint data
