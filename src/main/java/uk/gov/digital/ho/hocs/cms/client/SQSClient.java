@@ -22,7 +22,7 @@ public class SQSClient {
     }
     
     public void sendMessage(String message) {
-        SendMessageResult sendMessageResult = sqs.sendMessage(queueUrl,message);
+        SendMessageResult sendMessageResult = sqs.sendMessage(queueUrl, message);
         log.debug("Successfully sent MessageId: {} ,queueURL: {}", sendMessageResult.getMessageId(), queueUrl);
     }
 

@@ -9,6 +9,7 @@ localstack:
 aws:
   region: eu-west-2
   sqs:
+    enabled: true
     access-key: fake
     secret-key: fake
     queue-name: migration-queue
@@ -20,13 +21,8 @@ aws:
       account:
         access-key: 12345
         secret-key: 12345
-        bucket-kms-key:
+        kms-key:
       bucket-name: untrusted-bucket
-
-run:
-  config:
-    num-messages: 1
-    complaint-type: SOMETHING_ELSE
 
 spring:
   flyway:
@@ -39,14 +35,6 @@ spring:
     hibernate:
       ddl-auto: none
       dialect: org.hibernate.dialect.PostgreSQLDialect
-  main:
-    web-application-type: none
-  datasource:
-    driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${db.host:localhost}:${db.port:5432}/${db.name:postgres}?currentSchema=${db.schema.name:cms}&user=${db.username:root}&password=${db.password:dev}&stringtype=unspecified
-    cms:
-      driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-      url: jdbc:sqlserver://${db.host:localhost}:${db.port:5434};databaseName=cms
-      username: ${db.username:sa}
-      password: ${db.password:Development01}
+
+
 

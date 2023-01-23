@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: extract-cms-data
+  labels:
+    version: {{ .Values.version }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        name: hocs-cms-data-migrator
+        role: cms
+        outbound: required
+        database: required
+    spec:
+      containers:
+        - name: hocs-cms-data-migrator
+          image:  '{{ .Values.app.image.repository }}:{{ .Values.version }}'
+          env:
+            {{ include "deployment.envs" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+      restartPolicy: Never

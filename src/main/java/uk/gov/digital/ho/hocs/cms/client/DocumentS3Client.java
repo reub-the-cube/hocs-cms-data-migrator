@@ -3,9 +3,12 @@ package uk.gov.digital.ho.hocs.cms.client;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 
 import java.io.ByteArrayInputStream;
@@ -27,7 +30,7 @@ public class DocumentS3Client {
 
     public DocumentS3Client(AmazonS3 s3Client,
                             @Value("${aws.s3.untrusted.bucket-name}") String bucketName,
-                            @Value("${aws.s3.untrusted.account.bucket-kms-key}") String bucketKmsKey) {
+                            @Value("${aws.s3.untrusted.account.kms-key}") String bucketKmsKey) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
         this.bucketKmsKey = bucketKmsKey;
@@ -37,7 +40,8 @@ public class DocumentS3Client {
         ObjectMetadata metaData = buildObjectMetadata(originalFilename, bytes.length, id);
         String tempObjectName = getTempObjectName();
         try {
-            s3Client.putObject(bucketName, tempObjectName, new ByteArrayInputStream(bytes), metaData);
+            PutObjectRequest uploadRequest = buildPutObjectRequest(bytes, metaData, tempObjectName);
+            s3Client.putObject(uploadRequest);
             log.info("S3 Put Object success. ID = {}", id);
         }
         catch (SdkClientException e) {
@@ -46,6 +50,17 @@ public class DocumentS3Client {
                     String.format("Failed to put document ID: " + id), DOCUMENT_COPY_FAILED);
         }
         return tempObjectName;
+    }
+
+    PutObjectRequest buildPutObjectRequest(byte[] bytes, ObjectMetadata metaData, String tempObjectName) {
+        PutObjectRequest uploadRequest = new PutObjectRequest(bucketName, tempObjectName,
+                new ByteArrayInputStream(bytes), metaData);
+
+        if (StringUtils.hasText(bucketKmsKey)) { // Will be empty when running local. Workaround because localstack doesn't use HTTPS
+            uploadRequest = uploadRequest.withSSEAwsKeyManagementParams(new SSEAwsKeyManagementParams(bucketKmsKey));
+        }
+
+        return uploadRequest;
     }
 
     String getTempObjectName() {

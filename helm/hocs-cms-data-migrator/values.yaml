@@ -1,0 +1,21 @@
+---
+
+selector:
+  outbound:
+    required: true
+
+service:
+  enabled: false
+
+app:
+  image:
+    repository: quay.io/ukhomeofficedigital/hocs-cms-data-migrator
+  env:
+    springProfiles: 'sqs, s3'
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2048Mi
+    requests:
+      cpu: 2000m
+      memory: 2048Mi

@@ -5,7 +5,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
 import org.springframework.cloud.aws.messaging.config.annotation.EnableSqs;
 import org.springframework.context.annotation.Bean;
@@ -16,12 +15,11 @@ import org.springframework.context.annotation.Profile;
 @EnableSqs
 @Configuration
 @Profile("sqs")
-@ConditionalOnProperty(prefix = "aws.sqs", value = "enabled", havingValue = "true")
 public class SqsConfiguration {
 
     @Primary
     @Bean
-    public AmazonSQSAsync awsSqsClient(@Value("${aws.sqs.access-key}") String accessKey,
+    public AmazonSQSAsync awsSqsClient(@Value("${aws.sqs.access.key}") String accessKey,
                                        @Value("${aws.sqs.secret-key}") String secretKey,
                                        @Value("${aws.region}") String region) {
 

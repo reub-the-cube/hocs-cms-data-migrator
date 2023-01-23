@@ -74,7 +74,7 @@ public class ComplaintsService {
             log.info("Extracted {} document(s) for complaint {}", attachments.size(), complaintId);
             ComplaintExtractRecord documentsStage = getComplaintExtractRecord(complaintId, "Documents", true);
             complaintsRepository.save(documentsStage);
-        } catch (ApplicationExceptions.ExtractDocumentException e) {
+        } catch (ApplicationExceptions.ExtractCaseException e) {
             ComplaintExtractRecord documentsStage = getComplaintExtractRecord(complaintId, "Documents", false);
             documentsStage.setError(e.getEvent().toString());
             documentsStage.setErrorMessage(e.getMessage());
@@ -147,7 +147,7 @@ public class ComplaintsService {
             caseLinksStage.setError(e.getEvent().toString());
             caseLinksStage.setErrorMessage(e.getMessage());
             complaintsRepository.save(caseLinksStage);
-            log.error("Failed extracting compensation data for complaint ID {}", complaintId);
+            log.error("Failed extracting case links for complaint ID {}", complaintId);
         }
 
         // TODO: Extract additional complaint data
