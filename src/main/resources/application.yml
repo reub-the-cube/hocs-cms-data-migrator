@@ -40,7 +40,7 @@ spring:
     url: jdbc:postgresql://${postgres_db.host:localhost}:${postgres_db.port:5432}/${postgres_db.name:postgres}?currentSchema=${postgres_db.schema.name:cms}&user=${postgres_db.username:root}&password=${postgres_db.password:dev}&stringtype=unspecified
     cms:
       driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
-      url: jdbc:sqlserver://${cms_db.host:localhost}:${cms_db.port:5434};databaseName=cms
+      url: jdbc:sqlserver://${cms_db.host:localhost}:${cms_db.port:1433};databaseName=cms
       username: ${cms_db.username:sa}
       password: ${cms_db.password:Development01}
 
