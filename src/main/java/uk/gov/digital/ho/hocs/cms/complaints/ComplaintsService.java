@@ -14,6 +14,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ public class ComplaintsService {
     private final RiskAssessmentExtractor riskAssessmentExtractor;
     private final CaseLinkExtractor caseLinkExtractor;
     private final CategoriesExtractor categoriesExtractor;
+    private final ResponseExtractor responseExtractor;
     private final MessageService messageService;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
@@ -43,6 +45,7 @@ public class ComplaintsService {
                              RiskAssessmentExtractor riskAssessmentExtractor,
                              CaseLinkExtractor caseLinkExtractor,
                              CategoriesExtractor categoriesExtractor,
+                             ResponseExtractor responseExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -53,6 +56,7 @@ public class ComplaintsService {
         this.riskAssessmentExtractor = riskAssessmentExtractor;
         this.caseLinkExtractor = caseLinkExtractor;
         this.categoriesExtractor = categoriesExtractor;
+        this.responseExtractor = responseExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -158,6 +162,8 @@ public class ComplaintsService {
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message
+
+        responseExtractor.getResponse(complaintId);
 
         // send migration message
         try {
