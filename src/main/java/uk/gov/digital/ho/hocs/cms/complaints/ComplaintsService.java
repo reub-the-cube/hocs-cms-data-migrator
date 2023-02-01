@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
 import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
+import uk.gov.digital.ho.hocs.cms.categories.CategoriesExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
@@ -30,6 +31,7 @@ public class ComplaintsService {
     private final CompensationExtractor compensationExtractor;
     private final RiskAssessmentExtractor riskAssessmentExtractor;
     private final CaseLinkExtractor caseLinkExtractor;
+    private final CategoriesExtractor categoriesExtractor;
     private final MessageService messageService;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
@@ -40,6 +42,7 @@ public class ComplaintsService {
                              CompensationExtractor compensationExtractor,
                              RiskAssessmentExtractor riskAssessmentExtractor,
                              CaseLinkExtractor caseLinkExtractor,
+                             CategoriesExtractor categoriesExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -49,6 +52,7 @@ public class ComplaintsService {
         this.compensationExtractor = compensationExtractor;
         this.riskAssessmentExtractor = riskAssessmentExtractor;
         this.caseLinkExtractor = caseLinkExtractor;
+        this.categoriesExtractor = categoriesExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -149,6 +153,8 @@ public class ComplaintsService {
             complaintsRepository.save(caseLinksStage);
             log.error("Failed extracting case links for complaint ID {}", complaintId);
         }
+
+        categoriesExtractor.getSelectedCategoryData(complaintId);
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message

@@ -18,20 +18,27 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "case_links")
-public class CaseLinks {
+@Table(name = "categories")
+public class Categories {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
 
-    @Column(name = "source_case_id")
-    private BigDecimal sourceCaseId;
+    @Column(name = "case_id")
+    private BigDecimal caseId;
 
-    @Column(name = "target_case_id")
-    private BigDecimal targetCaseId;
+    @Column(name = "category")
+    private String category;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "selected")
+    private String selected;
+
+    @Column(name = "substantiated")
+    private String substantiated;
+
+    @Column(name = "amount")
+    private BigDecimal amount;
+
 }

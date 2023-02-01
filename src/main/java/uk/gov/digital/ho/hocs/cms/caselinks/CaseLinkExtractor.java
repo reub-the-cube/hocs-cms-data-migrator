@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
@@ -37,7 +38,7 @@ public class CaseLinkExtractor {
         this.caseLinksRepository = caseLinksRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
-
+    @Transactional
     public void getCaseLinks(BigDecimal sourceCaseId) {
         caseLinksRepository.deleteAllBySourceCaseId(sourceCaseId);
         try {
