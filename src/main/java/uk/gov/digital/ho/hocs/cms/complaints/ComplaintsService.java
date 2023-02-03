@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
 import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
 import uk.gov.digital.ho.hocs.cms.categories.CategoriesExtractor;
+import uk.gov.digital.ho.hocs.cms.categories.SubCategoriesExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
@@ -34,6 +35,7 @@ public class ComplaintsService {
     private final RiskAssessmentExtractor riskAssessmentExtractor;
     private final CaseLinkExtractor caseLinkExtractor;
     private final CategoriesExtractor categoriesExtractor;
+    private final SubCategoriesExtractor subCategoriesExtractor;
     private final ResponseExtractor responseExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
     private final MessageService messageService;
@@ -47,6 +49,7 @@ public class ComplaintsService {
                              RiskAssessmentExtractor riskAssessmentExtractor,
                              CaseLinkExtractor caseLinkExtractor,
                              CategoriesExtractor categoriesExtractor,
+                             SubCategoriesExtractor subCategoriesExtractor,
                              ResponseExtractor responseExtractor,
                              CaseHistoryExtractor caseHistoryExtractor,
                              MessageService messageService) {
@@ -59,6 +62,7 @@ public class ComplaintsService {
         this.riskAssessmentExtractor = riskAssessmentExtractor;
         this.caseLinkExtractor = caseLinkExtractor;
         this.categoriesExtractor = categoriesExtractor;
+        this.subCategoriesExtractor = subCategoriesExtractor;
         this.responseExtractor = responseExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
         this.messageService = messageService;
@@ -162,13 +166,16 @@ public class ComplaintsService {
             log.error("Failed extracting case links for complaint ID {}", complaintId);
         }
 
+        // extract categories
         categoriesExtractor.getSelectedCategoryData(complaintId);
+        subCategoriesExtractor.getSelectedSubCategoryData(complaintId);
+
+        // extract response
+        responseExtractor.getResponse(complaintId);
+
+        // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
-        // TODO: Extract additional complaint data
-        // TODO: Check case record and build migration message
-
-        responseExtractor.getResponse(complaintId);
 
         // send migration message
         try {

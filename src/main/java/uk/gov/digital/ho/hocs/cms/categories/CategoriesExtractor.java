@@ -26,12 +26,9 @@ public class CategoriesExtractor {
 
     private final String FETCH_SELECTED_CATEGORIES = """
             SELECT delay_, adminprocesserror, poorcommunication, wronginformation, lostdocuments, ccphysicalenvironment, ccavailabilityofservice,
-            ccprovisionforminors, cccomplainthandling, rudeness, otherunprofessional,unfairtreatment, theft, assault, sexualassault,
-            fraud, racism, damage_bf, custody_bf, sub_property_money, sub_clinical, sub_property_witheld, sub_rule_40_42, sub_property_stolen,
-            sub_property_damaged, sub_pcpqueue_bf, sub_visits, sub_property_lost, sub_detainee_on_detainee FROM FLODS_UKBACOMPLAINTS_D00 WHERE caseid = ?
+            ccprovisionforminors, cccomplainthandling, rudeness, otherunprofessional, unfairtreatment, theft, assault, sexualassault,
+            fraud, racism, damage_bf, custody_bf FROM FLODS_UKBACOMPLAINTS_D00 WHERE caseid = ?
             """;
-
-    private final Map<String, String> categories = new HashMap<>();
 
     public CategoriesExtractor(@Qualifier("cms") DataSource dataSource, CategoriesRepository categoriesRepository) {
         this.dataSource = dataSource;
@@ -49,8 +46,11 @@ public class CategoriesExtractor {
         }
         for (Map.Entry<String, String> entry : selectedCategories.entrySet()) {
             if (entry.getValue() != null) {
-                Map<String, String> catDetails = categoryValues.get(entry.getKey());
-                getSelectedCategoryData(entry.getKey(), catDetails.get(SELECTED), catDetails.get(SUBSTANTIATED), catDetails.get(AMOUNT), caseId);
+                String checked = entry.getValue();
+                if(checked.equalsIgnoreCase("Checked")) {
+                    Map<String, String> catDetails = categoryValues.get(entry.getKey());
+                    getSelectedCategoryData(entry.getKey(), catDetails.get(SELECTED), catDetails.get(SUBSTANTIATED), catDetails.get(AMOUNT), caseId);
+                }
             }
         }
 
@@ -93,16 +93,6 @@ public class CategoriesExtractor {
     private final String RACISM = "racism";
     private final String DAMAGE_BF = "damage_bf";
     private final String CUSTODY_BF = "custody_bf";
-    private final String SUB_PROPERTY_MONEY = "sub_property_money";
-    private final String SUB_CLINICAL = "sub_clinical";
-    private final String SUB_PROPERTY_WITHHELD = "sub_property_witheld";
-    private final String SUB_RULE_40_42 = "sub_rule_40_42";
-    private final String SUB_PROPERTY_STOLEN = "sub_property_stolen";
-    private final String SUB_PROPERTY_DAMAGED = "sub_property_damaged";
-    private final String SUB_PCPQUEUE_BF = "sub_pcpqueue_bf";
-    private final String SUB_VISITS = "sub_visits";
-    private final String SUB_PROPERTY_LOST = "sub_property_lost";
-    private final String SUB_DETAINEE_ON_DETAINEE = "sub_detainee_on_detainee";
 
     private final Map<String, String> categoryTitles = Map.ofEntries(
             Map.entry(DELAY, "Delay"),
@@ -123,17 +113,7 @@ public class CategoriesExtractor {
             Map.entry(FRAUD, "Fraud"),
             Map.entry(RACISM, "Racism"),
             Map.entry(DAMAGE_BF, "Damage BF"),
-            Map.entry(CUSTODY_BF, "Custom BF"),
-            Map.entry(SUB_PROPERTY_MONEY, "Sub property money"),
-            Map.entry(SUB_CLINICAL, "Sub clinical"),
-            Map.entry(SUB_PROPERTY_WITHHELD, "Sub property withheld"),
-            Map.entry(SUB_RULE_40_42, "Sub rule 40/42"),
-            Map.entry(SUB_PROPERTY_STOLEN, "Sub property stolen"),
-            Map.entry(SUB_PROPERTY_DAMAGED, "Sub property damaged"),
-            Map.entry(SUB_PCPQUEUE_BF, "Sub PCP Queue BF"),
-            Map.entry(SUB_VISITS, "Sub visits"),
-            Map.entry(SUB_PROPERTY_LOST, "Sub property lost"),
-            Map.entry(SUB_DETAINEE_ON_DETAINEE, "Sub detainee on detainee")
+            Map.entry(CUSTODY_BF, "Custom BF")
     );
 
 
@@ -161,16 +141,6 @@ public class CategoriesExtractor {
                 cat.put(RACISM, rs.getString(RACISM));
                 cat.put(DAMAGE_BF, rs.getString(DAMAGE_BF));
                 cat.put(CUSTODY_BF, rs.getString(CUSTODY_BF));
-                cat.put(SUB_PROPERTY_MONEY, rs.getString(SUB_PROPERTY_MONEY));
-                cat.put(SUB_CLINICAL, rs.getString(SUB_CLINICAL));
-                cat.put(SUB_PROPERTY_WITHHELD, rs.getString(SUB_PROPERTY_WITHHELD));
-                cat.put(SUB_RULE_40_42, rs.getString(SUB_RULE_40_42));
-                cat.put(SUB_PROPERTY_STOLEN, rs.getString(SUB_PROPERTY_STOLEN));
-                cat.put(SUB_PROPERTY_DAMAGED, rs.getString(SUB_PROPERTY_DAMAGED));
-                cat.put(SUB_PCPQUEUE_BF, rs.getString(SUB_PCPQUEUE_BF));
-                cat.put(SUB_VISITS, rs.getString(SUB_VISITS));
-                cat.put(SUB_PROPERTY_LOST, rs.getString(SUB_PROPERTY_LOST));
-                cat.put(SUB_DETAINEE_ON_DETAINEE, rs.getString(SUB_DETAINEE_ON_DETAINEE));
                 return cat;
             }, caseId);
         } catch (DataAccessException e) {
@@ -198,17 +168,7 @@ public class CategoriesExtractor {
         Map.entry(FRAUD, getCategoryColumnNames("fraud", "fraud_status", "fraud_amount")),
         Map.entry(RACISM, getCategoryColumnNames("racism", "racism_status", "racism_amount")),
         Map.entry(DAMAGE_BF, getCategoryColumnNames( "damage_bf", "damage_bf_status", "damage_bf_amount")),
-        Map.entry(CUSTODY_BF, getCategoryColumnNames("custody_bf", "custody_bf_status", "custody_bf_amount")),
-        Map.entry(SUB_PROPERTY_MONEY, getCategoryColumnNames("sub_property_money", "", "")),
-        Map.entry(SUB_CLINICAL, getCategoryColumnNames("sub_clinical", "", "")),
-        Map.entry(SUB_PROPERTY_WITHHELD, getCategoryColumnNames("sub_property_witheld", "", "")),
-        Map.entry(SUB_RULE_40_42, getCategoryColumnNames("sub_rule_40_42", "", "")),
-        Map.entry(SUB_PROPERTY_STOLEN, getCategoryColumnNames("sub_property_stolen", "", "")),
-        Map.entry(SUB_PROPERTY_DAMAGED, getCategoryColumnNames("sub_property_damaged", "", "")),
-        Map.entry(SUB_PCPQUEUE_BF, getCategoryColumnNames("sub_pcpqueue_bf", "", "")),
-        Map.entry(SUB_VISITS, getCategoryColumnNames("sub_visits", "", "")),
-        Map.entry(SUB_PROPERTY_LOST, getCategoryColumnNames("sub_property_lost", "", "")),
-        Map.entry(SUB_DETAINEE_ON_DETAINEE, getCategoryColumnNames("sub_detainee_on_detainee", "", ""))
+        Map.entry(CUSTODY_BF, getCategoryColumnNames("custody_bf", "custody_bf_status", "custody_bf_amount"))
     );
 
     private final String SELECTED = "selected";
