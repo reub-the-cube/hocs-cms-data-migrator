@@ -15,6 +15,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
+import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
 import java.math.BigDecimal;
@@ -34,6 +35,7 @@ public class ComplaintsService {
     private final CaseLinkExtractor caseLinkExtractor;
     private final CategoriesExtractor categoriesExtractor;
     private final ResponseExtractor responseExtractor;
+    private final CaseHistoryExtractor caseHistoryExtractor;
     private final MessageService messageService;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
@@ -46,6 +48,7 @@ public class ComplaintsService {
                              CaseLinkExtractor caseLinkExtractor,
                              CategoriesExtractor categoriesExtractor,
                              ResponseExtractor responseExtractor,
+                             CaseHistoryExtractor caseHistoryExtractor,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -57,6 +60,7 @@ public class ComplaintsService {
         this.caseLinkExtractor = caseLinkExtractor;
         this.categoriesExtractor = categoriesExtractor;
         this.responseExtractor = responseExtractor;
+        this.caseHistoryExtractor = caseHistoryExtractor;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -159,6 +163,7 @@ public class ComplaintsService {
         }
 
         categoriesExtractor.getSelectedCategoryData(complaintId);
+        caseHistoryExtractor.getCaseHistory(complaintId);
 
         // TODO: Extract additional complaint data
         // TODO: Check case record and build migration message
