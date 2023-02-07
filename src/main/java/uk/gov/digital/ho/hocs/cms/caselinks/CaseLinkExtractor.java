@@ -12,6 +12,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CASE_LINKS_EXTRACTION_FAILED;
 
@@ -30,7 +31,7 @@ public class CaseLinkExtractor {
             FROM lgncc_caselink cl
             INNER JOIN LGNCC_CASELINKDEFINITION d
             ON cl.LinkDefnID = d.ID
-            WHERE cl.SourceCaseID = ?
+            WHERE cl.SourceCaseID = ? OR cl.TargetCaseID = ?
              """;
 
     public CaseLinkExtractor(@Qualifier("cms") DataSource dataSource, CaseLinksRepository caseLinksRepository) {
@@ -39,21 +40,24 @@ public class CaseLinkExtractor {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
     @Transactional
-    public void getCaseLinks(BigDecimal sourceCaseId) {
-        caseLinksRepository.deleteAllBySourceCaseId(sourceCaseId);
+    public void getCaseLinks(BigDecimal caseId) {
+        caseLinksRepository.deleteAllBySourceCaseId(caseId);
+        caseLinksRepository.deleteAllByTargetCaseId(caseId);
         try {
-            CaseLinks caseLinks = jdbcTemplate.queryForObject(FETCH_CASE_LINKS, (rs, rowNum) -> {
+            List<CaseLinks> caseLinks = jdbcTemplate.query(FETCH_CASE_LINKS, (rs, rowNum) -> {
             CaseLinks cl = new CaseLinks();
             cl.setSourceCaseId(rs.getBigDecimal("SourceCaseId"));
             cl.setTargetCaseId(rs.getBigDecimal("TargetCaseID"));
             cl.setDescription(rs.getString("Description"));
             return cl;
-        }, sourceCaseId);
-            caseLinksRepository.save(caseLinks);
+        }, caseId, caseId);
+            for (CaseLinks link : caseLinks) {
+                caseLinksRepository.save(link);
+            }
     } catch (DataAccessException e) {
-            log.error("Case links extraction failed for case ID: {}", sourceCaseId);
+            log.error("Case links extraction failed for case ID: {}", caseId);
             throw new ApplicationExceptions.ExtractCaseLinksException(
-                    String.format("Failed to extract case links for case: %s", sourceCaseId), CASE_LINKS_EXTRACTION_FAILED, e);
+                    String.format("Failed to extract case links for case: %s", caseId), CASE_LINKS_EXTRACTION_FAILED, e);
             }
         }
     }
