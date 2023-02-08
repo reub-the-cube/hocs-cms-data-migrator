@@ -100,6 +100,10 @@ public class CaseDataExtractor {
         caseDataItems.add(getCaseDataItem("Business area", caseData.getBusinessArea()));
         caseDataItems.add(getCaseDataItem("Status", caseData.getStatus()));
 
+        caseDetails.setCaseStatus(caseData.getStatus());
+        caseDetails.setCreationDate(caseData.getReceiveDate());
+        caseDetails.setCaseStatusDate(caseData.getReceiveDate());
+
         caseDetails.setCaseData(caseDataItems);
     }
 

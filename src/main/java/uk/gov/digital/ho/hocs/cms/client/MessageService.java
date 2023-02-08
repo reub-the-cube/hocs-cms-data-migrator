@@ -7,6 +7,7 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
@@ -25,9 +26,11 @@ public class MessageService {
     private final SQSClient sqsClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JsonSchemaFactory schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+    private final String sendMessage;
 
-    public MessageService(SQSClient sqsClient) {
+    public MessageService(SQSClient sqsClient, @Value("${send.migration.message}") String sendMessage) {
         this.sqsClient = sqsClient;
+        this.sendMessage = sendMessage;
     }
 
     public void sendMigrationMessage(CaseDetails caseDetails) {
@@ -39,9 +42,11 @@ public class MessageService {
             throw new ApplicationExceptions.SendMigrationMessageException(
                     String.format("Failed sending migration message for case ID %s", caseDetails.getSourceCaseId()),  MIGRATION_MESSAGE_FAILED, e);
         }
-        log.debug("Sending {}", message);
-        sqsClient.sendMessage(message);
-        log.debug("Successfully sent message");
+        log.info("send message setting: " + sendMessage);
+        if(sendMessage.equalsIgnoreCase("enabled")) {
+            log.debug("Sending {}", message);
+            sqsClient.sendMessage(message);
+        }
     }
 
     private String validateMigrationMessage(CaseDetails caseDetails) throws IOException {

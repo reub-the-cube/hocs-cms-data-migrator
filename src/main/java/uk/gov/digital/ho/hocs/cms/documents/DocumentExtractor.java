@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.documents;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -104,6 +105,7 @@ public class DocumentExtractor {
         record.setTempFileName(tempFileName);
         documentsRepository.save(record);
         caseAttachment.setDocumentPath(tempFileName);
+        caseAttachment.setDocumentType(FilenameUtils.getExtension(doc.fileName()));
         caseAttachment.setDisplayName(doc.fileName());
         return caseAttachment;
     }

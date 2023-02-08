@@ -25,7 +25,7 @@ public class MessageServiceTest {
 
 	@Test
 	public void shouldSendCountMessagesWithComplaintType() throws IOException {
-		MessageService messageService = new MessageService(sqsClient);
+		MessageService messageService = new MessageService(sqsClient, "enabled");
 		messageService.sendMigrationMessage(buildCaseDetails());
 		verify(sqsClient, times(1)).sendMessage(anyString());
 	}

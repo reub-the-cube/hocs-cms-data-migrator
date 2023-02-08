@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
@@ -39,7 +40,9 @@ public class CaseHistoryExtractor {
         this.caseHistoryRepository = caseHistoryRepository;
     }
 
-    public void getCaseHistory(BigDecimal sourceCaseId) {
+    @Transactional
+    public void getCaseHistory(BigDecimal caseId) {
+        caseHistoryRepository.deleteAllByCaseId(caseId);
         try {
             List<CaseHistory> caseHistory = jdbcTemplate.query(FETCH_CASE_HISTORY, (rs, rowNum) -> {
             CaseHistory ch = new CaseHistory();
@@ -49,12 +52,12 @@ public class CaseHistoryExtractor {
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
-        }, sourceCaseId);
+        }, caseId);
             persistExtractedCaseHistory(caseHistory);
     } catch (DataAccessException e) {
-            log.error("Case links extraction failed for case ID: {}", sourceCaseId);
+            log.error("Case links extraction failed for case ID: {}", caseId);
             throw new ApplicationExceptions.ExtractCaseHistoryException(
-                    String.format("Failed to extract case links for case: %s", sourceCaseId), CASE_LINKS_EXTRACTION_FAILED, e);
+                    String.format("Failed to extract case links for case: %s", caseId), CASE_LINKS_EXTRACTION_FAILED, e);
             }
         }
 

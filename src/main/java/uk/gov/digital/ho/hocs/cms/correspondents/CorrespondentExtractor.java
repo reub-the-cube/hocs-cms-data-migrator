@@ -69,6 +69,7 @@ public class CorrespondentExtractor {
                 primaryCorrespondent.setAddress(getAddress(correspondents.getComplainantId()));
                 primaryCorrespondent.setCaseId(caseId);
                 primaryCorrespondent.setPrimary(true);
+                primaryCorrespondent.setType(CorrespondentType.COMPLAINANT.toString());
                 log.debug("Complainant ID {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
                 individualRepository.save(primaryCorrespondent);
             } catch (DataAccessException e) {
@@ -82,10 +83,12 @@ public class CorrespondentExtractor {
                 primaryCorrespondent = getCorrespondentDetails(correspondents.getRepresentativeId());
                 primaryCorrespondent.setAddress(getAddress(correspondents.getRepresentativeId()));
                 primaryCorrespondent.setCaseId(caseId);
+                primaryCorrespondent.setType(CorrespondentType.THIRD_PARTY_REP.toString());
                 primaryCorrespondent.setPrimary(true);
                 otherCorrespondent = getCorrespondentDetails(correspondents.getComplainantId());
                 otherCorrespondent.setAddress(getAddress(correspondents.getComplainantId()));
                 otherCorrespondent.setCaseId(caseId);
+                otherCorrespondent.setType(CorrespondentType.COMPLAINANT.toString());
                 otherCorrespondent.setPrimary(false);
                 log.debug("Representative {} data extracted. Case ID {}", correspondents.getRepresentativeId(), caseId);
                 log.debug("Complainant {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
@@ -103,6 +106,9 @@ public class CorrespondentExtractor {
             List<Correspondent> additionalCorrespondent = new ArrayList<>();
             additionalCorrespondent.add(extractedMigrationMessageCorrespondentDetails(otherCorrespondent));
             caseDetails.setAdditionalCorrespondents(additionalCorrespondent);
+        } else {
+            List<Correspondent> additionalCorrespondent = new ArrayList<>();
+            caseDetails.setAdditionalCorrespondents(additionalCorrespondent);
         }
     }
 
@@ -110,6 +116,7 @@ public class CorrespondentExtractor {
         Correspondent correspondent = new Correspondent();
         correspondent.setFullName(String.format("%s %s", individual.getForename(), individual.getSurname()));
         correspondent.setEmail(individual.getEmail());
+        correspondent.setCorrespondentType(individual.getType());
         correspondent.setAddress1(individual.getAddress().getAddressLine1());
         correspondent.setAddress2(individual.getAddress().getAddressLine2());
         correspondent.setAddress3(individual.getAddress().getAddressLine3());

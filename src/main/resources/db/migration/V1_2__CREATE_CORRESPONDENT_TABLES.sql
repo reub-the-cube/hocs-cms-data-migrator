@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS individual
   telephone                  TEXT,
   email                      TEXT,
   primarycorrespondent       BOOLEAN,
+  type                       TEXT,
 
   CONSTRAINT partyid_idempotent UNIQUE (partyid),
   CONSTRAINT fk_address_id FOREIGN KEY (addressid) REFERENCES address (addressid)

@@ -50,6 +50,9 @@ public class Individual {
     @Column(name = "primarycorrespondent")
     private Boolean primary;
 
+    @Column()
+    private String type;
+
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "addressid", referencedColumnName = "addressid")
     private Address address;

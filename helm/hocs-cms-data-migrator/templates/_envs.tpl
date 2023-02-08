@@ -1,6 +1,6 @@
 {{- define "deployment.envs" }}
 - name: JAVA_OPTS
-  value: '-Xms768m -Xmx768m -Djavax.net.ssl.trustStore=/etc/keystore/truststore.jks -Dhttps.proxyHost=hocs-outbound-proxy.{{ .Release.Namespace }}.svc.cluster.local -Dhttps.proxyPort=31290 -Dhttp.nonProxyHosts=*.{{ .Release.Namespace }}.svc.cluster.local'
+  value: '-Xms768m -Xmx768m -Dlogging.level.uk.gov.digital.ho.hocs.cms=INFO -Djavax.net.ssl.trustStore=/etc/keystore/truststore.jks -Dhttps.proxyHost=hocs-outbound-proxy.{{ .Release.Namespace }}.svc.cluster.local -Dhttps.proxyPort=31290 -Dhttp.nonProxyHosts=*.{{ .Release.Namespace }}.svc.cluster.local'
 - name: SPRING_PROFILES_ACTIVE
   value: 'sqs, s3'
 - name: CMS_DB_HOST
@@ -98,6 +98,8 @@
     secretKeyRef:
       name: {{ .Release.Namespace }}-case-migrator-sqs
       key: sqs_url
+- name: SEND_MIGRATION_MESSAGE
+  value: 'enabled'
 - name: CMS_EXTRACT_COMPLAINTS
   value: 'disabled'
 - name: COMPLAINT_START_DATE
