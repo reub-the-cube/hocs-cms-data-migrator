@@ -16,27 +16,46 @@ import com.itextpdf.text.pdf.draw.DottedLineSeparator;
 import com.itextpdf.text.pdf.draw.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.digital.ho.hocs.cms.domain.model.Address;
+import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
+import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
+
 
 @Component
 @Slf4j
 public class DocumentCreator {
 
-    public void createDocument() throws IOException, DocumentException {
+    private final IndividualRepository individualRepository;
+
+    public DocumentCreator(IndividualRepository individualRepository) {
+        this.individualRepository = individualRepository;
+    }
+
+    @Transactional
+    public void createDocument(BigDecimal caseId) throws IOException, DocumentException {
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/test.pdf");
         //PdfWriter.getInstance(document, new FileOutputStream(file)).setInitialLeading(16);
         PdfWriter.getInstance(document, byteArrayOutputStream).setInitialLeading(16);
 
+        List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
+        BigDecimal partyId = individualIds.get(0);
 
+        Optional<Individual> ind = individualRepository.findById(partyId);
+        //Address a = individual.get(0).getAddress();
         document.open();
         Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
         Chunk chunk = new Chunk("Personal details", font);
@@ -51,6 +70,7 @@ public class DocumentCreator {
         para1.setSpacingBefore(50);
         para1.setSpacingAfter(50);
         para1.add(new Chunk(content));
+        para1.add(new DottedLineSeparator());
         document.add(para1);
 
         document.add(new DottedLineSeparator());
@@ -77,6 +97,13 @@ public class DocumentCreator {
         Files.write(file.toPath(), pdfBytes);
     }
 
+    public Paragraph createNewParagraph(String title) {
+        Paragraph p = new Paragraph();
+        p.add(new Chunk(title));
+        p.add(Chunk.NEWLINE);
+        return p;
+    }
+
 
     private void addTableHeader(PdfPTable table) {
         Stream.of("column header 1", "column header 2", "column header 3")
@@ -95,9 +122,15 @@ public class DocumentCreator {
         table.addCell("row 1, col 3");
     }
 
+    private static void addEmptyLine(Paragraph paragraph, int number) {
+        for (int i = 0; i < number; i++) {
+            paragraph.add(new Paragraph(" "));
+        }
+    }
+
 
     public static void main(String[] args) throws DocumentException, IOException {
-        DocumentCreator dc = new DocumentCreator();
-        dc.createDocument();
+        //DocumentCreator dc = new DocumentCreator();
+        //dc.createDocument();
     }
 }

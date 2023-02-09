@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
+import com.itextpdf.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
@@ -9,6 +10,7 @@ import uk.gov.digital.ho.hocs.cms.categories.SubCategoriesExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentCreator;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
@@ -19,6 +21,7 @@ import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -39,6 +42,7 @@ public class ComplaintsService {
     private final ResponseExtractor responseExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
     private final MessageService messageService;
+    private final DocumentCreator documentCreator;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -52,7 +56,8 @@ public class ComplaintsService {
                              SubCategoriesExtractor subCategoriesExtractor,
                              ResponseExtractor responseExtractor,
                              CaseHistoryExtractor caseHistoryExtractor,
-                             MessageService messageService) {
+                             MessageService messageService,
+                             DocumentCreator documentCreator) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
@@ -66,6 +71,7 @@ public class ComplaintsService {
         this.responseExtractor = responseExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
         this.messageService = messageService;
+        this.documentCreator = documentCreator;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
@@ -190,6 +196,16 @@ public class ComplaintsService {
             complaintsRepository.save(correspondentStage);
             log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
         }
+
+        try {
+            documentCreator.createDocument(complaintId);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (DocumentException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal complaintId, String stage, boolean extracted) {
