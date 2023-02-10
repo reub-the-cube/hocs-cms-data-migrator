@@ -69,7 +69,8 @@ public class CaseDataExtractor {
         },  caseId);
 
         if (caseData.getOwningCsu() == null) {
-            throw new ApplicationExceptions.ExtractCaseDataException("NULL or UNKNOWN Case Types are ignored", LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
+            throw new ApplicationExceptions.ExtractCaseDataException("NULL or UNKNOWN Case Types are ignored",
+                    LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
         }
 
         // lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open

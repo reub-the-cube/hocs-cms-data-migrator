@@ -12,7 +12,7 @@ public class CaseTypeMapping {
         caseTypeMapping.put("CSU-Border Force", CaseType.BF.name());
         caseTypeMapping.put("CSU-Detention", CaseType.IEDET.name());
         caseTypeMapping.put("CSU-Immigration Enquiry Bureau", CaseType.COMP.name());
-        caseTypeMapping.put("CCSU-EUSS", CaseType.COMP.name());
+        caseTypeMapping.put("CSU-EUSS", CaseType.COMP.name());
         caseTypeMapping.put("CSU-NE Yorkshire and Humber", CaseType.COMP.name());
         caseTypeMapping.put("CSU-Case Resolution Directorate", CaseType.COMP.name());
         caseTypeMapping.put("CSU-Sheffield Call Centre", CaseType.COMP.name());
