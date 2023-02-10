@@ -56,6 +56,8 @@ public class DocumentCreator {
 
         Optional<Individual> ind = individualRepository.findById(partyId);
         //Address a = individual.get(0).getAddress();
+        Individual ind1 = ind.get();
+        Address a = ind1.getAddress();
         document.open();
         Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
         Chunk chunk = new Chunk("Personal details", font);
