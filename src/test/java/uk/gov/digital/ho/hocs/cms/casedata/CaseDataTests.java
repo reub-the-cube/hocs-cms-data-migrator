@@ -60,6 +60,12 @@ public class CaseDataTests {
         assertEquals("COMP", CaseTypeMapping.getCaseType("CSU-London And SE"));
         assertEquals("COMP", CaseTypeMapping.getCaseType("RH-International"));
         assertEquals("COMP", CaseTypeMapping.getCaseType("Asylum Protection Hub Pilot"));
+
+        assertEquals("BF", CaseTypeMapping.getCaseType("CSU-Border Force"));
+
+        assertEquals("IEDET", CaseTypeMapping.getCaseType("CSU-Detention"));
+
+        assertEquals("POGR", CaseTypeMapping.getCaseType("HMPO"));
     }
 
     private CaseData getCaseData(String owningCsu) {
