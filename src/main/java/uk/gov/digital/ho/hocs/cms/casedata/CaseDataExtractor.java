@@ -7,6 +7,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
@@ -16,6 +18,7 @@ import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -60,11 +63,15 @@ public class CaseDataExtractor {
             cd.setLocation(rs.getString("location"));
             cd.setNroCombo(rs.getString("nrocombo"));
             cd.setClosedDt(convertDateToString(rs.getDate("CLOSED_DT")));
-            cd.setOwningCsu(rs.getString("owningcsu"));
+            cd.setOwningCsu(getCaseType(rs.getString("owningcsu")));
             cd.setBusinessArea(rs.getString("businessarea"));
             cd.setStatus(rs.getString("status"));
             return cd;
         },  caseId);
+
+        if (caseData.getOwningCsu() == null) {
+            throw new ApplicationExceptions.ExtractCaseDataException("NULL or UNKNOWN Case Types are ignored", LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
+        }
 
         // lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open
         try {
@@ -116,5 +123,35 @@ public class CaseDataExtractor {
         caseDataItem.setName(name);
         caseDataItem.setValue(StringUtils.defaultString(value));
         return caseDataItem;
+    }
+
+    private String getCaseType(String owningCsu) {
+        HashMap<String, String> caseType = new HashMap<>();
+        caseType.put("CSU-Wales and South West", CaseType.COMP.name());
+        caseType.put("CSU-Crime Directorate", CaseType.COMP.name());
+        caseType.put("UKVI", CaseType.COMP.name());
+        caseType.put("CSU-Border Force", CaseType.BF.name());
+        caseType.put("CSU-Detention", CaseType.IEDET.name());
+        caseType.put("CSU-Immigration Enquiry Bureau", CaseType.COMP.name());
+        caseType.put("CCSU-EUSS", CaseType.COMP.name());
+        caseType.put("CSU-NE Yorkshire and Humber", CaseType.COMP.name());
+        caseType.put("CSU-Case Resolution Directorate", CaseType.COMP.name());
+        caseType.put("CSU-Sheffield Call Centre", CaseType.COMP.name());
+        caseType.put("CSU-Wales & South West", CaseType.COMP.name());
+        caseType.put("RH-NE Ombudsman ExG", CaseType.COMP.name());
+        caseType.put("CSU-Scotland and NI", CaseType.COMP.name());
+        caseType.put("HMPO", CaseType.POGR.name());
+        caseType.put("IE", CaseType.COMP.name());
+        caseType.put("Surge Team", CaseType.COMP.name());
+        caseType.put("CSU-Midland and East", CaseType.COMP.name());
+        caseType.put("CSU-NW Region", CaseType.COMP.name());
+        caseType.put("CSU-Criminal Casework Directorate", CaseType.COMP.name());
+        caseType.put("CSU-London And SE", CaseType.COMP.name());
+        caseType.put("RH-International", CaseType.COMP.name());
+        caseType.put("Asylum Protection Hub Pilot", CaseType.COMP.name());
+        caseType.put("UNKNOWN", null);
+        caseType.put("NULL", null);
+
+        return caseType.get(owningCsu);
     }
 }
