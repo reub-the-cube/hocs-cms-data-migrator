@@ -3,18 +3,24 @@ package uk.gov.digital.ho.hocs.cms.casedata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 
 import javax.sql.DataSource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.math.BigDecimal;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CaseDataTests {
@@ -27,11 +33,8 @@ public class CaseDataTests {
 
     private CaseDataExtractor caseDataExtractor;
 
+    @Mock
     private JdbcTemplate jdbcTemplate;
-
-    public CaseDataTests() {
-
-    }
 
     @BeforeEach
     void setUp() {
@@ -66,6 +69,10 @@ public class CaseDataTests {
         assertEquals("IEDET", CaseTypeMapping.getCaseType("CSU-Detention"));
 
         assertEquals("POGR", CaseTypeMapping.getCaseType("HMPO"));
+
+        assertNull(CaseTypeMapping.getCaseType("UNKNOWN"));
+        assertNull(CaseTypeMapping.getCaseType("NULL"));
+        assertNull(CaseTypeMapping.getCaseType("other"));
     }
 
     private CaseData getCaseData(String owningCsu) {
