@@ -17,14 +17,13 @@ import com.itextpdf.text.pdf.draw.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.digital.ho.hocs.cms.domain.model.Address;
+import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
+import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -48,55 +47,104 @@ public class DocumentCreator {
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/test.pdf");
-        //PdfWriter.getInstance(document, new FileOutputStream(file)).setInitialLeading(16);
         PdfWriter.getInstance(document, byteArrayOutputStream).setInitialLeading(16);
 
         List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
-        BigDecimal partyId = individualIds.get(0);
+        Individual complainant = null;
+        Individual representative = null;
+        for (BigDecimal partyId : individualIds) {
+            Optional<Individual> individual = individualRepository.findById(partyId);
+            if (individual.isPresent()) {
+                Individual ind = individual.get();
+                if (ind.getPrimary() && ind.getType().equalsIgnoreCase(CorrespondentType.THIRD_PARTY_REP.toString())) {
+                    representative = ind;
+                } else if (ind.getType().equalsIgnoreCase(CorrespondentType.COMPLAINANT.toString())) {
+                    complainant = ind;
+                }
+            }
+        }
 
-        Optional<Individual> ind = individualRepository.findById(partyId);
-        //Address a = individual.get(0).getAddress();
-        Individual ind1 = ind.get();
-        Address a = ind1.getAddress();
         document.open();
         Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
-        Chunk chunk = new Chunk("Personal details", font);
-        document.add(chunk);
 
         Phrase section = new Phrase();
-        section.add(new Chunk("Hello World"));
+        section.add(new Chunk("Personal Details"));
         document.add(section);
-
-        String content = "Complainant";
-        Paragraph para1 = new Paragraph(32);
-        para1.setSpacingBefore(50);
-        para1.setSpacingAfter(50);
-        para1.add(new Chunk(content));
-        para1.add(new DottedLineSeparator());
-        document.add(para1);
+        document.add(Chunk.NEWLINE);
+        document.add(new Chunk(String.format("Complainant: %s", complainant.getPartyId())));
+        document.add(Chunk.NEWLINE);
+        Paragraph complainantDetails = createCorrespondentSection(complainant);
+        document.add(complainantDetails);
+        document.add(Chunk.NEWLINE);
+        document.add(createReferencesSection(complainant));
 
         document.add(new DottedLineSeparator());
         document.add(Chunk.NEWLINE);
         document.add(Chunk.NEXTPAGE);
         document.add(new LineSeparator());
 
-        String rep = "Representative";
-        Paragraph para2 = new Paragraph(32);
-        para2.setSpacingBefore(50);
-        para2.setSpacingAfter(50);
-        para2.add(new Chunk(rep));
-        document.add(para2);
+
+
+        document.add(new Chunk(String.format("Representative: %s", representative.getPartyId())));
+
+        Paragraph representativeSection = createCorrespondentSection(representative);
+        document.add(representativeSection);
+
+        document.add(createReferencesSection(complainant));
 
 
 
-        PdfPTable table = new PdfPTable(3);
-        addTableHeader(table);
-        addRows(table);
-
-        document.add(table);
         document.close();
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
         Files.write(file.toPath(), pdfBytes);
+    }
+
+    private Paragraph createCorrespondentSection(Individual individual) {
+        Paragraph complainantDetails = new Paragraph(32);
+        complainantDetails.setSpacingBefore(10);
+        complainantDetails.setSpacingAfter(10);
+        complainantDetails.add(Chunk.NEWLINE);
+        complainantDetails.add(addLine(String.format("Forename: %s", individual.getForename())));
+        complainantDetails.add(addLine(String.format("Surname: %s", individual.getSurname())));
+        complainantDetails.add(addLine(String.format("Date of birth: %s", individual.getDateOfBirth())));
+        complainantDetails.add(addLine(String.format("Nationality: %s", individual.getNationality())));
+        complainantDetails.add(addLine(String.format("Telephone: %s", individual.getTelephone())));
+        complainantDetails.add(addLine(String.format("Email: %s", individual.getEmail())));
+        complainantDetails.add(new DottedLineSeparator());
+        complainantDetails.add(Chunk.NEWLINE);
+        complainantDetails.add(new Chunk("Address"));
+        complainantDetails.add(Chunk.NEWLINE);
+        complainantDetails.add(addLine(String.format("House name/number: %s", individual.getAddress().getNumber())));
+        complainantDetails.add(addLine(String.format("Address line 1: %s", individual.getAddress().getAddressLine1())));
+        complainantDetails.add(addLine(String.format("Address Line 2: %s", individual.getAddress().getAddressLine2())));
+        complainantDetails.add(addLine(String.format("Address Line 3: %s", individual.getAddress().getAddressLine3())));
+        complainantDetails.add(addLine(String.format("Address Line 4: %s", individual.getAddress().getAddressLine4())));
+        complainantDetails.add(addLine(String.format("Address Line 5: %s", individual.getAddress().getAddressLine5())));
+        complainantDetails.add(addLine(String.format("Address Line 6: %s", individual.getAddress().getAddressLine6())));
+        complainantDetails.add(addLine(String.format("Postcode: %s", individual.getAddress().getPostcode())));
+        return complainantDetails;
+    }
+
+    private Paragraph createReferencesSection(Individual individual) {
+        Paragraph p = new Paragraph();
+        p.add(new Chunk("References"));
+        p.add(Chunk.NEWLINE);
+        PdfPTable table = new PdfPTable(2);
+        Stream.of("Reference Type", "Reference")
+                .forEach(columnTitle -> {
+                    PdfPCell header = new PdfPCell();
+                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                    header.setBorderWidth(2);
+                    header.setPhrase(new Phrase(columnTitle));
+                    table.addCell(header);
+                });
+        List<Reference> refs = individual.getReferences();
+        for (Reference ref : refs) {
+            table.addCell(ref.getRefType());
+            table.addCell(ref.getReference());
+        }
+        p.add(table);
+        return p;
     }
 
     public Paragraph createNewParagraph(String title) {
@@ -106,33 +154,10 @@ public class DocumentCreator {
         return p;
     }
 
-
-    private void addTableHeader(PdfPTable table) {
-        Stream.of("column header 1", "column header 2", "column header 3")
-                .forEach(columnTitle -> {
-                    PdfPCell header = new PdfPCell();
-                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
-                    header.setBorderWidth(2);
-                    header.setPhrase(new Phrase(columnTitle));
-                    table.addCell(header);
-                });
+    private Phrase addLine(String s) {
+        Phrase p =new Phrase(s);
+        p.add(Chunk.NEWLINE);
+        return p;
     }
 
-    private void addRows(PdfPTable table) {
-        table.addCell("row 1, col 1");
-        table.addCell("row 1, col 2");
-        table.addCell("row 1, col 3");
-    }
-
-    private static void addEmptyLine(Paragraph paragraph, int number) {
-        for (int i = 0; i < number; i++) {
-            paragraph.add(new Paragraph(" "));
-        }
-    }
-
-
-    public static void main(String[] args) throws DocumentException, IOException {
-        //DocumentCreator dc = new DocumentCreator();
-        //dc.createDocument();
-    }
 }
