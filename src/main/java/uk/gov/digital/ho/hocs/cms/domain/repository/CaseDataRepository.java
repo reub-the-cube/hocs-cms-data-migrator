@@ -8,4 +8,6 @@ import java.math.BigDecimal;
 public interface CaseDataRepository  extends CrudRepository<CaseData, Long> {
 
     long deleteAllByCaseId(BigDecimal caseId);
+
+    CaseData findByCaseId(BigDecimal caseId);
 }

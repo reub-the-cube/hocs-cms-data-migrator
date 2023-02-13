@@ -18,8 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.io.ByteArrayOutputStream;
@@ -37,9 +39,12 @@ import java.util.stream.Stream;
 public class DocumentCreator {
 
     private final IndividualRepository individualRepository;
+    private final CaseDataRepository caseDataRepository;
 
-    public DocumentCreator(IndividualRepository individualRepository) {
+    public DocumentCreator(IndividualRepository individualRepository,
+                           CaseDataRepository caseDataRepository) {
         this.individualRepository = individualRepository;
+        this.caseDataRepository = caseDataRepository;
     }
 
     @Transactional
@@ -90,9 +95,25 @@ public class DocumentCreator {
         Paragraph representativeSection = createCorrespondentSection(representative);
         document.add(representativeSection);
 
-        document.add(createReferencesSection(complainant));
+        document.add(createReferencesSection(representative));
 
+        document.add(Chunk.NEXTPAGE);
+        CaseData casedata = caseDataRepository.findByCaseId(caseId);
 
+        document.add(addLine("Case Data"));
+        document.add(addLine(String.format("Reference: %s", casedata.getCaseReference())));
+        document.add(addLine(String.format("Date Received: %s", casedata.getReceiveDate())));
+        document.add(addLine(String.format("Due Date: %s", casedata.getSlaDate())));
+        document.add(addLine(String.format("Initial Type: %s", casedata.getInitialType())));
+        document.add(addLine(String.format("Current Type: %s", casedata.getCurrentType())));
+        document.add(addLine(String.format("Description: %s", casedata.getDescription())));
+        document.add(addLine(String.format("Current Work Queue: %s", casedata.getQueueName())));
+        document.add(addLine(String.format("Location: %s", casedata.getLocation())));
+        document.add(addLine(String.format("NRO: %s", casedata.getNroCombo())));
+        document.add(addLine(String.format("Closed Date: %s", casedata.getClosedDt())));
+        document.add(addLine(String.format("Owning CSU: %s", casedata.getOwningCsu())));
+        document.add(addLine(String.format("Business Area: %s", casedata.getBusinessArea())));
+        document.add(addLine(String.format("Status: %s", casedata.getStatus())));
 
         document.close();
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
