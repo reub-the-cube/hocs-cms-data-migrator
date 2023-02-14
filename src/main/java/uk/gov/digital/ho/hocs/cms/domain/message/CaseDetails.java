@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,8 +32,8 @@ public class CaseDetails {
     private List<CaseAttachment> caseAttachments;
 
     public void addCaseAttachment(CaseAttachment caseAttachment) {
-        if (caseAttachment == null) {
-            caseAttachments = Collections.emptyList();
+        if (caseAttachments == null) {
+            caseAttachments = new ArrayList<>();
         }
         caseAttachments.add(caseAttachment);
     }
