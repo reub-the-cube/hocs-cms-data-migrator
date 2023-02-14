@@ -202,9 +202,20 @@ public class ComplaintsService {
 
         try {
             documentCreator.createDocument(complaintId);
+            ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "CMS data document", true);
+            complaintsRepository.save(cmsDocumentStage);
         } catch (DocumentException e) {
-            throw new ApplicationExceptions.CreateMigrationDocumentException(
-                    String.format("Failed to ccreate migration document: {}", complaintId), MIGRATION_DOCUMENT_FAILED);
+            ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "CMS data document", false);
+            cmsDocumentStage.setError("Couldn't generate PDF");
+            cmsDocumentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(cmsDocumentStage);
+            log.error("Failed Generating Migration PDF for complaint ID {}", complaintId);
+        } catch (ApplicationExceptions.ExtractDocumentException e) {
+            ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "Couldn't upload CMS data document", false);
+            cmsDocumentStage.setError("Couldn't upload PDF");
+            cmsDocumentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(cmsDocumentStage);
+            log.error("Failed uploading Migration PDF for complaint ID {}", complaintId);
         }
     }
 

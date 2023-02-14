@@ -6,14 +6,12 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.draw.DottedLineSeparator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +37,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -85,7 +81,6 @@ public class DocumentCreator {
     public String createDocument(BigDecimal caseId) throws DocumentException{
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/test.pdf");
         PdfWriter.getInstance(document, byteArrayOutputStream).setInitialLeading(16);
 
         List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
@@ -178,11 +173,6 @@ public class DocumentCreator {
 
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
         String tempFileName = documentS3Client.storeUntrustedDocument("CMS_CASE_DATA", pdfBytes, caseId);
-        try {
-            Files.write(file.toPath(), pdfBytes);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         return tempFileName;
     }
 
