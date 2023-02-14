@@ -12,21 +12,17 @@ import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentCreator;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
-import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
-import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
+import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
-
-import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_COPY_FAILED;
-import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.MIGRATION_DOCUMENT_FAILED;
 
 @Service
 @Slf4j
@@ -185,23 +181,9 @@ public class ComplaintsService {
         // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
-
-        // send migration message
-        caseDetails.setCaseType("COMP");
         try {
-            messageService.sendMigrationMessage(caseDetails);
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
-            complaintsRepository.save(correspondentStage);
-        } catch (ApplicationExceptions.SendMigrationMessageException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
-            correspondentStage.setError(e.getEvent().toString());
-            correspondentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(correspondentStage);
-            log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
-        }
-
-        try {
-            documentCreator.createDocument(complaintId);
+            CaseAttachment caseAttachment = documentCreator.createDocument(complaintId);
+            caseDetails.addCaseAttachment(caseAttachment);
             ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "CMS data document", true);
             complaintsRepository.save(cmsDocumentStage);
         } catch (DocumentException e) {
@@ -217,6 +199,21 @@ public class ComplaintsService {
             complaintsRepository.save(cmsDocumentStage);
             log.error("Failed uploading Migration PDF for complaint ID {}", complaintId);
         }
+
+        // send migration message
+        caseDetails.setCaseType("COMP");
+        try {
+            messageService.sendMigrationMessage(caseDetails);
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
+            complaintsRepository.save(correspondentStage);
+        } catch (ApplicationExceptions.SendMigrationMessageException e) {
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
+            correspondentStage.setError(e.getEvent().toString());
+            correspondentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(correspondentStage);
+            log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
+        }
+
     }
 
     private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal complaintId, String stage, boolean extracted) {

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
@@ -57,6 +58,8 @@ public class DocumentCreator {
     private final CaseHistoryRepository caseHistoryRepository;
     private final DocumentS3Client documentS3Client;
 
+    private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA";
+
     public DocumentCreator(IndividualRepository individualRepository,
                            CaseDataRepository caseDataRepository,
                            CompensationRepository compensationRepository,
@@ -78,7 +81,7 @@ public class DocumentCreator {
     }
 
     @Transactional
-    public String createDocument(BigDecimal caseId) throws DocumentException{
+    public CaseAttachment createDocument(BigDecimal caseId) throws DocumentException{
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, byteArrayOutputStream).setInitialLeading(16);
@@ -172,8 +175,14 @@ public class DocumentCreator {
         document.close();
 
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
-        String tempFileName = documentS3Client.storeUntrustedDocument("CMS_CASE_DATA", pdfBytes, caseId);
-        return tempFileName;
+
+        String tempFileName = documentS3Client.storeUntrustedDocument(CMS_CASE_DATA_FILENAME, pdfBytes, caseId);
+
+        CaseAttachment caseAttachment = new CaseAttachment();
+        caseAttachment.setDocumentPath(tempFileName);
+        caseAttachment.setDocumentType("PDF");
+        caseAttachment.setDisplayName(CMS_CASE_DATA_FILENAME);
+        return caseAttachment;
     }
 
     private Paragraph createCorrespondentSection(Individual individual) {
