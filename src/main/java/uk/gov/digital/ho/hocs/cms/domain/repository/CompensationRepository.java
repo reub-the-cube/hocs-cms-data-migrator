@@ -6,5 +6,8 @@ import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import java.math.BigDecimal;
 
 public interface CompensationRepository extends CrudRepository<Compensation, Long> {
-    long deleteAllByCaseId(BigDecimal caseId);
+
+    void deleteAllByCaseId(BigDecimal caseId);
+
+    Compensation findByCaseId(BigDecimal caseId);
 }

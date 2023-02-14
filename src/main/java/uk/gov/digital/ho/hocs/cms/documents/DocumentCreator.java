@@ -19,10 +19,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
+import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
+import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.model.Response;
+import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CompensationRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,11 +52,29 @@ public class DocumentCreator {
 
     private final IndividualRepository individualRepository;
     private final CaseDataRepository caseDataRepository;
+    private final CompensationRepository compensationRepository;
+    private final CategoriesRepository categoriesRepository;
+    private final RiskAssessmentRepository riskAssessmentRepository;
+    private final ResponseRepository responseRepository;
+    private final CaseLinksRepository caseLinksRepository;
+    private final CaseHistoryRepository caseHistoryRepository;
 
     public DocumentCreator(IndividualRepository individualRepository,
-                           CaseDataRepository caseDataRepository) {
+                           CaseDataRepository caseDataRepository,
+                           CompensationRepository compensationRepository,
+                           CategoriesRepository categoriesRepository,
+                           RiskAssessmentRepository riskAssessmentRepository,
+                           ResponseRepository responseRepository,
+                           CaseLinksRepository caseLinksRepository,
+                           CaseHistoryRepository caseHistoryRepository) {
         this.individualRepository = individualRepository;
         this.caseDataRepository = caseDataRepository;
+        this.compensationRepository = compensationRepository;
+        this.categoriesRepository = categoriesRepository;
+        this.riskAssessmentRepository = riskAssessmentRepository;
+        this.responseRepository = responseRepository;
+        this.caseLinksRepository = caseLinksRepository;
+        this.caseHistoryRepository = caseHistoryRepository;
     }
 
     @Transactional
@@ -97,6 +127,8 @@ public class DocumentCreator {
 
         document.add(createReferencesSection(representative));
 
+        // case data
+
         document.add(Chunk.NEXTPAGE);
         CaseData casedata = caseDataRepository.findByCaseId(caseId);
 
@@ -114,6 +146,50 @@ public class DocumentCreator {
         document.add(addLine(String.format("Owning CSU: %s", casedata.getOwningCsu())));
         document.add(addLine(String.format("Business Area: %s", casedata.getBusinessArea())));
         document.add(addLine(String.format("Status: %s", casedata.getStatus())));
+
+        // compensation
+
+        Compensation compensation = compensationRepository.findByCaseId(caseId);
+
+        document.add(Chunk.NEXTPAGE);
+        document.add(addLine("Compensation"));
+        document.add(addLine(String.format("Date of Compensation Claim: %s", compensation.getDateOfCompensationClaim())));
+        document.add(addLine(String.format("Offer Accepted: %s", compensation.getOfferAccepted())));
+        document.add(addLine(String.format("Date of Payment", compensation.getDateOfPayment())));
+        document.add(addLine(String.format("Compensation Amount: %s", compensation.getCompensationAmmount())));
+        document.add(addLine(String.format("Amount Claimed: %s", compensation.getAmountClaimed())));
+        document.add(addLine(String.format("Amount Offered: %s", compensation.getAmountOffered())));
+        document.add(addLine(String.format("Consolatory Payment: %s", compensation.getConsolatoryPayment())));
+
+        // complaint category breakdown
+
+        document.add(Chunk.NEXTPAGE);
+        document.add(addLine("Complaint Category Breakdown"));
+        document.add(createCategoriesSection(caseId));;
+
+        // risk assessment
+
+        RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
+
+        document.add(Chunk.NEXTPAGE);
+        document.add(addLine("Risk Assessment"));
+        document.add(addLine(String.format("Priority: %s", riskAssessment.getPriority())));
+        document.add(addLine(String.format("From or affecting a child: %s", riskAssessment.getFromOrAffectingAChild())));
+
+        // response
+
+        Response response = responseRepository.findByCaseId(caseId);
+        document.add(Chunk.NEWLINE);
+        document.add(addLine(String.format("QA: %s", response.getResponse())));
+
+        // case links
+        document.add(Chunk.NEXTPAGE);
+        document.add(createCaseLinksSection(caseId));
+
+        // case history
+        document.add(Chunk.NEXTPAGE);
+        document.add(addLine("Case History"));
+        document.add(createCaseHistorySection(caseId));
 
         document.close();
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
@@ -147,9 +223,9 @@ public class DocumentCreator {
     }
 
     private Paragraph createReferencesSection(Individual individual) {
-        Paragraph p = new Paragraph();
-        p.add(new Chunk("References"));
-        p.add(Chunk.NEWLINE);
+        Paragraph paragraph = new Paragraph();
+        paragraph.add(new Chunk("References"));
+        paragraph.add(Chunk.NEWLINE);
         PdfPTable table = new PdfPTable(2);
         Stream.of("Reference Type", "Reference")
                 .forEach(columnTitle -> {
@@ -164,16 +240,76 @@ public class DocumentCreator {
             table.addCell(ref.getRefType());
             table.addCell(ref.getReference());
         }
-        p.add(table);
-        return p;
+        paragraph.add(table);
+        return paragraph;
     }
 
-    public Paragraph createNewParagraph(String title) {
-        Paragraph p = new Paragraph();
-        p.add(new Chunk(title));
-        p.add(Chunk.NEWLINE);
-        return p;
+    private Paragraph createCaseLinksSection(BigDecimal caseId) {
+        Paragraph paragraph = new Paragraph();
+        PdfPTable table = new PdfPTable(3);
+        Stream.of("Source Case", "Link Type", "Target Type")
+                .forEach(columnTitle -> {
+                    PdfPCell header = new PdfPCell();
+                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                    header.setBorderWidth(2);
+                    header.setPhrase(new Phrase(columnTitle));
+                    table.addCell(header);
+                });
+        List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
+        caseLinks.addAll(caseLinksRepository.findAllByTargetCaseId(caseId));
+        for (CaseLinks caseLink : caseLinks) {
+            table.addCell(caseLink.getSourceCaseId().toString());
+            table.addCell(caseLink.getDescription());
+            table.addCell(caseLink.getTargetCaseId().toString());
+        }
+        paragraph.add(table);
+        return paragraph;
     }
+
+    private Paragraph createCategoriesSection(BigDecimal caseId) {
+            Paragraph paragraph = new Paragraph();
+            PdfPTable table = new PdfPTable(4);
+            Stream.of("Category", "Selected", "Substantiated", "Amount")
+                    .forEach(columnTitle -> {
+                        PdfPCell header = new PdfPCell();
+                        header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                        header.setBorderWidth(2);
+                        header.setPhrase(new Phrase(columnTitle));
+                        table.addCell(header);
+                    });
+            List<Categories> categories = categoriesRepository.findByCaseId(caseId);
+            for (Categories category : categories) {
+                table.addCell(category.getCategory());
+                table.addCell(category.getSelected());
+                table.addCell(category.getSubstantiated());
+                table.addCell(category.getAmount().toString());
+            }
+            paragraph.add(table);
+            return paragraph;
+        }
+
+    private Paragraph createCaseHistorySection(BigDecimal caseId) {
+        Paragraph paragraph = new Paragraph();
+        PdfPTable table = new PdfPTable(4);
+        Stream.of("Type", "Description", "Created By", "Created")
+                .forEach(columnTitle -> {
+                    PdfPCell header = new PdfPCell();
+                    header.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                    header.setBorderWidth(2);
+                    header.setPhrase(new Phrase(columnTitle));
+                    table.addCell(header);
+                });
+        List<CaseHistory> caseHistoryEvents = caseHistoryRepository.findAllByCaseId(caseId);
+        for (CaseHistory caseHistoryEvent : caseHistoryEvents) {
+            table.addCell(caseHistoryEvent.getType());
+            table.addCell(caseHistoryEvent.getDescription());
+            table.addCell(caseHistoryEvent.getCreatedBy());
+            table.addCell(caseHistoryEvent.getCreated().toString());
+        }
+        paragraph.add(table);
+        return paragraph;
+    }
+
 
     private Phrase addLine(String s) {
         Phrase p =new Phrase(s);
