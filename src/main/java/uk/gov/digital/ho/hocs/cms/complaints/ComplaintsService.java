@@ -181,6 +181,7 @@ public class ComplaintsService {
         // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
+        // create cms migration document
         try {
             CaseAttachment caseAttachment = documentCreator.createDocument(complaintId);
             caseDetails.addCaseAttachment(caseAttachment);
