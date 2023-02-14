@@ -4,6 +4,7 @@ import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.PageSize;
@@ -13,10 +14,10 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.draw.DottedLineSeparator;
-import com.itextpdf.text.pdf.draw.LineSeparator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
@@ -58,6 +59,7 @@ public class DocumentCreator {
     private final ResponseRepository responseRepository;
     private final CaseLinksRepository caseLinksRepository;
     private final CaseHistoryRepository caseHistoryRepository;
+    private final DocumentS3Client documentS3Client;
 
     public DocumentCreator(IndividualRepository individualRepository,
                            CaseDataRepository caseDataRepository,
@@ -66,7 +68,8 @@ public class DocumentCreator {
                            RiskAssessmentRepository riskAssessmentRepository,
                            ResponseRepository responseRepository,
                            CaseLinksRepository caseLinksRepository,
-                           CaseHistoryRepository caseHistoryRepository) {
+                           CaseHistoryRepository caseHistoryRepository,
+                           DocumentS3Client documentS3Client) {
         this.individualRepository = individualRepository;
         this.caseDataRepository = caseDataRepository;
         this.compensationRepository = compensationRepository;
@@ -75,10 +78,11 @@ public class DocumentCreator {
         this.responseRepository = responseRepository;
         this.caseLinksRepository = caseLinksRepository;
         this.caseHistoryRepository = caseHistoryRepository;
+        this.documentS3Client = documentS3Client;
     }
 
     @Transactional
-    public void createDocument(BigDecimal caseId) throws IOException, DocumentException {
+    public String createDocument(BigDecimal caseId) throws DocumentException{
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/test.pdf");
@@ -100,39 +104,24 @@ public class DocumentCreator {
         }
 
         document.open();
-        Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
-
-        Phrase section = new Phrase();
-        section.add(new Chunk("Personal Details"));
-        document.add(section);
-        document.add(Chunk.NEWLINE);
-        document.add(new Chunk(String.format("Complainant: %s", complainant.getPartyId())));
-        document.add(Chunk.NEWLINE);
-        Paragraph complainantDetails = createCorrespondentSection(complainant);
-        document.add(complainantDetails);
+        document.add(addTitle("Personal Details"));
+        document.add(addTitle(String.format("Complainant: %s", complainant.getPartyId())));
+        document.add(createCorrespondentSection(complainant));
         document.add(Chunk.NEWLINE);
         document.add(createReferencesSection(complainant));
 
-        document.add(new DottedLineSeparator());
-        document.add(Chunk.NEWLINE);
-        document.add(Chunk.NEXTPAGE);
-        document.add(new LineSeparator());
-
-
-
-        document.add(new Chunk(String.format("Representative: %s", representative.getPartyId())));
-
-        Paragraph representativeSection = createCorrespondentSection(representative);
-        document.add(representativeSection);
-
-        document.add(createReferencesSection(representative));
+        if (representative != null) {
+            document.add(Chunk.NEXTPAGE);
+            document.add(addTitle(String.format("Representative: %s", representative.getPartyId())));
+            Paragraph representativeSection = createCorrespondentSection(representative);
+            document.add(representativeSection);
+            document.add(createReferencesSection(representative));
+        }
 
         // case data
-
         document.add(Chunk.NEXTPAGE);
         CaseData casedata = caseDataRepository.findByCaseId(caseId);
-
-        document.add(addLine("Case Data"));
+        document.add(addTitle("Case Data"));
         document.add(addLine(String.format("Reference: %s", casedata.getCaseReference())));
         document.add(addLine(String.format("Date Received: %s", casedata.getReceiveDate())));
         document.add(addLine(String.format("Due Date: %s", casedata.getSlaDate())));
@@ -148,11 +137,9 @@ public class DocumentCreator {
         document.add(addLine(String.format("Status: %s", casedata.getStatus())));
 
         // compensation
-
         Compensation compensation = compensationRepository.findByCaseId(caseId);
-
         document.add(Chunk.NEXTPAGE);
-        document.add(addLine("Compensation"));
+        document.add(addTitle("Compensation"));
         document.add(addLine(String.format("Date of Compensation Claim: %s", compensation.getDateOfCompensationClaim())));
         document.add(addLine(String.format("Offer Accepted: %s", compensation.getOfferAccepted())));
         document.add(addLine(String.format("Date of Payment", compensation.getDateOfPayment())));
@@ -162,24 +149,20 @@ public class DocumentCreator {
         document.add(addLine(String.format("Consolatory Payment: %s", compensation.getConsolatoryPayment())));
 
         // complaint category breakdown
-
         document.add(Chunk.NEXTPAGE);
-        document.add(addLine("Complaint Category Breakdown"));
+        document.add(addTitle("Complaint Category Breakdown"));
         document.add(createCategoriesSection(caseId));;
 
         // risk assessment
-
         RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
 
         document.add(Chunk.NEXTPAGE);
-        document.add(addLine("Risk Assessment"));
+        document.add(addTitle("Risk Assessment"));
         document.add(addLine(String.format("Priority: %s", riskAssessment.getPriority())));
         document.add(addLine(String.format("From or affecting a child: %s", riskAssessment.getFromOrAffectingAChild())));
 
         // response
-
         Response response = responseRepository.findByCaseId(caseId);
-        document.add(Chunk.NEWLINE);
         document.add(addLine(String.format("QA: %s", response.getResponse())));
 
         // case links
@@ -188,29 +171,32 @@ public class DocumentCreator {
 
         // case history
         document.add(Chunk.NEXTPAGE);
-        document.add(addLine("Case History"));
+        document.add(addTitle("Case History"));
         document.add(createCaseHistorySection(caseId));
 
         document.close();
+
         byte[] pdfBytes = byteArrayOutputStream.toByteArray();
-        Files.write(file.toPath(), pdfBytes);
+        String tempFileName = documentS3Client.storeUntrustedDocument("CMS_CASE_DATA", pdfBytes, caseId);
+        try {
+            Files.write(file.toPath(), pdfBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return tempFileName;
     }
 
     private Paragraph createCorrespondentSection(Individual individual) {
         Paragraph complainantDetails = new Paragraph(32);
         complainantDetails.setSpacingBefore(10);
         complainantDetails.setSpacingAfter(10);
-        complainantDetails.add(Chunk.NEWLINE);
         complainantDetails.add(addLine(String.format("Forename: %s", individual.getForename())));
         complainantDetails.add(addLine(String.format("Surname: %s", individual.getSurname())));
         complainantDetails.add(addLine(String.format("Date of birth: %s", individual.getDateOfBirth())));
         complainantDetails.add(addLine(String.format("Nationality: %s", individual.getNationality())));
         complainantDetails.add(addLine(String.format("Telephone: %s", individual.getTelephone())));
         complainantDetails.add(addLine(String.format("Email: %s", individual.getEmail())));
-        complainantDetails.add(new DottedLineSeparator());
-        complainantDetails.add(Chunk.NEWLINE);
-        complainantDetails.add(new Chunk("Address"));
-        complainantDetails.add(Chunk.NEWLINE);
+        complainantDetails.add(addTitle("Address"));
         complainantDetails.add(addLine(String.format("House name/number: %s", individual.getAddress().getNumber())));
         complainantDetails.add(addLine(String.format("Address line 1: %s", individual.getAddress().getAddressLine1())));
         complainantDetails.add(addLine(String.format("Address Line 2: %s", individual.getAddress().getAddressLine2())));
@@ -224,8 +210,7 @@ public class DocumentCreator {
 
     private Paragraph createReferencesSection(Individual individual) {
         Paragraph paragraph = new Paragraph();
-        paragraph.add(new Chunk("References"));
-        paragraph.add(Chunk.NEWLINE);
+        paragraph.add(addTitle("References"));
         PdfPTable table = new PdfPTable(2);
         Stream.of("Reference Type", "Reference")
                 .forEach(columnTitle -> {
@@ -310,9 +295,21 @@ public class DocumentCreator {
         return paragraph;
     }
 
-
     private Phrase addLine(String s) {
-        Phrase p =new Phrase(s);
+        Font regular = new Font(Font.FontFamily.HELVETICA, 12);
+        Paragraph p =new Paragraph(s, regular);
+        p.setSpacingBefore(5);
+        p.setSpacingAfter(5);
+        p.add(Chunk.NEWLINE);
+        return p;
+    }
+
+    private Paragraph addTitle(String s) {
+        Font bold = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        Paragraph p = new Paragraph(s, bold);
+        p.setAlignment(Element.ALIGN_CENTER);
+        p.setSpacingBefore(5);
+        p.setSpacingAfter(10);
         p.add(Chunk.NEWLINE);
         return p;
     }

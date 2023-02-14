@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_COPY_FAILED;
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.MIGRATION_DOCUMENT_FAILED;
+
 @Service
 @Slf4j
 public class ComplaintsService {
@@ -199,13 +202,10 @@ public class ComplaintsService {
 
         try {
             documentCreator.createDocument(complaintId);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (DocumentException e) {
-            throw new RuntimeException(e);
+            throw new ApplicationExceptions.CreateMigrationDocumentException(
+                    String.format("Failed to ccreate migration document: {}", complaintId), MIGRATION_DOCUMENT_FAILED);
         }
-
-
     }
 
     private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal complaintId, String stage, boolean extracted) {
