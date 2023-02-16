@@ -105,7 +105,7 @@ public class DocumentExtractor {
         record.setTempFileName(tempFileName);
         documentsRepository.save(record);
         caseAttachment.setDocumentPath(tempFileName);
-        caseAttachment.setDocumentType(FilenameUtils.getExtension(doc.fileName()));
+        caseAttachment.setDocumentType(DocumentType.MIGRATION.getLabel());
         caseAttachment.setDisplayName(doc.fileName());
         return caseAttachment;
     }
