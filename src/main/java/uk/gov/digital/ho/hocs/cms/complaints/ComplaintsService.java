@@ -178,7 +178,6 @@ public class ComplaintsService {
 
 
         // send migration message
-        caseDetails.setCaseType("COMP");
         try {
             messageService.sendMigrationMessage(caseDetails);
             ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);

@@ -112,6 +112,8 @@ public class CaseDataExtractor {
         caseDetails.setCaseStatusDate(caseData.getReceiveDate());
 
         caseDetails.setCaseData(caseDataItems);
+
+        caseDetails.setCaseType(caseData.getOwningCsu());
     }
 
     private String convertDateToString(Date date) {
