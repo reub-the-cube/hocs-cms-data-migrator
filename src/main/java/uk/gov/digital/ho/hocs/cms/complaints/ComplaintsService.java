@@ -1,6 +1,5 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
-import com.itextpdf.text.DocumentException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
@@ -21,6 +20,7 @@ import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
 import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -187,12 +187,8 @@ public class ComplaintsService {
             caseDetails.addCaseAttachment(caseAttachment);
             ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "CMS data document", true);
             complaintsRepository.save(cmsDocumentStage);
-        } catch (DocumentException e) {
-            ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "CMS data document", false);
-            cmsDocumentStage.setError("Couldn't generate PDF");
-            cmsDocumentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(cmsDocumentStage);
-            log.error("Failed Generating Migration PDF for complaint ID {}", complaintId);
+        } catch (IOException e) {
+            log.debug(e.getMessage());
         } catch (ApplicationExceptions.ExtractDocumentException e) {
             ComplaintExtractRecord cmsDocumentStage = getComplaintExtractRecord(complaintId, "Couldn't upload CMS data document", false);
             cmsDocumentStage.setError("Couldn't upload PDF");
