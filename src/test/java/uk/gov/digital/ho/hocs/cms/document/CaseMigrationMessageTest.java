@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,8 +39,8 @@ class CaseMigrationMessageTest {
         JsonNode migrationJsonNode = objectMapper.readTree(migrationMessage);
         Set<ValidationMessage> validationResult = schema.validate(migrationJsonNode);
         if (validationResult.isEmpty()) {
-            sqsClient.sendMessage(migrationMessage);
-            verify(sqsClient, times(1)).sendMessage(migrationMessage);
+            sqsClient.sendMessage(migrationMessage, caseMigration.getSourceCaseId());
+            verify(sqsClient).sendMessage(migrationMessage, "001");
         } else {
             for (ValidationMessage validationMessage : validationResult) {
                 System.out.println(validationMessage.getMessage());
@@ -100,4 +99,3 @@ class CaseMigrationMessageTest {
         return Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
     }
 }
-

@@ -45,7 +45,7 @@ public class MessageService {
         log.info("send message setting: " + sendMessage);
         if(sendMessage.equalsIgnoreCase("enabled")) {
             log.debug("Sending {}", message);
-            sqsClient.sendMessage(message);
+            sqsClient.sendMessage(message, caseDetails.getSourceCaseId());
         }
     }
 

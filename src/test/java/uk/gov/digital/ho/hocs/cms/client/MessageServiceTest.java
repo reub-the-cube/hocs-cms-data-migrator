@@ -9,11 +9,11 @@ import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -24,11 +24,15 @@ public class MessageServiceTest {
 	private SQSClient sqsClient;
 
 	@Test
-	public void shouldSendCountMessagesWithComplaintType() throws IOException {
+	public void shouldSendCountMessagesWithComplaintType() {
+		CaseDetails message = buildCaseDetails();
+
 		MessageService messageService = new MessageService(sqsClient, "enabled");
-		messageService.sendMigrationMessage(buildCaseDetails());
-		verify(sqsClient, times(1)).sendMessage(anyString());
+		messageService.sendMigrationMessage(message);
+
+		verify(sqsClient, times(1)).sendMessage(anyString(), eq(message.getSourceCaseId()));
 	}
+
 	private CaseDetails buildCaseDetails() {
 		CaseDataItem caseDataItem = new CaseDataItem();
 		caseDataItem.setName("type");
@@ -74,4 +78,5 @@ public class MessageServiceTest {
 		correspondent.setCorrespondentType("Correspondent Type");
 		return correspondent;
 	}
+
 }
