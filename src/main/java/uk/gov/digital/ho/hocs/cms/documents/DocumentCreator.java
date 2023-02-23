@@ -82,10 +82,8 @@ public class DocumentCreator {
         PDPage page = new PDPage();
         document.addPage(page);
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
-        contentStream.setFont(PDType1Font.HELVETICA, 16);
+        contentStream.setFont(PDType1Font.HELVETICA, 12);
         contentStream.setLeading(06);
-
-
 
         List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
         Individual complainant = null;
@@ -102,22 +100,31 @@ public class DocumentCreator {
             }
         }
         contentStream.beginText();
+
+        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
         contentStream.newLineAtOffset(100, 700);
         contentStream.showText("Personal Details");
-        contentStream.showText((String.format("Complainant: %s", complainant.getPartyId())));
-        contentStream.endText();
-        contentStream.close();
-//        contentStream.showText(createCorrespondentSection(complainant));
-//        contentStream.showText(Chunk.NEWLINE);
-//        document.add(createReferencesSection(complainant));
+        contentStream.setFont(PDType1Font.HELVETICA, 12);
+        textForCorrespondent(contentStream, complainant);
+//        contentStream.endText();
+//        contentStream.close();
 
-//        if (representative != null) {
-//            document.add(Chunk.NEXTPAGE);
-//            document.add(addTitle(String.format("Representative: %s", representative.getPartyId())));
-//            Paragraph representativeSection = createCorrespondentSection(representative);
-//            document.add(representativeSection);
-//            document.add(createReferencesSection(representative));
-//        }
+
+        if (representative != null) {
+            page = new PDPage();
+            document.addPage(page);
+//            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+//            contentStream.beginText();
+//            contentStream = new PDPageContentStream(document, page);
+            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            contentStream.setLeading(06);
+//            contentStream.
+//            contentStream.beginText();
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
+            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            textForCorrespondent(contentStream, representative);
+        }
 
         // case data
 //        document.add(Chunk.NEXTPAGE);
@@ -176,6 +183,9 @@ public class DocumentCreator {
 //        document.add(createCaseHistorySection(caseId));
 
 
+//        contentStream.close();
+        contentStream.endText();
+        contentStream.close();
 
         File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/", "test.pdf");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -192,27 +202,44 @@ public class DocumentCreator {
         return caseAttachment;
     }
 
-//    private Paragraph createCorrespondentSection(Individual individual) {
-//        Paragraph complainantDetails = new Paragraph(32);
-//        complainantDetails.setSpacingBefore(10);
-//        complainantDetails.setSpacingAfter(10);
-//        complainantDetails.add(addLine(String.format("Forename: %s", individual.getForename())));
-//        complainantDetails.add(addLine(String.format("Surname: %s", individual.getSurname())));
-//        complainantDetails.add(addLine(String.format("Date of birth: %s", individual.getDateOfBirth())));
-//        complainantDetails.add(addLine(String.format("Nationality: %s", individual.getNationality())));
-//        complainantDetails.add(addLine(String.format("Telephone: %s", individual.getTelephone())));
-//        complainantDetails.add(addLine(String.format("Email: %s", individual.getEmail())));
-//        complainantDetails.add(addTitle("Address"));
-//        complainantDetails.add(addLine(String.format("House name/number: %s", individual.getAddress().getNumber())));
-//        complainantDetails.add(addLine(String.format("Address line 1: %s", individual.getAddress().getAddressLine1())));
-//        complainantDetails.add(addLine(String.format("Address Line 2: %s", individual.getAddress().getAddressLine2())));
-//        complainantDetails.add(addLine(String.format("Address Line 3: %s", individual.getAddress().getAddressLine3())));
-//        complainantDetails.add(addLine(String.format("Address Line 4: %s", individual.getAddress().getAddressLine4())));
-//        complainantDetails.add(addLine(String.format("Address Line 5: %s", individual.getAddress().getAddressLine5())));
-//        complainantDetails.add(addLine(String.format("Address Line 6: %s", individual.getAddress().getAddressLine6())));
-//        complainantDetails.add(addLine(String.format("Postcode: %s", individual.getAddress().getPostcode())));
-//        return complainantDetails;
-//    }
+        private void textForCorrespondent(PDPageContentStream contentStream, Individual complainant) throws IOException {
+            contentStream.newLineAtOffset(0, -25);
+            contentStream.showText((String.format("Complainant: %s", complainant.getPartyId())));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Forename: %s", complainant.getForename()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Surname: %s", complainant.getSurname()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Date of birth: %s", complainant.getDateOfBirth()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Nationality: %s", complainant.getNationality()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Telephone: %s", complainant.getTelephone()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Email: %s", complainant.getEmail()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            contentStream.showText("Address");
+            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("House name/number: %s", complainant.getAddress().getNumber()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address line 1: %s", complainant.getAddress().getAddressLine1()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address Line 2: %s", complainant.getAddress().getAddressLine2()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address Line 3: %s", complainant.getAddress().getAddressLine3()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address Line 4: %s", complainant.getAddress().getAddressLine4()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address Line 5: %s", complainant.getAddress().getAddressLine5()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Address Line 6: %s", complainant.getAddress().getAddressLine6()));
+            contentStream.newLineAtOffset(0, -20);
+            contentStream.showText(String.format("Postcode: %s", complainant.getAddress().getPostcode()));
+
+        }
+
 //
 //    private Paragraph createReferencesSection(Individual individual) {
 //        Paragraph paragraph = new Paragraph();
