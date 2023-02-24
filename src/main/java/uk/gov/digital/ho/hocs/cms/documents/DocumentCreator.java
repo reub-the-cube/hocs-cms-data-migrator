@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1CFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -76,13 +77,18 @@ public class DocumentCreator {
         this.documentS3Client = documentS3Client;
     }
 
+    private final float fontSize = 12;
+    private final float margin = 72;
+    private final float leading = 1.5f * fontSize;
+    private final PDFont font = PDType1Font.HELVETICA;
+
     @Transactional
     public CaseAttachment createDocument(BigDecimal caseId) throws IOException {
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
         document.addPage(page);
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
-        contentStream.setFont(PDType1Font.HELVETICA, 12);
+        contentStream.setFont(PDType1Font.HELVETICA, fontSize);
         contentStream.setLeading(06);
 
         List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
@@ -101,10 +107,10 @@ public class DocumentCreator {
         }
         contentStream.beginText();
 
-        contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+        contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
         contentStream.newLineAtOffset(100, 700);
         contentStream.showText("Personal Details");
-        contentStream.setFont(PDType1Font.HELVETICA, 12);
+        contentStream.setFont(PDType1Font.HELVETICA, fontSize);
         textForCorrespondent(contentStream, complainant);
 //        contentStream.endText();
 //        contentStream.close();
@@ -116,13 +122,13 @@ public class DocumentCreator {
 //            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
 //            contentStream.beginText();
 //            contentStream = new PDPageContentStream(document, page);
-            contentStream.setFont(PDType1Font.HELVETICA, 12);
-            contentStream.setLeading(06);
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setLeading(leading);
 //            contentStream.
 //            contentStream.beginText();
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
             contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
-            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
             textForCorrespondent(contentStream, representative);
         }
 
@@ -203,39 +209,39 @@ public class DocumentCreator {
     }
 
         private void textForCorrespondent(PDPageContentStream contentStream, Individual complainant) throws IOException {
-            contentStream.newLineAtOffset(0, -25);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText((String.format("Complainant: %s", complainant.getPartyId())));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Forename: %s", complainant.getForename()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Surname: %s", complainant.getSurname()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Date of birth: %s", complainant.getDateOfBirth()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Nationality: %s", complainant.getNationality()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Telephone: %s", complainant.getTelephone()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Email: %s", complainant.getEmail()));
-            contentStream.newLineAtOffset(0, -20);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
             contentStream.showText("Address");
-            contentStream.setFont(PDType1Font.HELVETICA, 12);
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("House name/number: %s", complainant.getAddress().getNumber()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address line 1: %s", complainant.getAddress().getAddressLine1()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address Line 2: %s", complainant.getAddress().getAddressLine2()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address Line 3: %s", complainant.getAddress().getAddressLine3()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address Line 4: %s", complainant.getAddress().getAddressLine4()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address Line 5: %s", complainant.getAddress().getAddressLine5()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Address Line 6: %s", complainant.getAddress().getAddressLine6()));
-            contentStream.newLineAtOffset(0, -20);
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Postcode: %s", complainant.getAddress().getPostcode()));
 
         }
