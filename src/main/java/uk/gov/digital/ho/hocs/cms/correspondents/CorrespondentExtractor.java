@@ -6,8 +6,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
-import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 import uk.gov.digital.ho.hocs.cms.domain.model.Address;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
@@ -15,8 +13,6 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CORRESPONDENT_EXTRACTION_FAILED;
 
@@ -44,7 +40,7 @@ public class CorrespondentExtractor {
         this.individualRepository = individualRepository;
     }
 
-    public void getCorrespondentsForCase(BigDecimal caseId, CaseDetails caseDetails) {
+    public void getCorrespondentsForCase(BigDecimal caseId) {
 
         Correspondents correspondents = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
                 (rs, rowNum) -> {
@@ -100,29 +96,6 @@ public class CorrespondentExtractor {
                         String.format("Failed extracting correspondent details for complainantID %s, representativeID %s and case ID %s", correspondents.getComplainantId(), correspondents.getRepresentativeId(), caseId),  CORRESPONDENT_EXTRACTION_FAILED, e);
             }
         }
-        // populate correspondent part of message
-        caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(primaryCorrespondent));
-        if (otherCorrespondent != null) {
-            List<Correspondent> additionalCorrespondent = new ArrayList<>();
-            additionalCorrespondent.add(extractedMigrationMessageCorrespondentDetails(otherCorrespondent));
-            caseDetails.setAdditionalCorrespondents(additionalCorrespondent);
-        } else {
-            List<Correspondent> additionalCorrespondent = new ArrayList<>();
-            caseDetails.setAdditionalCorrespondents(additionalCorrespondent);
-        }
-    }
-
-    private Correspondent extractedMigrationMessageCorrespondentDetails(Individual individual) {
-        Correspondent correspondent = new Correspondent();
-        correspondent.setFullName(String.format("%s %s", individual.getForename(), individual.getSurname()));
-        correspondent.setEmail(individual.getEmail());
-        correspondent.setCorrespondentType(individual.getType());
-        correspondent.setAddress1(individual.getAddress().getAddressLine1());
-        correspondent.setAddress2(individual.getAddress().getAddressLine2());
-        correspondent.setAddress3(individual.getAddress().getAddressLine3());
-        correspondent.setPostcode(individual.getAddress().getPostcode());
-        correspondent.setTelephone(individual.getTelephone());
-        return correspondent;
     }
 
     private Individual getCorrespondentDetails(BigDecimal partyId) {

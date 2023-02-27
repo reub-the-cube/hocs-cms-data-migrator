@@ -7,5 +7,7 @@ import java.math.BigDecimal;
 
 public interface RiskAssessmentRepository extends CrudRepository<RiskAssessment, Long> {
 
-    long deleteAllByCaseId(BigDecimal caseId);
+    void deleteAllByCaseId(BigDecimal caseId);
+
+    RiskAssessment findByCaseId(BigDecimal caseId);
 }

@@ -38,7 +38,9 @@ public class ComplaintsService {
     private final SubCategoriesExtractor subCategoriesExtractor;
     private final ResponseExtractor responseExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
+    private final ComplaintMessageBuilder complaintMessageBuilder;
     private final MessageService messageService;
+    private final ComplaintsMessageCaseData decsCaseData;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -52,6 +54,8 @@ public class ComplaintsService {
                              SubCategoriesExtractor subCategoriesExtractor,
                              ResponseExtractor responseExtractor,
                              CaseHistoryExtractor caseHistoryExtractor,
+                             ComplaintsMessageCaseData decsCaseData,
+                             ComplaintMessageBuilder complaintMessageBuilder,
                              MessageService messageService) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -65,6 +69,8 @@ public class ComplaintsService {
         this.subCategoriesExtractor = subCategoriesExtractor;
         this.responseExtractor = responseExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
+        this.decsCaseData = decsCaseData;
+        this.complaintMessageBuilder = complaintMessageBuilder;
         this.messageService = messageService;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -101,8 +107,7 @@ public class ComplaintsService {
 
         // extract correspondents
         try {
-            caseDetails.setSourceCaseId(complaintId.toString());
-            correspondentExtractor.getCorrespondentsForCase(complaintId, caseDetails);
+            correspondentExtractor.getCorrespondentsForCase(complaintId);
             ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Correspondents", true);
             complaintsRepository.save(correspondentStage);
         } catch (ApplicationExceptions.ExtractCorrespondentException e) {
@@ -116,7 +121,7 @@ public class ComplaintsService {
 
         // extract case data
         try {
-            caseDataExtractor.getCaseData(complaintId, caseDetails);
+            caseDataExtractor.getCaseData(complaintId);
             ComplaintExtractRecord caseDataStage = getComplaintExtractRecord(complaintId, "Case data", true);
             complaintsRepository.save(caseDataStage);
         } catch (ApplicationExceptions.ExtractCaseDataException e) {
@@ -176,10 +181,16 @@ public class ComplaintsService {
         // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
+        // populate message
+        CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
+
+        message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
+        message.setCaseAttachments(caseDetails.getCaseAttachments());
 
         // send migration message
+        message.setSourceCaseId(complaintId.toString());
         try {
-            messageService.sendMigrationMessage(caseDetails);
+            messageService.sendMigrationMessage(message);
             ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
             complaintsRepository.save(correspondentStage);
         } catch (ApplicationExceptions.SendMigrationMessageException e) {

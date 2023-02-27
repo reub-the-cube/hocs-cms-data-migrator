@@ -4,8 +4,11 @@ import org.springframework.data.repository.CrudRepository;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface CategoriesRepository extends CrudRepository<Categories, Long> {
 
-    long deleteAllByCaseId(BigDecimal caseId);
+    void deleteAllByCaseId(BigDecimal caseId);
+
+    List<Categories> findAllByCaseId(BigDecimal caseId);
 }

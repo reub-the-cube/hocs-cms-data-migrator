@@ -1,7 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.casedata;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,16 +8,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
-import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @Slf4j
@@ -47,7 +42,7 @@ public class CaseDataExtractor {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
     @Transactional
-    public void getCaseData(BigDecimal caseId, CaseDetails caseDetails) {
+    public void getCaseData(BigDecimal caseId) {
 
         caseDataRepository.deleteAllByCaseId(caseId);
 
@@ -91,40 +86,9 @@ public class CaseDataExtractor {
         caseData.setCaseId(caseId);
         caseDataRepository.save(caseData);
 
-        // populate migration message
-        List<CaseDataItem> caseDataItems = new ArrayList<>();
-        caseDataItems.add(getCaseDataItem("Reference", caseData.getCaseReference()));
-        caseDataItems.add(getCaseDataItem("Date Received", caseData.getReceiveDate()));
-        caseDataItems.add(getCaseDataItem("Due Date", caseData.getSlaDate()));
-        caseDataItems.add(getCaseDataItem("Initial Type", caseData.getInitialType()));
-        caseDataItems.add(getCaseDataItem("Description", caseData.getDescription()));
-        caseDataItems.add(getCaseDataItem("Current Type", caseData.getCurrentType()));
-        caseDataItems.add(getCaseDataItem("Current Work Queue", caseData.getQueueName()));
-        caseDataItems.add(getCaseDataItem("Location", caseData.getLocation()));
-        caseDataItems.add(getCaseDataItem("NRO", caseData.getNroCombo()));
-        caseDataItems.add(getCaseDataItem("Closed Date", caseData.getClosedDt()));
-        caseDataItems.add(getCaseDataItem("Owning CSU", caseData.getOwningCsu()));
-        caseDataItems.add(getCaseDataItem("Business area", caseData.getBusinessArea()));
-        caseDataItems.add(getCaseDataItem("Status", caseData.getStatus()));
-
-        caseDetails.setCaseStatus(caseData.getStatus());
-        caseDetails.setCreationDate(caseData.getReceiveDate());
-        caseDetails.setCaseStatusDate(caseData.getReceiveDate());
-
-        caseDetails.setCaseData(caseDataItems);
-
-        caseDetails.setCaseType(caseData.getOwningCsu());
     }
 
     private String convertDateToString(Date date) {
         return (date != null) ? date.toLocalDate().toString() : "";
     }
-
-    private CaseDataItem getCaseDataItem(String name, String value) {
-        CaseDataItem caseDataItem = new CaseDataItem();
-        caseDataItem.setName(name);
-        caseDataItem.setValue(StringUtils.defaultString(value));
-        return caseDataItem;
-    }
-
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -28,4 +29,32 @@ public class CaseDetails {
     private List<CaseDataItem> caseData;
     @Getter
     private List<CaseAttachment> caseAttachments;
+
+    public void addCaseDataItem(CaseDataItem cdi) {
+        if (caseData == null) {
+            caseData = new ArrayList<>();
+        }
+        caseData.add(cdi);
+    }
+
+    public void addCaseDataItems(List<CaseDataItem> cdi) {
+        if (caseData == null) {
+            caseData = new ArrayList<>();
+        }
+        caseData.addAll(cdi);
+    }
+
+    public void addCaseAttachments(CaseAttachment ca) {
+        if (caseAttachments == null) {
+            caseAttachments = new ArrayList<>();
+        }
+        caseAttachments.add(ca);
+    }
+
+    public void addCaseAttachments(List<CaseAttachment> ca) {
+        if (caseAttachments == null) {
+            caseAttachments = new ArrayList<>();
+        }
+        caseAttachments.addAll(ca);
+    }
 }

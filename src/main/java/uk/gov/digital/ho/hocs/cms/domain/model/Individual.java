@@ -53,11 +53,11 @@ public class Individual {
     @Column()
     private String type;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "addressid", referencedColumnName = "addressid")
     private Address address;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "partyid", referencedColumnName = "partyid", nullable = false)
     private List<Reference> references;
 
