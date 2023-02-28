@@ -5,23 +5,13 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
-import org.apache.pdfbox.pdmodel.font.PDType1CFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
-import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
-import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
-import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
-import uk.gov.digital.ho.hocs.cms.domain.model.Response;
-import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
@@ -32,13 +22,10 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 
 @Component
@@ -118,11 +105,8 @@ public class DocumentCreator {
             page = new PDPage();
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
-            contentStream.setLeading(leading);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
             contentStream.setLeading(leading);
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
             contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
@@ -132,7 +116,6 @@ public class DocumentCreator {
 
         contentStream.endText();
         contentStream.close();
-        File file = new File("/Users/rjweeks/hocs/hocs-cms-data-migrator/", "test.pdf");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         document.save(baos);
         document.close();
