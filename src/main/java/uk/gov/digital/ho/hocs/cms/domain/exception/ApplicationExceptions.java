@@ -261,4 +261,29 @@ public interface ApplicationExceptions {
         public LogEvent getException() {return exception;}
 
     }
+    class CreateMigrationDocumentException extends RuntimeException {
+
+        private final LogEvent event;
+
+        private final LogEvent exception;
+
+        public CreateMigrationDocumentException(String msg, LogEvent event, Object... args) {
+            super(String.format(msg, args));
+            this.event = event;
+            this.exception = null;
+        }
+
+        public CreateMigrationDocumentException(String msg, LogEvent event, LogEvent exception, Object... args) {
+            super(String.format(msg, args));
+            this.event = event;
+            this.exception = exception;
+        }
+
+        public LogEvent getEvent() {
+            return event;
+        }
+
+        public LogEvent getException() {return exception;}
+
+    }
 }

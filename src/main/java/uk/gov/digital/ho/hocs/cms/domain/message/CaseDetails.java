@@ -30,7 +30,7 @@ public class CaseDetails {
     @Getter
     private List<CaseAttachment> caseAttachments;
 
-    public void addCaseDataItem(CaseDataItem cdi) {
+    public void addCaseDataIte(CaseDataItem cdi) {
         if (caseData == null) {
             caseData = new ArrayList<>();
         }
@@ -44,7 +44,7 @@ public class CaseDetails {
         caseData.addAll(cdi);
     }
 
-    public void addCaseAttachments(CaseAttachment ca) {
+    public void addCaseAttachment(CaseAttachment ca) {
         if (caseAttachments == null) {
             caseAttachments = new ArrayList<>();
         }

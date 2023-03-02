@@ -30,7 +30,7 @@ class CaseDetailsTest {
         caseAttachment.setDocumentType(DOCUMENT_TYPE);
         caseAttachment.setDocumentPath(DOCUMENT_PATH);
         caseAttachment.setDisplayName(DOCUMENT_NAME);
-        caseDetails.addCaseAttachments(caseAttachment);
+        caseDetails.addCaseAttachment(caseAttachment);
         assertNotNull(caseDetails.getCaseAttachments());
         assertEquals(1, caseDetails.getCaseAttachments().size());
     }

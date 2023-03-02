@@ -9,6 +9,7 @@ import uk.gov.digital.ho.hocs.cms.categories.SubCategoriesExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.compensation.CompensationExtractor;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentExtractor;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentCreator;
 import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
@@ -19,6 +20,7 @@ import uk.gov.digital.ho.hocs.cms.response.ResponseExtractor;
 import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
 import uk.gov.digital.ho.hocs.cms.risk.RiskAssessmentExtractor;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -41,6 +43,7 @@ public class ComplaintsService {
     private final ComplaintMessageBuilder complaintMessageBuilder;
     private final MessageService messageService;
     private final ComplaintsMessageCaseData decsCaseData;
+    private final DocumentCreator documentCreator;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -56,7 +59,8 @@ public class ComplaintsService {
                              CaseHistoryExtractor caseHistoryExtractor,
                              ComplaintsMessageCaseData decsCaseData,
                              ComplaintMessageBuilder complaintMessageBuilder,
-                             MessageService messageService) {
+                             MessageService messageService,
+                             DocumentCreator documentCreator) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
@@ -72,6 +76,7 @@ public class ComplaintsService {
         this.decsCaseData = decsCaseData;
         this.complaintMessageBuilder = complaintMessageBuilder;
         this.messageService = messageService;
+        this.documentCreator = documentCreator;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
@@ -125,10 +130,10 @@ public class ComplaintsService {
             ComplaintExtractRecord caseDataStage = getComplaintExtractRecord(complaintId, "Case data", true);
             complaintsRepository.save(caseDataStage);
         } catch (ApplicationExceptions.ExtractCaseDataException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Case Data", false);
-            correspondentStage.setError(e.getEvent().toString());
-            correspondentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(correspondentStage);
+            ComplaintExtractRecord caseDataStage = getComplaintExtractRecord(complaintId, "Case Data", false);
+            caseDataStage.setError(e.getEvent().toString());
+            caseDataStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(caseDataStage);
             log.error("Failed extracting case data for complaint ID {}", complaintId);
         }
 
@@ -183,9 +188,22 @@ public class ComplaintsService {
 
         // populate message
         CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
-
         message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
         message.setCaseAttachments(caseDetails.getCaseAttachments());
+
+        // create cms migration document
+        try {
+            CaseAttachment caseAttachment = documentCreator.createDocument(complaintId);
+            caseDetails.addCaseAttachment(caseAttachment);
+            ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", true);
+            complaintsRepository.save(migrationDocumentStage);
+        } catch (ApplicationExceptions.CreateMigrationDocumentException e) {
+            ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", false);
+            migrationDocumentStage.setError(e.getEvent().toString());
+            migrationDocumentStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(migrationDocumentStage);
+            log.error("Failed creating Migration PDF for complaint ID {}", complaintId);
+        }
 
         // send migration message
         message.setSourceCaseId(complaintId.toString());
