@@ -1,5 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.documents;
 
+import be.quodlibet.boxable.BaseTable;
+import be.quodlibet.boxable.datatable.DataTable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -14,6 +16,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
+import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
@@ -27,6 +30,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,6 +108,23 @@ public class DocumentCreator {
             textForCorrespondent(contentStream, complainant);
             contentStream.endText();
             contentStream.close();
+            // references for complainant
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            BaseTable complainantRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("References");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            List<List> data = getReferences(complainant);
+            DataTable t = new DataTable(complainantRefsTable, page);
+            t.addListToTable(data, DataTable.HASHEADER);
+            complainantRefsTable.draw();
+            contentStream.endText();
+            contentStream.close();
 
             if (representative != null) {
                 page = new PDPage();
@@ -115,10 +137,27 @@ public class DocumentCreator {
                 contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
                 contentStream.setFont(PDType1Font.HELVETICA, fontSize);
                 textForCorrespondent(contentStream, representative);
+                contentStream.endText();
+                contentStream.close();
+                // references for representative
+                page = new PDPage();
+                document.addPage(page);
+                contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(100, 700);
+                BaseTable representativeRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+                contentStream.showText("References");
+                contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+                contentStream.newLineAtOffset(0, -leading);
+                data = getReferences(complainant);
+                DataTable representativeDataTable = new DataTable(representativeRefsTable, page);
+                representativeDataTable.addListToTable(data, DataTable.HASHEADER);
+                representativeRefsTable.draw();
+                contentStream.endText();
+                contentStream.close();
             }
 
-            contentStream.endText();
-            contentStream.close();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             document.close();
@@ -137,7 +176,17 @@ public class DocumentCreator {
         }
     }
 
-        private void textForCorrespondent(PDPageContentStream contentStream, Individual complainant) throws IOException {
+    private List<List> getReferences(Individual individual) {
+        List<List> data = new ArrayList();
+        data.add(new ArrayList<>(Arrays.asList("Reference type", "Reference")));
+        List<Reference> references = individual.getReferences();
+        for (Reference reference : references) {
+            data.add(new ArrayList(Arrays.asList(reference.getRefType(), reference.getReference())));
+        }
+        return data;
+    }
+
+    private void textForCorrespondent(PDPageContentStream contentStream, Individual complainant) throws IOException {
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText((String.format("Complainant: %s", complainant.getPartyId())));
             contentStream.newLineAtOffset(0, -leading);
@@ -172,7 +221,6 @@ public class DocumentCreator {
             contentStream.showText(String.format("Address Line 6: %s", complainant.getAddress().getAddressLine6()));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Postcode: %s", complainant.getAddress().getPostcode()));
-
         }
 
 
