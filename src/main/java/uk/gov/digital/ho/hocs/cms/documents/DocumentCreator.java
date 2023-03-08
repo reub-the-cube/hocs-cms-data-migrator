@@ -16,6 +16,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
@@ -28,7 +29,6 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -198,6 +198,34 @@ public class DocumentCreator {
             contentStream.showText(String.format("Status: %s", casedata.getStatus()));
             contentStream.endText();
             contentStream.close();
+
+            // Add compensation data to document
+            Compensation compensation = compensationRepository.findByCaseId(caseId);
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Compensation");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Date of Compensation Claim: %s", compensation.getDateOfCompensationClaim()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Offer Accepted: %s", compensation.getOfferAccepted()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Date of Payment", compensation.getDateOfPayment()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Compensation Amount: %s", compensation.getCompensationAmmount()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Amount Claimed: %s", compensation.getAmountClaimed()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Amount Offered: %s", compensation.getAmountOffered()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Consolatory Payment: %s", compensation.getConsolatoryPayment()));
+            contentStream.endText();
+            contentStream.close();
+
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
