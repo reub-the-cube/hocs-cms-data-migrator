@@ -15,6 +15,7 @@ import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
@@ -157,6 +158,46 @@ public class DocumentCreator {
                 contentStream.endText();
                 contentStream.close();
             }
+
+            // Add case data to document
+            CaseData casedata = caseDataRepository.findByCaseId(caseId);
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setLeading(leading);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Case Data");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Reference: %s", casedata.getCaseReference()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Date Received: %s", casedata.getReceiveDate()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Due Date: %s", casedata.getSlaDate()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Initial Type: %s", casedata.getInitialType()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Current Type: %s", casedata.getCurrentType()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Description: %s", casedata.getDescription()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Current Work Queue: %s", casedata.getQueueName()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Location: %s", casedata.getLocation()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("NRO: %s", casedata.getNroCombo()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Closed Date: %s", casedata.getClosedDt()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Owning CSU: %s", casedata.getOwningCsu()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Business Area: %s", casedata.getBusinessArea()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Status: %s", casedata.getStatus()));
+            contentStream.endText();
+            contentStream.close();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
