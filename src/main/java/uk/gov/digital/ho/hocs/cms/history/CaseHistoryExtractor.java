@@ -50,7 +50,7 @@ public class CaseHistoryExtractor {
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
             if (rs.getString("LINE2") != null)
-                ch.setDescription(CharMatcher.ASCII.removeFrom(rs.getString("LINE2")));
+                ch.setDescription(CharMatcher.JAVA_LETTER_OR_DIGIT.retainFrom(rs.getString("LINE2")));
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
