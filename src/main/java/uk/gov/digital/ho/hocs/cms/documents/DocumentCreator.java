@@ -16,6 +16,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
@@ -309,6 +310,36 @@ public class DocumentCreator {
             contentStream.endText();
             contentStream.close();
 
+            // Case history
+            List<CaseHistory> caseHistoryEvents = caseHistoryRepository.findAllByCaseId(caseId);
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Case Histoy");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+
+            BaseTable caseHistoryTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
+                    true);
+
+            List<List> caseHistoryData = new ArrayList();
+            caseHistoryData.add(new ArrayList<>(Arrays.asList("Type", "Description", "Created by", "Created")));
+            for (CaseHistory caseHistoryEvent : caseHistoryEvents) {
+                if (caseHistoryEvent.getType() == null) caseHistoryEvent.setType("");
+                if (caseHistoryEvent.getDescription() == null) caseHistoryEvent.setDescription("");
+                if (caseHistoryEvent.getCreatedBy() == null) caseHistoryEvent.setCreatedBy("");
+                caseHistoryData.add(new ArrayList(Arrays.asList(caseHistoryEvent.getType(),
+                        caseHistoryEvent.getDescription(),
+                        caseHistoryEvent.getCreatedBy(),
+                        caseHistoryEvent.getCreated().toString())));
+            }
+            DataTable caseHistoryDataTable = new DataTable(caseHistoryTable, page);
+            caseHistoryDataTable.addListToTable(caseHistoryData, DataTable.HASHEADER);
+            caseHistoryTable.draw();
+            contentStream.endText();
+            contentStream.close();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
