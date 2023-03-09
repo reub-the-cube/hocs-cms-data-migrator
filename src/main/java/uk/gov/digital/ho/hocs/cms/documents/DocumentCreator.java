@@ -16,6 +16,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
@@ -256,7 +257,7 @@ public class DocumentCreator {
             contentStream.endText();
             contentStream.close();
 
-            // risk assessment and response
+            // risk assessment
             RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
             Response response = responseRepository.findByCaseId(caseId);
             page = new PDPage();
@@ -281,6 +282,33 @@ public class DocumentCreator {
             contentStream.showText(String.format("QA: %s", response.getResponse()));
             contentStream.endText();
             contentStream.close();
+
+            // case links
+            List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
+            caseLinks.addAll(caseLinksRepository.findAllByTargetCaseId(caseId));
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Case Links");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            BaseTable caseLinksTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
+                    true);
+
+            List<List> caseLinksData = new ArrayList<>();
+            caseLinksData.add(new ArrayList<>(Arrays.asList("Source case", "Link type", "Target case")));
+
+            for (CaseLinks caseLink : caseLinks) {
+                caseLinksData.add(new ArrayList(Arrays.asList(caseLink.getSourceCaseId().toString(),caseLink.getDescription(), caseLink.getTargetCaseId().toString())));
+            }
+            DataTable caseLinksDataTable = new DataTable(caseLinksTable, page);
+            caseLinksDataTable.addListToTable(caseLinksData, DataTable.HASHEADER);
+            caseLinksTable.draw();
+            contentStream.endText();
+            contentStream.close();
+
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);

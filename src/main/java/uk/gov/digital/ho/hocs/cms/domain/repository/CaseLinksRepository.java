@@ -4,10 +4,15 @@ import org.springframework.data.repository.CrudRepository;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface CaseLinksRepository extends CrudRepository<CaseLinks, Long> {
 
-    long deleteAllBySourceCaseId(BigDecimal sourceCaseId);
+    void deleteAllBySourceCaseId(BigDecimal sourceCaseId);
 
-    long deleteAllByTargetCaseId(BigDecimal targetCaseId);
+    void deleteAllByTargetCaseId(BigDecimal targetCaseId);
+
+    List<CaseLinks> findAllBySourceCaseId(BigDecimal aseId);
+
+    List<CaseLinks> findAllByTargetCaseId(BigDecimal caseId);
 }
