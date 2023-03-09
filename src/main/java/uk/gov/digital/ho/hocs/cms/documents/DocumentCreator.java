@@ -20,6 +20,8 @@ import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.model.Response;
+import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
@@ -254,6 +256,31 @@ public class DocumentCreator {
             contentStream.endText();
             contentStream.close();
 
+            // risk assessment and response
+            RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
+            Response response = responseRepository.findByCaseId(caseId);
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Risk Assessment");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Priority: %s", riskAssessment.getPriority()));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("From or affecting a child: %s", riskAssessment.getFromOrAffectingAChild()));
+
+            // response
+            contentStream.newLineAtOffset(0, -leading * 2);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Response");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("QA: %s", response.getResponse()));
+            contentStream.endText();
+            contentStream.close();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);

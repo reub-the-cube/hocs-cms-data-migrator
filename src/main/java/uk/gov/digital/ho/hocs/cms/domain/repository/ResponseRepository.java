@@ -7,5 +7,7 @@ import java.math.BigDecimal;
 
 public interface ResponseRepository extends CrudRepository<Response, Long> {
 
-    long deleteAllByCaseId(BigDecimal caseId);
+    void deleteAllByCaseId(BigDecimal caseId);
+
+    Response findByCaseId(BigDecimal caseId);
 }
