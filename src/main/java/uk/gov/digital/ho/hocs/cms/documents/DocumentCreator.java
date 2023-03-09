@@ -16,6 +16,7 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
@@ -29,6 +30,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -223,6 +225,32 @@ public class DocumentCreator {
             contentStream.showText(String.format("Amount Offered: %s", compensation.getAmountOffered()));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Consolatory Payment: %s", compensation.getConsolatoryPayment()));
+            contentStream.endText();
+            contentStream.close();
+
+            // Add categories to document
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(100, 700);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.showText("Complaint category breakdown");
+            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+
+            BaseTable categoryTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
+                    true);
+
+            List<List> categoryData = new ArrayList();
+            categoryData.add(new ArrayList<>(Arrays.asList("Category", "Selected", "Substantiated", "Amount")));
+            List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
+            for (Categories category : categories) {
+                categoryData.add(new ArrayList(Arrays.asList(category.getCategory(), category.getSelected(), category.getSubstantiated(), category.getAmount().toString())));
+            }
+
+            DataTable categoryDataTable = new DataTable(categoryTable, page);
+            categoryDataTable.addListToTable(categoryData, DataTable.HASHEADER);
+            categoryTable.draw();
             contentStream.endText();
             contentStream.close();
 
