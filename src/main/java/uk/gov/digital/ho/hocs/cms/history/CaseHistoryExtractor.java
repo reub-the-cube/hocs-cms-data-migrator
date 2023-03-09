@@ -13,6 +13,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.List;
 
@@ -46,8 +47,8 @@ public class CaseHistoryExtractor {
             List<CaseHistory> caseHistory = jdbcTemplate.query(FETCH_CASE_HISTORY, (rs, rowNum) -> {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
-            ch.setType(rs.getString("LINE1"));
-            ch.setDescription(rs.getString("LINE2"));
+            ch.setType(new String(rs.getString("LINE1").getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+            ch.setDescription(new String(rs.getString("LINE2").getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
