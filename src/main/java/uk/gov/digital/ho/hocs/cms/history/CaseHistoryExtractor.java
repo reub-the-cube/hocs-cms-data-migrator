@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.history;
 
+import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -47,8 +48,9 @@ public class CaseHistoryExtractor {
             List<CaseHistory> caseHistory = jdbcTemplate.query(FETCH_CASE_HISTORY, (rs, rowNum) -> {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
-            ch.setType(new String(rs.getString("LINE1").getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
-            ch.setDescription(new String(rs.getString("LINE2").getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+            ch.setType(rs.getString("LINE1"));
+            if (rs.getString("LINE2") != null)
+                ch.setDescription(CharMatcher.ASCII.retainFrom(rs.getString("LINE2")));
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
