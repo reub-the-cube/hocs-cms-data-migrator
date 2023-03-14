@@ -29,9 +29,8 @@ public class CaseHistoryExtractor {
     private final CaseHistoryRepository caseHistoryRepository;
 
     private final String FETCH_CASE_HISTORY = """ 
-           SELECT cev.CASEID, cev.LINE1, cev.LINE2, cev.CREATEDBY, cev.CREATIONDATE from LGNCC_CASENOTEVIEW cnv 
-           INNER JOIN LGNCC_CASEEVENTVIEW cev on cnv.CASEID = cev.CASEID
-           WHERE cev.CASEID = ?
+        select CASEID , LINE1 , LINE2 , CREATEDBY , CREATIONDATE from LGNCC_CASEEVENTVIEW lc where CASEID = ? UNION
+        select CASEID , LINE1 , LINE2 , CREATEDBY , CREATIONDATE from LGNCC_CASENOTEVIEW lc where CASEID = ? order by CREATIONDATE;
              """;
 
     public CaseHistoryExtractor(@Qualifier("cms") DataSource dataSource, CaseHistoryRepository caseHistoryRepository) {
@@ -52,7 +51,7 @@ public class CaseHistoryExtractor {
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
-        }, caseId);
+        }, caseId, caseId);
             persistExtractedCaseHistory(caseHistory);
     } catch (DataAccessException e) {
             log.error("Case links extraction failed for case ID: {}", caseId);
