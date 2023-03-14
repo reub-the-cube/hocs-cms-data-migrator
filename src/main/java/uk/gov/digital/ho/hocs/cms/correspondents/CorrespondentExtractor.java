@@ -151,10 +151,10 @@ public class CorrespondentExtractor {
             a.setNumber(rs.getString("addressNum"));
             a.setAddressLine1(rs.getString("addressLine1"));
             a.setAddressLine2(rs.getString("addressLine2"));
-            a.setAddressLine2(rs.getString("addressLine3"));
-            a.setAddressLine2(rs.getString("addressLine4"));
-            a.setAddressLine2(rs.getString("addressLine5"));
-            a.setAddressLine2(rs.getString("addressLine6"));
+            a.setAddressLine3(rs.getString("addressLine3"));
+            a.setAddressLine4(rs.getString("addressLine4"));
+            a.setAddressLine5(rs.getString("addressLine5"));
+            a.setAddressLine6(rs.getString("addressLine6"));
             a.setPostcode(rs.getString("postcode"));
             return a;
         }, partyId);
