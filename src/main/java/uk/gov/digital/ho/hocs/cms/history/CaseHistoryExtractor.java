@@ -54,7 +54,7 @@ public class CaseHistoryExtractor {
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
-            log.info("LINE2 {}", ch.getDescription()));
+            log.info("LINE2 {}", ch.getDescription());
             return ch;
         }, caseId, caseId);
             persistExtractedCaseHistory(caseHistory);
@@ -68,7 +68,7 @@ public class CaseHistoryExtractor {
     private void persistExtractedCaseHistory(List<CaseHistory> caseHistory) {
         log.info("Persist case history");
         for (CaseHistory ch : caseHistory) {
-            log.info("Line2 {}", ch.getDescription()));
+            log.info("Line2 {}", ch.getDescription());
             caseHistoryRepository.save(ch);
         }
     }
