@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.history;
 
+import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -47,7 +48,9 @@ public class CaseHistoryExtractor {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
-            ch.setDescription(rs.getString("LINE2"));
+            if (rs.getString("LINE2") != null)
+                ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
+            else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
@@ -64,6 +67,13 @@ public class CaseHistoryExtractor {
         for (CaseHistory ch : caseHistory) {
             caseHistoryRepository.save(ch);
         }
+    }
+
+    private String removeInvalidChars(String s) {
+        String result = CharMatcher.ASCII.retainFrom(s);
+        result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
+        result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
+        return result;
     }
 
     private String convertDateToString(Date date) {
