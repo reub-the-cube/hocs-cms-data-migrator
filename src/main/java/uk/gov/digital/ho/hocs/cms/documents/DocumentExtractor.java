@@ -76,6 +76,7 @@ public class DocumentExtractor {
     }
 
     private CaseAttachment getDocument(BigDecimal documentId, BigDecimal caseId) {
+        documentsRepository.deleteAllByCaseId(caseId);
         DocumentExtractRecord record = new DocumentExtractRecord();
         record.setDocumentId(documentId);
         record.setCaseId(caseId);
