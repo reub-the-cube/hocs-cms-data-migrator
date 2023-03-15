@@ -75,15 +75,8 @@ public class CaseHistoryExtractor {
     }
 
     private String removeInvalidChars(String s) {
-        Charset charset = Charset.forName("UTF-8");
-        CharsetEncoder encoder = charset.newEncoder();
-        Predicate<Character> inRange = new Predicate<Character>() {
-            @Override
-            public boolean apply(Character c) {
-                return encoder.canEncode(c);
-            }
-        };
-        return CharMatcher.forPredicate(inRange).retainFrom(s);
+       String result = CharMatcher.ASCII.retainFrom(s);
+       return CharMatcher.WHITESPACE.trimTrailingFrom(result);
     }
 
     private String convertDateToString(Date date) {
