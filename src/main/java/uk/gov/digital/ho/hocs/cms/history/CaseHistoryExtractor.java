@@ -50,11 +50,10 @@ public class CaseHistoryExtractor {
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
             if (rs.getString("LINE2") != null)
-                ch.setDescription(CharMatcher.JAVA_LETTER_OR_DIGIT.retainFrom(rs.getString("LINE2")));
+                ch.setDescription(CharMatcher.ASCII.retainFrom(rs.getString("LINE2")));
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
-            log.info("LINE2 {}", ch.getDescription());
             return ch;
         }, caseId, caseId);
             persistExtractedCaseHistory(caseHistory);
@@ -66,9 +65,8 @@ public class CaseHistoryExtractor {
         }
 
     private void persistExtractedCaseHistory(List<CaseHistory> caseHistory) {
-        log.info("Persist case history");
         for (CaseHistory ch : caseHistory) {
-            log.info("Line2 {}", ch.getDescription());
+            log.info("Description {}" ch.getDescription());
             caseHistoryRepository.save(ch);
         }
     }
