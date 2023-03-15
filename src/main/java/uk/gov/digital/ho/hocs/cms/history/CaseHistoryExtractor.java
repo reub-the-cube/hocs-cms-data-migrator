@@ -75,8 +75,7 @@ public class CaseHistoryExtractor {
     }
 
     private String removeInvalidChars(String s) {
-        String result = new String(s.getBytes(1), "windows-1252");
-       result = CharMatcher.ASCII.retainFrom(s);
+       String result = CharMatcher.ASCII.retainFrom(s);
        result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
        result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
        return result;
