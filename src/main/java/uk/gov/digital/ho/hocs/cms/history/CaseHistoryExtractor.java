@@ -66,7 +66,7 @@ public class CaseHistoryExtractor {
 
     private void persistExtractedCaseHistory(List<CaseHistory> caseHistory) {
         for (CaseHistory ch : caseHistory) {
-            log.info("Description {}" ch.getDescription());
+            log.info("Description {}", ch.getDescription());
             caseHistoryRepository.save(ch);
         }
     }
