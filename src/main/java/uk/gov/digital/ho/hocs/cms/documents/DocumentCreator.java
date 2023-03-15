@@ -354,7 +354,7 @@ public class DocumentCreator {
 
             CaseAttachment caseAttachment = new CaseAttachment();
             caseAttachment.setDocumentPath(tempFileName);
-            caseAttachment.setDocumentType("PDF");
+            caseAttachment.setDocumentType(DocumentType.MIGRATION.getLabel());
             caseAttachment.setDisplayName(CMS_CASE_DATA_FILENAME);
             return caseAttachment;
         } catch (IOException e) {
