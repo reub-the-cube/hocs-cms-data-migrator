@@ -76,7 +76,9 @@ public class CaseHistoryExtractor {
 
     private String removeInvalidChars(String s) {
        String result = CharMatcher.ASCII.retainFrom(s);
-       return CharMatcher.WHITESPACE.trimTrailingFrom(result);
+       result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
+       result = CharMatcher.JAVA_LETTER_OR_DIGIT.replaceFrom(result, " ");
+       return result;
     }
 
     private String convertDateToString(Date date) {
