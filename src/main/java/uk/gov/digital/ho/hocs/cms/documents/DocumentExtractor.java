@@ -158,9 +158,11 @@ public class DocumentExtractor {
         }
 
     private String removeInvalidChars(String s) {
+        log.info("Document name: {}", s);
         String result = CharMatcher.ASCII.retainFrom(s);
         result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
         result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
+        log.info("Resolved filename: {}", result);
         return result;
     }
 }
