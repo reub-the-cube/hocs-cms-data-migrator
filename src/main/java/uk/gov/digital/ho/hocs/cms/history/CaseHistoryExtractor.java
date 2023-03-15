@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.history;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +15,8 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.List;
@@ -50,7 +53,7 @@ public class CaseHistoryExtractor {
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
             if (rs.getString("LINE2") != null)
-                ch.setDescription(CharMatcher.ASCII.retainFrom(rs.getString("LINE2")));
+                ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
@@ -69,6 +72,18 @@ public class CaseHistoryExtractor {
             log.info("Description {}", ch.getDescription());
             caseHistoryRepository.save(ch);
         }
+    }
+
+    private String removeInvalidChars(String s) {
+        Charset charset = Charset.forName("UTF-8");
+        CharsetEncoder encoder = charset.newEncoder();
+        Predicate<Character> inRange = new Predicate<Character>() {
+            @Override
+            public boolean apply(Character c) {
+                return encoder.canEncode(c);
+            }
+        };
+        return CharMatcher.forPredicate(inRange).retainFrom(s);
     }
 
     private String convertDateToString(Date date) {
