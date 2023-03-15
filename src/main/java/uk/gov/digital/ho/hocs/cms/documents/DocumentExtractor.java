@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.documents;
 
+import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -135,7 +136,7 @@ public class DocumentExtractor {
             ps.setBigDecimal(1, documentId);
             ResultSet res = ps.executeQuery();
             if (res.next()) {
-                String fileName = res.getString(2);
+                String fileName = removeInvalidChars(res.getString(2));
                 InputStream is = res.getBinaryStream(3);
                 byte[] bytes = IOUtils.toByteArray(is);
                 docStore = new DocStore(fileName, bytes);
@@ -155,5 +156,12 @@ public class DocumentExtractor {
         }
         return docStore;
         }
+
+    private String removeInvalidChars(String s) {
+        String result = CharMatcher.ASCII.retainFrom(s);
+        result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
+        result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
+        return result;
+    }
 }
 
