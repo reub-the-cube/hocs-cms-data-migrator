@@ -56,6 +56,7 @@ public class DocumentExtractor {
     }
 
     public List<CaseAttachment> copyDocumentsForCase(BigDecimal caseId) {
+        documentsRepository.deleteAllByCaseId(caseId);
         List<CaseAttachment> attachments = new ArrayList<>();
         List<BigDecimal> documentIds = queryDocumentIdsForCase(caseId);
         for (BigDecimal documentId : documentIds) {
