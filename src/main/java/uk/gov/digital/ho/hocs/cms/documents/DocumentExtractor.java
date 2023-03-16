@@ -6,6 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
 import uk.gov.digital.ho.hocs.cms.domain.model.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
@@ -55,6 +56,7 @@ public class DocumentExtractor {
         this.documentsRepository = documentsRepository;
     }
 
+    @Transactional
     public List<CaseAttachment> copyDocumentsForCase(BigDecimal caseId) {
         documentsRepository.deleteAllByCaseId(caseId);
         List<CaseAttachment> attachments = new ArrayList<>();
