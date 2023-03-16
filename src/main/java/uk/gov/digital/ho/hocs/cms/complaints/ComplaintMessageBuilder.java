@@ -12,6 +12,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -36,6 +37,7 @@ public class ComplaintMessageBuilder {
 
         if (individual.getPrimary()) {
             caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(individual));
+            caseDetails.setAdditionalCorrespondents(Collections.emptyList());
         } else {
             caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(representative));
             List<Correspondent> additionalCorrespondents = new ArrayList<>();
