@@ -249,8 +249,11 @@ public class DocumentCreator {
             categoryData.add(new ArrayList<>(Arrays.asList("Category", "Selected", "Substantiated", "Amount")));
             List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
             for (Categories category : categories) {
-                if (category.getAmount() == null) category.setAmount(new BigDecimal(0));
-                categoryData.add(new ArrayList(Arrays.asList(category.getCategory(), category.getSelected(), category.getSubstantiated(), category.getAmount().toString())));
+                String amount = "";
+                if (category.getAmount() != null) amount = category.getAmount().toString();
+                String substantiated = "";
+                if (category.getSubstantiated() != null) substantiated = category.getSubstantiated();
+                categoryData.add(new ArrayList(Arrays.asList(category.getCategory(), category.getSelected(), substantiated, amount)));
             }
 
             DataTable categoryDataTable = new DataTable(categoryTable, page);
