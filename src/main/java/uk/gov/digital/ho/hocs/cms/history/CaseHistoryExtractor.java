@@ -49,18 +49,10 @@ public class CaseHistoryExtractor {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
-//            if (rs.getString("LINE2") != null) {
-//                    ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
-//            }
-//            else ch.setDescription("");
-            byte[] encodedDescription = rs.getBytes("LINE2");
-            if (encodedDescription != null) {
-                try {
-                    ch.setDescription(new String(encodedDescription, "US-ASCII"));
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
-            } else ch.setDescription("");
+            if (rs.getString("LINE2") != null) {
+                    ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
+            }
+            else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
