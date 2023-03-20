@@ -57,7 +57,7 @@ public class DocumentCreator {
     private final CaseHistoryRepository caseHistoryRepository;
     private final DocumentS3Client documentS3Client;
 
-    private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA";
+    private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA.pdf";
 
     public DocumentCreator(IndividualRepository individualRepository,
                            CaseDataRepository caseDataRepository,
