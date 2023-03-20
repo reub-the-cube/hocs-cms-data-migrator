@@ -13,6 +13,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 
 import javax.sql.DataSource;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
@@ -48,8 +49,14 @@ public class CaseHistoryExtractor {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
-            if (rs.getString("LINE2") != null)
-                ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
+            if (rs.getString("LINE2") != null) {
+                try {
+                    ch.setDescription(new String(rs.getString("LINE2").getBytes(), "WINDOWS-1252"));
+                    log.info("HISTORY: {}", ch.getDescription());
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
