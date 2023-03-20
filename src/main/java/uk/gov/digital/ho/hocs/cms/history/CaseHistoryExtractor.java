@@ -48,7 +48,7 @@ public class CaseHistoryExtractor {
             List<CaseHistory> caseHistory = jdbcTemplate.query(FETCH_CASE_HISTORY, (rs, rowNum) -> {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
-            ch.setType(rs.getString("LINE1"));
+            ch.setType(removeInvalidChars(rs.getString("LINE1")));
             if (rs.getString("LINE2") != null) {
                     ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
             }
