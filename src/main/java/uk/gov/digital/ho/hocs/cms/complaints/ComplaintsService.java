@@ -45,6 +45,7 @@ public class ComplaintsService {
     private final MessageService messageService;
     private final ComplaintsMessageCaseData decsCaseData;
     private final DocumentCreator documentCreator;
+    private final String sendMessage;
     private final String migrationDocument;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
@@ -63,6 +64,7 @@ public class ComplaintsService {
                              ComplaintMessageBuilder complaintMessageBuilder,
                              MessageService messageService,
                              DocumentCreator documentCreator,
+                             @Value("${send.migration.message}") String sendMessage,
                              @Value("${migration.document}") String migrationDocument) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
@@ -80,6 +82,7 @@ public class ComplaintsService {
         this.complaintMessageBuilder = complaintMessageBuilder;
         this.messageService = messageService;
         this.documentCreator = documentCreator;
+        this.sendMessage = sendMessage;
         this.migrationDocument= migrationDocument;
     }
     public void migrateComplaints(String startDate, String endDate) {
@@ -190,10 +193,6 @@ public class ComplaintsService {
         // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
-        // populate message
-        CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
-        message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
-        message.setCaseAttachments(caseDetails.getCaseAttachments());
 
         // create cms migration document
         if (migrationDocument.equalsIgnoreCase("enabled")) {
@@ -211,18 +210,24 @@ public class ComplaintsService {
             }
         }
 
-        // send migration message
-        message.setSourceCaseId(complaintId.toString());
-        try {
-            messageService.sendMigrationMessage(message);
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
-            complaintsRepository.save(correspondentStage);
-        } catch (ApplicationExceptions.SendMigrationMessageException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
-            correspondentStage.setError(e.getEvent().toString());
-            correspondentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(correspondentStage);
-            log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
+        // populate message
+        if (sendMessage.equalsIgnoreCase("enabled")) {
+            CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
+            message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
+            message.setCaseAttachments(caseDetails.getCaseAttachments());
+            // send migration message
+            message.setSourceCaseId(complaintId.toString());
+            try {
+                messageService.sendMigrationMessage(message);
+                ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
+                complaintsRepository.save(correspondentStage);
+            } catch (ApplicationExceptions.SendMigrationMessageException e) {
+                ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
+                correspondentStage.setError(e.getEvent().toString());
+                correspondentStage.setErrorMessage(e.getMessage());
+                complaintsRepository.save(correspondentStage);
+                log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
+            }
         }
     }
 
