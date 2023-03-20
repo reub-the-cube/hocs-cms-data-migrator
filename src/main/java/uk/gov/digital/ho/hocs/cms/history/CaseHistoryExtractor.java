@@ -50,12 +50,7 @@ public class CaseHistoryExtractor {
             ch.setCaseId(rs.getBigDecimal("CASEID"));
             ch.setType(rs.getString("LINE1"));
             if (rs.getString("LINE2") != null) {
-                try {
-                    ch.setDescription(new String(rs.getString("LINE2").getBytes(), "WINDOWS-1252"));
-                    log.info("HISTORY: {}", ch.getDescription());
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                    ch.setDescription(removeInvalidChars(rs.getString("LINE2")));
             }
             else ch.setDescription("");
             ch.setCreatedBy(rs.getString("CREATEDBY"));

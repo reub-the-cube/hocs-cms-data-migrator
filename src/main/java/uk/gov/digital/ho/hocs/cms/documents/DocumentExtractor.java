@@ -139,8 +139,7 @@ public class DocumentExtractor {
             ps.setBigDecimal(1, documentId);
             ResultSet res = ps.executeQuery();
             if (res.next()) {
-                String fileName = new String(res.getString(2).getBytes(), "Windows-1252");
-                log.info("Document file name: {}", fileName);
+                String fileName = removeInvalidChars(res.getString(2));
                 InputStream is = res.getBinaryStream(3);
                 byte[] bytes = IOUtils.toByteArray(is);
                 docStore = new DocStore(fileName, bytes);
