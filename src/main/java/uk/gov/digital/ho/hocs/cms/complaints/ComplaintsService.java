@@ -210,26 +210,24 @@ public class ComplaintsService {
             }
         }
 
-        if (complaintsRepository.findStageFailureForCase(complaintId) == 0) {
-            // populate message
-            if (sendMessage.equalsIgnoreCase("enabled")) {
-                CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
-                message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
-                message.setCaseAttachments(caseDetails.getCaseAttachments());
-                // send migration message
-                message.setSourceCaseId(complaintId.toString());
-                try {
-                    log.info("Sending migration message for complaint ID {}", complaintId);
-                    messageService.sendMigrationMessage(message);
-                    ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
-                    complaintsRepository.save(correspondentStage);
-                } catch (ApplicationExceptions.SendMigrationMessageException e) {
-                    ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
-                    correspondentStage.setError(e.getEvent().toString());
-                    correspondentStage.setErrorMessage(e.getMessage());
-                    complaintsRepository.save(correspondentStage);
-                    log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
-                }
+        // populate message
+        if (sendMessage.equalsIgnoreCase("enabled")) {
+            CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
+            message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
+            message.setCaseAttachments(caseDetails.getCaseAttachments());
+            // send migration message
+            message.setSourceCaseId(complaintId.toString());
+            try {
+                log.info("Sending migration message for complaint ID {}", complaintId);
+                messageService.sendMigrationMessage(message);
+                ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
+                complaintsRepository.save(correspondentStage);
+            } catch (ApplicationExceptions.SendMigrationMessageException e) {
+                ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
+                correspondentStage.setError(e.getEvent().toString());
+                correspondentStage.setErrorMessage(e.getMessage());
+                complaintsRepository.save(correspondentStage);
+                log.error("Failed sending migration message for complaint ID {}", complaintId + " skipping case...");
             }
         }
     }
