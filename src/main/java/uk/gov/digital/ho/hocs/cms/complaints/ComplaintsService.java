@@ -219,6 +219,7 @@ public class ComplaintsService {
                 // send migration message
                 message.setSourceCaseId(complaintId.toString());
                 try {
+                    log.info("Sending migration message for complaint ID {}", complaintId);
                     messageService.sendMigrationMessage(message);
                     ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
                     complaintsRepository.save(correspondentStage);
