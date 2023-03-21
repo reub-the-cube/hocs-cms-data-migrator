@@ -46,6 +46,7 @@ public class ComplaintMessageBuilder {
             }
 
         CaseData caseData = caseDataRepository.findByCaseId(caseId);
+        if (caseData == null) caseData = new CaseData();
         caseDetails.setCaseStatus(caseData.getStatus());
         caseDetails.setCreationDate(caseData.getReceiveDate());
         caseDetails.setCaseStatusDate(caseData.getReceiveDate());
