@@ -49,6 +49,7 @@ public class ComplaintsMessageCaseData {
     public List<CaseDataItem> extractCaseData(BigDecimal caseId) {
         Individual individual = individualRepository.findIndividualComplainantByCaseId(caseId, "COMPLAINANT");
         CaseData caseData = caseDataRepository.findByCaseId(caseId);
+        if (caseData == null) caseData = new CaseData();
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
 
         RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
