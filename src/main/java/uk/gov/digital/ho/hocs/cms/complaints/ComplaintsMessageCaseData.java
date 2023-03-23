@@ -2,6 +2,8 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
@@ -50,7 +52,9 @@ public class ComplaintsMessageCaseData {
         Individual individual = individualRepository.findIndividualComplainantByCaseId(caseId, "COMPLAINANT");
         CaseData caseData = caseDataRepository.findByCaseId(caseId);
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
-
+        if (caseData == null) {
+            throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
+        }
         RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
         // populate case data hocs-6149
         List caseDataItems = new ArrayList();

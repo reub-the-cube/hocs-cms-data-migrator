@@ -3,6 +3,8 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
@@ -12,6 +14,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -36,6 +39,7 @@ public class ComplaintMessageBuilder {
 
         if (individual.getPrimary()) {
             caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(individual));
+            caseDetails.setAdditionalCorrespondents(Collections.emptyList());
         } else {
             caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(representative));
             List<Correspondent> additionalCorrespondents = new ArrayList<>();
@@ -44,6 +48,9 @@ public class ComplaintMessageBuilder {
             }
 
         CaseData caseData = caseDataRepository.findByCaseId(caseId);
+        if (caseData == null) {
+            throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
+        }
         caseDetails.setCaseStatus(caseData.getStatus());
         caseDetails.setCreationDate(caseData.getReceiveDate());
         caseDetails.setCaseStatusDate(caseData.getReceiveDate());

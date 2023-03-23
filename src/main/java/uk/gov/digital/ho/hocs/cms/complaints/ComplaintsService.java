@@ -186,10 +186,6 @@ public class ComplaintsService {
         // extract case history
         caseHistoryExtractor.getCaseHistory(complaintId);
 
-        // populate message
-        CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
-        message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
-        message.setCaseAttachments(caseDetails.getCaseAttachments());
 
         // create cms migration document
         try {
@@ -205,12 +201,16 @@ public class ComplaintsService {
             log.error("Failed creating Migration PDF for complaint ID {}", complaintId);
         }
 
+        // populate message
+        try {
+        CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
+        message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
+        message.setCaseAttachments(caseDetails.getCaseAttachments());
         // send migration message
         message.setSourceCaseId(complaintId.toString());
-        try {
-            messageService.sendMigrationMessage(message);
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
-            complaintsRepository.save(correspondentStage);
+        messageService.sendMigrationMessage(message);
+        ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", true);
+        complaintsRepository.save(correspondentStage);
         } catch (ApplicationExceptions.SendMigrationMessageException e) {
             ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, "Migration message", false);
             correspondentStage.setError(e.getEvent().toString());
