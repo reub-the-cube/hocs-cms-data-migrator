@@ -12,6 +12,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 
 import javax.sql.DataSource;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
@@ -46,8 +47,8 @@ public class CaseHistoryExtractor {
             List<CaseHistory> caseHistory = jdbcTemplate.query(FETCH_CASE_HISTORY, (rs, rowNum) -> {
             CaseHistory ch = new CaseHistory();
             ch.setCaseId(rs.getBigDecimal("CASEID"));
-            ch.setType(rs.getString("LINE1"));
-            ch.setDescription(rs.getString("LINE2"));
+            ch.setType(convertWinCharset(rs.getBytes("LINE1")));
+            ch.setDescription(convertWinCharset(rs.getBytes("LINE2")));
             ch.setCreatedBy(rs.getString("CREATEDBY"));
             ch.setCreated(rs.getDate("CREATIONDATE"));
             return ch;
@@ -59,6 +60,19 @@ public class CaseHistoryExtractor {
                     String.format("Failed to extract case links for case: %s", caseId), CASE_LINKS_EXTRACTION_FAILED, e);
             }
         }
+
+    private String convertWinCharset(byte[] bytes) {
+        String encoded = new String(bytes);
+        log.info("Encoded result {}", encoded);
+        String result = null;
+        try {
+            result = new String(bytes, "windows-1252");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        log.info("Decoded result: {}", result);
+        return result;
+    }
 
     private void persistExtractedCaseHistory(List<CaseHistory> caseHistory) {
         for (CaseHistory ch : caseHistory) {
