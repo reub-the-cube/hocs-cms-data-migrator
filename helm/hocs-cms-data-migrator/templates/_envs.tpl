@@ -110,4 +110,6 @@
   value: 'enabled'
 - name: COMPLAINT_ID
   value: '131000000515'
+- name: COMPLAINT_EXTRACT_TYPE
+  value: 'ALL_CASES'
 {{- end -}}

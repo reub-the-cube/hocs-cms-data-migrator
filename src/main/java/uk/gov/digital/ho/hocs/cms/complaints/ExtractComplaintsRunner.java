@@ -20,11 +20,14 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
 
     private final String startDate;
     private final String endDate;
+    private final String complaintExtractionType;
 
     public ExtractComplaintsRunner(@Value("${complaint.start.date}") String startDate,
                                    @Value("${complaint.end.date}") String endDate,
+                                   @Value("${complaint.extraction.type}") String complaintExtractionType,
                                    ApplicationContext applicationContext,
                                    ComplaintsService complaintsService) {
+        this.complaintExtractionType = complaintExtractionType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.applicationContext = applicationContext;
@@ -34,7 +37,7 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("Extract complaints started for dates {} until {}", startDate, endDate);
-        complaintsService.migrateComplaints(startDate, endDate);
+        complaintsService.migrateComplaints(startDate, endDate, complaintExtractionType);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 }

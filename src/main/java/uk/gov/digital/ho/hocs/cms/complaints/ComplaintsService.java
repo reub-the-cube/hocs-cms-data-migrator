@@ -88,10 +88,11 @@ public class ComplaintsService {
         this.documentCreator = documentCreator;
         this.migrationDocument = migrationDocument;
     }
+<<<<<<< HEAD
 
     @Transactional
-    public void migrateComplaints(String startDate, String endDate) {
-        List<BigDecimal> complaintIds = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
+    public void migrateComplaints(String startDate, String endDate, ComplaintExtractionType extractionType) {
+        List<BigDecimal> complaintIds = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate, extractionType);
         UUID extractionId = UUID.randomUUID();
         log.info("Extraction ID {}", extractionId);
         Progress progress = new Progress();
