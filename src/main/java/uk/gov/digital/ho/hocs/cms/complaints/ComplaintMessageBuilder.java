@@ -2,6 +2,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.digital.ho.hocs.cms.casedata.CaseTypeMapping;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
@@ -54,7 +55,11 @@ public class ComplaintMessageBuilder {
         caseDetails.setCaseStatus(caseData.getStatus());
         caseDetails.setCreationDate(caseData.getReceiveDate());
         caseDetails.setCaseStatusDate(caseData.getReceiveDate());
-        caseDetails.setCaseType(caseData.getOwningCsu());
+        caseDetails.setCaseType(CaseTypeMapping.getCaseType(caseData.getOwningCsu()));
+        if (caseDetails.getCaseType() == null) {
+            throw new ApplicationExceptions.SendMigrationMessageException("NULL or UNKNOWN Case Types are ignored",
+                    LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
+        }
         return caseDetails;
     }
 

@@ -6,8 +6,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
-import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 
@@ -57,16 +55,11 @@ public class CaseDataExtractor {
             cd.setLocation(rs.getString("location"));
             cd.setNroCombo(rs.getString("nrocombo"));
             cd.setClosedDt(convertDateToString(rs.getDate("CLOSED_DT")));
-            cd.setOwningCsu(CaseTypeMapping.getCaseType(rs.getString("owningcsu")));
+            cd.setOwningCsu(rs.getString("owningcsu"));
             cd.setBusinessArea(rs.getString("businessarea"));
             cd.setStatus(rs.getString("status"));
             return cd;
         },  caseId);
-
-        if (caseData.getOwningCsu() == null) {
-            throw new ApplicationExceptions.ExtractCaseDataException("NULL or UNKNOWN Case Types are ignored",
-                    LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
-        }
 
         // lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open
         try {
