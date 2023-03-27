@@ -220,7 +220,7 @@ public class DocumentCreator {
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Offer Accepted: %s", compensation.getOfferAccepted()));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Date of Payment", compensation.getDateOfPayment()));
+            contentStream.showText(String.format("Date of Payment: %s", compensation.getDateOfPayment()));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Compensation Amount: %s", compensation.getCompensationAmmount()));
             contentStream.newLineAtOffset(0, -leading);
