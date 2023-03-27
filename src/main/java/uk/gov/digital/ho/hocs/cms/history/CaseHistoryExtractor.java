@@ -14,6 +14,12 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import javax.sql.DataSource;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.sql.Date;
 import java.util.List;
 
@@ -63,12 +69,17 @@ public class CaseHistoryExtractor {
 
     private String convertWinCharset(byte[] bytes) {
         if (bytes == null) bytes = "".getBytes();
+        Charset charset = Charset.forName("ISO-8859-1");
+        CharsetDecoder decoder = charset.newDecoder();
+        //CharsetEncoder encoder = charset.newEncoder();
         String encoded = new String(bytes);
         log.info("Encoded result {}", encoded);
         String result = null;
         try {
-            result = new String(bytes, "windows-1252");
-        } catch (UnsupportedEncodingException e) {
+            ByteBuffer bbuf = ByteBuffer.wrap(bytes);
+            CharBuffer cbuf = decoder.decode(bbuf);
+            result = cbuf.toString();
+        } catch (CharacterCodingException e) {
             throw new RuntimeException(e);
         }
         log.info("Decoded result: {}", result);
