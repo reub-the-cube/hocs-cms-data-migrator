@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.complaints;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseDataExtractor;
 import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
@@ -44,6 +45,7 @@ public class ComplaintsService {
     private final MessageService messageService;
     private final ComplaintsMessageCaseData decsCaseData;
     private final DocumentCreator documentCreator;
+    private final String migrationDocument;
 
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
@@ -60,7 +62,8 @@ public class ComplaintsService {
                              ComplaintsMessageCaseData decsCaseData,
                              ComplaintMessageBuilder complaintMessageBuilder,
                              MessageService messageService,
-                             DocumentCreator documentCreator) {
+                             DocumentCreator documentCreator,
+                             @Value("${migration.document}") String migrationDocument) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
@@ -77,6 +80,7 @@ public class ComplaintsService {
         this.complaintMessageBuilder = complaintMessageBuilder;
         this.messageService = messageService;
         this.documentCreator = documentCreator;
+        this.migrationDocument = migrationDocument;
     }
     public void migrateComplaints(String startDate, String endDate) {
         List<BigDecimal> complaints = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate);
@@ -188,17 +192,19 @@ public class ComplaintsService {
 
 
         // create cms migration document
-        try {
-            CaseAttachment caseAttachment = documentCreator.createDocument(complaintId);
-            caseDetails.addCaseAttachment(caseAttachment);
-            ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", true);
-            complaintsRepository.save(migrationDocumentStage);
-        } catch (ApplicationExceptions.CreateMigrationDocumentException e) {
-            ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", false);
-            migrationDocumentStage.setError(e.getEvent().toString());
-            migrationDocumentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(migrationDocumentStage);
-            log.error("Failed creating Migration PDF for complaint ID {}", complaintId);
+        if (migrationDocument.equalsIgnoreCase("enabled")) {
+            try {
+                CaseAttachment caseAttachment = documentCreator.createDocument(complaintId);
+                caseDetails.addCaseAttachment(caseAttachment);
+                ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", true);
+                complaintsRepository.save(migrationDocumentStage);
+            } catch (ApplicationExceptions.CreateMigrationDocumentException e) {
+                ComplaintExtractRecord migrationDocumentStage = getComplaintExtractRecord(complaintId, "Migration document", false);
+                migrationDocumentStage.setError(e.getEvent().toString());
+                migrationDocumentStage.setErrorMessage(e.getMessage());
+                complaintsRepository.save(migrationDocumentStage);
+                log.error("Failed creating Migration PDF for complaint ID {}", complaintId);
+            }
         }
 
         // populate message
