@@ -62,6 +62,7 @@ public class CaseHistoryExtractor {
         }
 
     private String convertWinCharset(byte[] bytes) {
+        if (bytes == null) bytes = "".getBytes();
         String encoded = new String(bytes);
         log.info("Encoded result {}", encoded);
         String result = null;
