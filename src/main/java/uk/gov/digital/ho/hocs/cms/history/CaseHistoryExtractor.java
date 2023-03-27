@@ -1,5 +1,6 @@
 package uk.gov.digital.ho.hocs.cms.history;
 
+import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
@@ -69,11 +70,11 @@ public class CaseHistoryExtractor {
 
     private String convertWinCharset(byte[] bytes) {
         if (bytes == null) bytes = "".getBytes();
-        Charset charset = Charset.forName("ISO-8859-1");
+        Charset charset = Charset.forName("windows-1252");
         CharsetDecoder decoder = charset.newDecoder();
         //CharsetEncoder encoder = charset.newEncoder();
         String encoded = new String(bytes);
-        log.info("Encoded result {}", encoded);
+        log.info("Encoded result: {}", encoded);
         String result = null;
         try {
             ByteBuffer bbuf = ByteBuffer.wrap(bytes);
@@ -82,7 +83,9 @@ public class CaseHistoryExtractor {
         } catch (CharacterCodingException e) {
             throw new RuntimeException(e);
         }
+        result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
         log.info("Decoded result: {}", result);
+
         return result;
     }
 
