@@ -8,8 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
-import java.sql.SQLException;
-
 @Configuration
 @Slf4j
 @ConditionalOnProperty(name = "cms.extract.complaints", havingValue = "enabled", matchIfMissing = false)
@@ -20,14 +18,11 @@ public class ExtractComplaintsRunner implements CommandLineRunner {
 
     private final String startDate;
     private final String endDate;
-    private final String complaintExtractionType;
 
     public ExtractComplaintsRunner(@Value("${complaint.start.date}") String startDate,
                                    @Value("${complaint.end.date}") String endDate,
-                                   @Value("${complaint.extraction.type}") String complaintExtractionType,
                                    ApplicationContext applicationContext,
                                    ComplaintsService complaintsService) {
-        this.complaintExtractionType = complaintExtractionType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.applicationContext = applicationContext;
