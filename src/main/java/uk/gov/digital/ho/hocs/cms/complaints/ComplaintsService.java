@@ -88,7 +88,6 @@ public class ComplaintsService {
         this.documentCreator = documentCreator;
         this.migrationDocument = migrationDocument;
     }
-<<<<<<< HEAD
 
     @Transactional
     public void migrateComplaints(String startDate, String endDate, ComplaintExtractionType extractionType) {

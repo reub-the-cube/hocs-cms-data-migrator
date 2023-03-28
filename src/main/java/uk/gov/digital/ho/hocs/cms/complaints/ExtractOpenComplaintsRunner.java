@@ -30,9 +30,9 @@ public class ExtractOpenComplaintsRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         log.info("Extract open complaints started for dates {} until {}", startDate, endDate);
-        complaintsService.migrateComplaints(startDate, endDate, ComplaintExtractionType.OPEN_CASES_ONLY.name());
+        complaintsService.migrateComplaints(startDate, endDate, ComplaintExtractionType.OPEN_CASES_ONLY);
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 }

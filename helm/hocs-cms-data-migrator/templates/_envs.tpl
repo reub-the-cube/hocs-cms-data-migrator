@@ -110,6 +110,8 @@
   value: 'enabled'
 - name: COMPLAINT_ID
   value: '131000000515'
-- name: COMPLAINT_EXTRACT_TYPE
-  value: 'ALL_CASES'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'disabled'
 {{- end -}}

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.complaints", havingValue = "enabled", matchIfMissing = false)
+@ConditionalOnProperty(name = "cms.extract.closed.complaints", havingValue = "enabled", matchIfMissing = false)
 public class ExtractClosedComplaintsRunner  implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
@@ -28,10 +28,11 @@ public class ExtractClosedComplaintsRunner  implements CommandLineRunner {
         this.applicationContext = applicationContext;
         this.complaintsService = complaintsService;
     }
+
     @Override
-    public void run(String... args) throws Exception {
-        log.info("Extract open complaints started for dates {} until {}", startDate, endDate);
-        complaintsService.migrateComplaints(startDate, endDate, ComplaintExtractionType.CLOSED_CASES_ONLY.name());;
+    public void run(String... args) {
+        log.info("Extract closed complaints started for dates {} until {}", startDate, endDate);
+        complaintsService.migrateComplaints(startDate, endDate, ComplaintExtractionType.CLOSED_CASES_ONLY);;
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
 }
