@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CASE_HISTORY_EXTRACTION_FAILED;
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CASE_LINKS_EXTRACTION_FAILED;
 
 @Component
@@ -54,9 +55,8 @@ public class CaseHistoryExtractor {
         }, caseId, caseId);
             persistExtractedCaseHistory(caseHistory);
     } catch (DataAccessException e) {
-            log.error("Case links extraction failed for case ID: {}", caseId);
-            throw new ApplicationExceptions.ExtractCaseHistoryException(
-                    String.format("Failed to extract case links for case: %s", caseId), CASE_LINKS_EXTRACTION_FAILED, e);
+            log.error("Case history extraction failed for case ID: {}", caseId);
+            throw new ApplicationExceptions.ExtractCaseHistoryException(e.getMessage(), CASE_HISTORY_EXTRACTION_FAILED, e);
             }
         }
 

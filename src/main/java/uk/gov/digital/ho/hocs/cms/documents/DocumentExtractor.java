@@ -70,8 +70,7 @@ public class DocumentExtractor {
                 }
             } catch (ApplicationExceptions.ExtractDocumentException e) {
                 log.error("Document extract failed for case ID :" + caseId + " " + e.getEvent());
-                throw new ApplicationExceptions.ExtractCaseException(
-                        String.format("Failed to extract document for case: " + caseId), DOCUMENT_RETRIEVAL_FAILED);
+                throw new ApplicationExceptions.ExtractCaseException(e.getMessage(), DOCUMENT_RETRIEVAL_FAILED);
             }
         }
         return attachments;

@@ -57,7 +57,7 @@ public class CaseLinkExtractor {
     } catch (DataAccessException e) {
             log.error("Case links extraction failed for case ID: {}", caseId);
             throw new ApplicationExceptions.ExtractCaseLinksException(
-                    String.format("Failed to extract case links for case: %s", caseId), CASE_LINKS_EXTRACTION_FAILED, e);
+                    String.format(e.getMessage()), CASE_LINKS_EXTRACTION_FAILED, e);
             }
         }
     }

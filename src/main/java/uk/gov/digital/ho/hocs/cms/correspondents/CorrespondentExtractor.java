@@ -71,7 +71,7 @@ public class CorrespondentExtractor {
             } catch (DataAccessException e) {
                 log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondents.getComplainantId(), caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(
-                        String.format("Failed extracting correspondent details for complainantID %s and case ID %s", correspondents.getComplainantId(), caseId),  CORRESPONDENT_EXTRACTION_FAILED, e);
+                        e.getMessage(), CORRESPONDENT_EXTRACTION_FAILED, e);
             }
         } else {
             // representative is primary correspondent
@@ -92,8 +92,7 @@ public class CorrespondentExtractor {
                 individualRepository.save(otherCorrespondent);
             } catch (DataAccessException e) {
                 log.error("Failed extracting correspondent details for complainant ID {} representative ID {} and case ID", correspondents.getComplainantId(), correspondents.getRepresentativeId(), caseId);
-                throw new ApplicationExceptions.ExtractCorrespondentException(
-                        String.format("Failed extracting correspondent details for complainantID %s, representativeID %s and case ID %s", correspondents.getComplainantId(), correspondents.getRepresentativeId(), caseId),  CORRESPONDENT_EXTRACTION_FAILED, e);
+                throw new ApplicationExceptions.ExtractCorrespondentException(e.getMessage(),  CORRESPONDENT_EXTRACTION_FAILED, e);
             }
         }
     }
