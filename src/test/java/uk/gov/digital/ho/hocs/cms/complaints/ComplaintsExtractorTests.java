@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -10,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import static org.junit.Assert.assertEquals;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,7 +45,6 @@ public class ComplaintsExtractorTests {
 
         resultQuery = complaintsExtractor.getExtractionQuery(ComplaintExtractionType.OPEN_CASES_ONLY, mapParameters);
         assertEquals(SINGLE_EXTRACTION_TYPE_COMPLAINT_ID_BY_DATE_RANGE, resultQuery);
-
     }
 
     @Test
