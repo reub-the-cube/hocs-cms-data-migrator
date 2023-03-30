@@ -27,6 +27,7 @@ public class ComplaintsExtractor {
         mapParameters.addValue("startDate", start);
         mapParameters.addValue("endDate", end);
         List<Map<String, Object>> rows = namedParameterJdbcTemplate.queryForList(COMPLAINT_ID_BY_DATE_RANGE, mapParameters);
+        log.info("{} complaint cases selected between {} and {}", rows.size(), start, end);
         List<BigDecimal> cases = new ArrayList<>();
         for (Map row : rows) {
                 Object result = row.get("caseId");
