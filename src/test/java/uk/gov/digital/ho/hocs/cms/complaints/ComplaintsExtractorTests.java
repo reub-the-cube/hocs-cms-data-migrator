@@ -22,7 +22,12 @@ public class ComplaintsExtractorTests {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final String SINGLE_EXTRACTION_TYPE_COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate AND status = :status";
-    private final String ALL_COMPLAINTS_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
+    private final String ALL_COMPLAINTS_ID_BY_DATE_RANGE = """
+            SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00
+            WHERE CREATED_DT BETWEEN :startDate AND :endDate
+            AND casedeleteddate IS NULL
+            AND reason != 'Treat Official'
+            """;
 
 
     @BeforeEach

@@ -15,8 +15,14 @@ import java.util.Map;
 @Slf4j
 public class ComplaintsExtractor {
 
-    private final String COMPLAINT_ID_BY_DATE_RANGE = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate";
     private final String COMPLAINT_ID_BY_DATE_RANGE_BY_STATUS = "SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00 WHERE CREATED_DT BETWEEN :startDate AND :endDate AND status = :status";
+
+    private final String COMPLAINT_ID_BY_DATE_RANGE = """
+            SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00
+            WHERE CREATED_DT BETWEEN :startDate AND :endDate
+            AND casedeleteddate IS NULL
+            AND reason != 'Treat Official'
+            """;
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
