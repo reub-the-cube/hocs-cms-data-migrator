@@ -13,18 +13,12 @@ import java.nio.charset.CharsetDecoder;
 @Slf4j
 public class CharacterDecoder {
 
-    public String decodeWindows1252Charset(byte[] bytes) {
+    public String decodeWindows1252Charset(byte[] bytes) throws CharacterCodingException {
         if (bytes == null) bytes = "".getBytes();
         Charset charset = Charset.forName("windows-1252");
         CharsetDecoder decoder = charset.newDecoder();
-        String result = null;
-        try {
-            ByteBuffer bbuf = ByteBuffer.wrap(bytes);
-            CharBuffer cbuf = decoder.decode(bbuf);
-            result = cbuf.toString();
-        } catch (CharacterCodingException e) {
-            throw new RuntimeException(e);
-        }
-        return result;
+        ByteBuffer bbuf = ByteBuffer.wrap(bytes);
+        CharBuffer cbuf = decoder.decode(bbuf);
+        return cbuf.toString();
     }
 }
