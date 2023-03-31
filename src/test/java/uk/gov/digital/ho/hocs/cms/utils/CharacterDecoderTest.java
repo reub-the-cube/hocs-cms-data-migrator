@@ -51,7 +51,7 @@ class CharacterDecoderTest {
     void testDecodeSpecialWindowsChar() throws UnsupportedEncodingException {
         byte[] encodedChars = new byte[] {(byte) 0xfb, (byte) 0xfc, (byte) 0xe6, (byte) 0xc6, (byte) 0xb6};
         String noConversion = encodedChars.toString();
-        String conversion = (new String(encodedChars,0,encodedChars.length,"Windows-1252" ));
+        String conversion = (new String(encodedChars,0,encodedChars.length,"Windows-1252"));
         byte[] encodedBytes = new byte[byteBuffer.remaining()];
         byteBuffer.get(encodedBytes);
         String convertedChars = characterDecoder.decodeWindows1252Charset(encodedChars);
@@ -65,7 +65,5 @@ class CharacterDecoderTest {
     void testDecodeStandardAsciiChars() {
         String convertedChars = characterDecoder.decodeWindows1252Charset(encodedBytes);
         assertEquals("a string\n", convertedChars);
-
     }
-
 }
