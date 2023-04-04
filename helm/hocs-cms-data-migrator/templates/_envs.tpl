@@ -106,9 +106,9 @@
   value: '2022-01-01'
 - name: COMPLAINT_END_DATE
   value: '2023-12-31'
-- name: CMS_EXTRACT_SINGLE_COMPLAINT
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
   value: 'enabled'
-- name: COMPLAINT_ID
+- name: COMPLAINT_IDS
   value: '131000000515'
 - name: CMS_EXTRACT_OPEN_COMPLAINTS
   value: 'disabled'
