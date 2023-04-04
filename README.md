@@ -32,17 +32,101 @@ docker-compose down
 
 ## Using the Command Runners
 
-These will be run using Helm and Kubernetes jobs. These instructions will be updated.
+These will be run using Helm and Kubernetes jobs. These instructions will be updated further.
+Each runner / extractor will need an environment variable set to `enabled` along with the example usages below
+Expected use case for deployment would have one extractor enabled at a time.
 
-### Extract single CMS complaint
+### Extract multiple specfic CMS complaints
 
-CMS_EXTRACT_SINGLE_COMPLAINT=enabled;COMPLAINT_ID=2000000;
+```yaml
+- name: CMS_EXTRACT_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+  value: 'enabled'
+- name: COMPLAINT_START_DATE
+  value: ''                                 # Not relevant for this extractor
+- name: COMPLAINT_END_DATE
+  value: ''                                 # Not relevant for this extractor
+- name: COMPLAINT_IDS
+  value: '{TO BE SET}'                      # Pipe delimited list of CMS Case IDs e.g. 2000001|2000002|2000003
+- name: SEND_MIGRATION_MESSAGE              
+  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+- name: MIGRATION_DOCUMENT                  
+  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+```
 
 ### Extract complaints by date range
 
-CMS_EXTRACT_COMPLAINTS=false;COMPLAINT_START_DATE=2022-01-01;COMPLAINT_END_DATE=2022-12-31
+```yaml
+- name: CMS_EXTRACT_COMPLAINTS
+  value: 'enabled'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+  value: 'disabled'
+- name: COMPLAINT_START_DATE
+  value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
+- name: COMPLAINT_END_DATE
+  value: '{TO BE SET}'                      # Inclusive end date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-12-31
+- name: COMPLAINT_IDS
+  value: ''                                 # Not relevant for this runner
+- name: SEND_MIGRATION_MESSAGE              
+  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+- name: MIGRATION_DOCUMENT                  
+  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+```
 
+### Extract closed complaints by date range
 
+```yaml
+- name: CMS_EXTRACT_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'enabled'
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+  value: 'disabled'
+- name: COMPLAINT_START_DATE
+  value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
+- name: COMPLAINT_END_DATE
+  value: '{TO BE SET}'                      # Inclusive end date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-12-31
+- name: COMPLAINT_IDS
+  value: ''                                 # Not relevant for this runner
+- name: SEND_MIGRATION_MESSAGE              
+  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+- name: MIGRATION_DOCUMENT                  
+  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+```
+
+### Extract open complaints by date range
+
+```yaml
+- name: CMS_EXTRACT_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'enabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+  value: 'disabled'
+- name: COMPLAINT_START_DATE
+  value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
+- name: COMPLAINT_END_DATE
+  value: '{TO BE SET}'                      # Inclusive end date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-12-31
+- name: COMPLAINT_IDS
+  value: ''                                 # Not relevant for this runner
+- name: SEND_MIGRATION_MESSAGE              
+  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+- name: MIGRATION_DOCUMENT                  
+  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+```
 
 
 ### Versioning
