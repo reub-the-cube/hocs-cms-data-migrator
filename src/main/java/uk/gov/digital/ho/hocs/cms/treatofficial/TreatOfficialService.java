@@ -21,7 +21,6 @@ public class TreatOfficialService {
     private final ProgressRepository progressRepository;
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
     private final ComplaintsRepository complaintsRepository;
-
     private final ExtractResult extractResult;
 
 
