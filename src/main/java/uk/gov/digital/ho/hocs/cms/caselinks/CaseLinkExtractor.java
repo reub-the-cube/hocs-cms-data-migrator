@@ -39,6 +39,7 @@ public class CaseLinkExtractor {
         this.caseLinksRepository = caseLinksRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
+
     @Transactional
     public void getCaseLinks(BigDecimal caseId) {
         caseLinksRepository.deleteAllBySourceCaseId(caseId);

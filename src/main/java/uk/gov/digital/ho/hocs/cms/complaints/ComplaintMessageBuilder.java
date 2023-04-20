@@ -3,20 +3,22 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseTypeMapping;
-import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -24,16 +26,35 @@ public class ComplaintMessageBuilder {
 
     private final IndividualRepository individualRepository;
     private final CaseDataRepository caseDataRepository;
+    private final CasesRepository casesRepository;
 
     public ComplaintMessageBuilder(IndividualRepository individualRepository,
-                                   CaseDataRepository caseDataRepository) {
+                                   CaseDataRepository caseDataRepository,
+                                   CasesRepository casesRepository) {
         this.individualRepository = individualRepository;
         this.caseDataRepository = caseDataRepository;
+        this.casesRepository = casesRepository;
     }
 
     public CaseDetails buildMessage(BigDecimal caseId) {
-        Individual individual = individualRepository.findIndividualComplainantByCaseId(caseId, CorrespondentType.COMPLAINANT.toString());
-        Individual representative = individualRepository.findIndividualComplainantByCaseId(caseId, CorrespondentType.THIRD_PARTY_REP.toString());
+        ComplaintCase complaintCase = casesRepository.findByCaseId(caseId);
+        Optional<Individual> individualOpt = individualRepository.findById(complaintCase.getComplainantId());
+        Optional<Individual> representativeOpt = individualRepository.findById(complaintCase.getRepresentativeId());
+
+        Individual individual = null;
+        Individual representative = null;
+        if (individualOpt.isPresent()) {
+            individual = individualOpt.get();
+        } else {
+            throw new ApplicationExceptions.SendMigrationMessageException(
+                    String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
+                    LogEvent.MIGRATION_MESSAGE_FAILED);
+        }
+
+        if (representativeOpt.isPresent()) {
+            representative = representativeOpt.get();
+        }
+
 
         // populate correspondent part of message
         CaseDetails caseDetails = new CaseDetails();

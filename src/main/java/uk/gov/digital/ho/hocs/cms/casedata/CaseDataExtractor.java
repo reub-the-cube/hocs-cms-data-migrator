@@ -39,6 +39,7 @@ public class CaseDataExtractor {
         this.caseDataRepository = caseDataRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
+
     @Transactional
     public void getCaseData(BigDecimal caseId) {
 

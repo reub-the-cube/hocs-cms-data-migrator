@@ -30,6 +30,7 @@ public class RiskAssessmentExtractor {
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
+
     @Transactional
     public void getRiskAssessment(BigDecimal caseId) {
         riskAssessmentRepository.deleteAllByCaseId(caseId);

@@ -2,6 +2,7 @@ package uk.gov.digital.ho.hocs.cms.documents;
 
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.datatable.DataTable;
+import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -11,7 +12,6 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.client.DocumentS3Client;
-import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
@@ -20,6 +20,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.CaseHistory;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.Response;
@@ -27,6 +28,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CompensationRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
@@ -34,7 +36,6 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class DocumentCreator {
     private final ResponseRepository responseRepository;
     private final CaseLinksRepository caseLinksRepository;
     private final CaseHistoryRepository caseHistoryRepository;
+    private final CasesRepository casesRepository;
     private final DocumentS3Client documentS3Client;
 
     private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA.pdf";
@@ -67,6 +69,7 @@ public class DocumentCreator {
                            ResponseRepository responseRepository,
                            CaseLinksRepository caseLinksRepository,
                            CaseHistoryRepository caseHistoryRepository,
+                           CasesRepository casesRepository,
                            DocumentS3Client documentS3Client) {
         this.individualRepository = individualRepository;
         this.caseDataRepository = caseDataRepository;
@@ -76,13 +79,15 @@ public class DocumentCreator {
         this.responseRepository = responseRepository;
         this.caseLinksRepository = caseLinksRepository;
         this.caseHistoryRepository = caseHistoryRepository;
+        this.casesRepository = casesRepository;
         this.documentS3Client = documentS3Client;
     }
 
     private final float fontSize = 12;
     private final float margin = 72;
     private final float leading = 1.5f * fontSize;
-    private final PDFont font = PDType1Font.HELVETICA;
+    private final PDFont normalFont = PDType1Font.COURIER;
+    private final PDFont boldFont = PDType1Font.COURIER_BOLD;
 
     @Transactional
     public CaseAttachment createDocument(BigDecimal caseId) {
@@ -90,28 +95,30 @@ public class DocumentCreator {
             PDPage page = new PDPage();
             document.addPage(page);
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.setLeading(leading);
 
-            List<BigDecimal> individualIds = individualRepository.findIndividualsByCaseId(caseId);
+            ComplaintCase complaintCase = casesRepository.findByCaseId(caseId);
+            Optional<Individual> complainantOptional = individualRepository.findById(complaintCase.getComplainantId());
+            Optional<Individual> representativeOptional = individualRepository.findById(complaintCase.getRepresentativeId());
             Individual complainant = null;
-            Individual representative = null;
-            for (BigDecimal partyId : individualIds) {
-                Optional<Individual> individual = individualRepository.findById(partyId);
-                if (individual.isPresent()) {
-                    Individual ind = individual.get();
-                    if (ind.getPrimary() && ind.getType().equalsIgnoreCase(CorrespondentType.THIRD_PARTY_REP.toString())) {
-                        representative = ind;
-                    } else if (ind.getType().equalsIgnoreCase(CorrespondentType.COMPLAINANT.toString())) {
-                        complainant = ind;
-                    }
-                }
+            if (complainantOptional.isPresent()) {
+                complainant = complainantOptional.get();
+            } else {
+                throw new ApplicationExceptions.CreateMigrationDocumentException(
+                        String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
+                        LogEvent.MIGRATION_DOCUMENT_FAILED);
             }
+            Individual representative = null;
+            if (representativeOptional.isPresent()) {
+                representative = representativeOptional.get();
+            }
+
             contentStream.beginText();
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.newLineAtOffset(100, 700);
             contentStream.showText("Personal Details");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             textForCorrespondent(contentStream, complainant);
             contentStream.endText();
             contentStream.close();
@@ -122,9 +129,9 @@ public class DocumentCreator {
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
             BaseTable complainantRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("References");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
             List<List> data = getReferences(complainant);
             DataTable t = new DataTable(complainantRefsTable, page);
@@ -133,16 +140,16 @@ public class DocumentCreator {
             contentStream.endText();
             contentStream.close();
 
-            if (representative != null) {
+            if (representative != null && representative.getPrimary()) {
                 page = new PDPage();
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
                 contentStream.beginText();
                 contentStream.newLineAtOffset(100, 700);
                 contentStream.setLeading(leading);
-                contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+                contentStream.setFont(boldFont, fontSize);
                 contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
-                contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+                contentStream.setFont(normalFont, fontSize);
                 textForCorrespondent(contentStream, representative);
                 contentStream.endText();
                 contentStream.close();
@@ -153,9 +160,9 @@ public class DocumentCreator {
                 contentStream.beginText();
                 contentStream.newLineAtOffset(100, 700);
                 BaseTable representativeRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
-                contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+                contentStream.setFont(boldFont, fontSize);
                 contentStream.showText("References");
-                contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+                contentStream.setFont(normalFont, fontSize);
                 contentStream.newLineAtOffset(0, -leading);
                 data = getReferences(complainant);
                 DataTable representativeDataTable = new DataTable(representativeRefsTable, page);
@@ -173,35 +180,35 @@ public class DocumentCreator {
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
             contentStream.setLeading(leading);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case Data");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Reference: %s", casedata.getCaseReference()));
+            contentStream.showText(String.format("Reference: %s", removeInvalidChars(casedata.getCaseReference())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Date Received: %s", casedata.getReceiveDate()));
+            contentStream.showText(String.format("Date Received: %s", removeInvalidChars(casedata.getReceiveDate())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Due Date: %s", casedata.getSlaDate()));
+            contentStream.showText(String.format("Due Date: %s", removeInvalidChars(casedata.getSlaDate())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Initial Type: %s", casedata.getInitialType()));
+            contentStream.showText(String.format("Initial Type: %s", removeInvalidChars(casedata.getInitialType())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Current Type: %s", casedata.getCurrentType()));
+            contentStream.showText(String.format("Current Type: %s", removeInvalidChars(casedata.getCurrentType())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Description: %s", casedata.getDescription()));
+            contentStream.showText(String.format("Description: %s", removeInvalidChars(casedata.getDescription())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Current Work Queue: %s", casedata.getQueueName()));
+            contentStream.showText(String.format("Current Work Queue: %s", removeInvalidChars(casedata.getQueueName())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Location: %s", casedata.getLocation()));
+            contentStream.showText(String.format("Location: %s", removeInvalidChars(casedata.getLocation())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("NRO: %s", casedata.getNroCombo()));
+            contentStream.showText(String.format("NRO: %s", removeInvalidChars(casedata.getNroCombo())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Closed Date: %s", casedata.getClosedDt()));
+            contentStream.showText(String.format("Closed Date: %s", removeInvalidChars(casedata.getClosedDt())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Owning CSU: %s", casedata.getOwningCsu()));
+            contentStream.showText(String.format("Owning CSU: %s", removeInvalidChars(casedata.getOwningCsu())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Business Area: %s", casedata.getBusinessArea()));
+            contentStream.showText(String.format("Business Area: %s", removeInvalidChars(casedata.getBusinessArea())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Status: %s", casedata.getStatus()));
+            contentStream.showText(String.format("Status: %s", removeInvalidChars(casedata.getStatus())));
             contentStream.endText();
             contentStream.close();
 
@@ -212,9 +219,9 @@ public class DocumentCreator {
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Compensation");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Date of Compensation Claim: %s", compensation.getDateOfCompensationClaim()));
             contentStream.newLineAtOffset(0, -leading);
@@ -238,9 +245,9 @@ public class DocumentCreator {
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.showText("Complaint category breakdown");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
 
             BaseTable categoryTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
                     true);
@@ -250,10 +257,11 @@ public class DocumentCreator {
             List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
             for (Categories category : categories) {
                 String amount = "";
-                if (category.getAmount() != null) amount = category.getAmount().toString();
+                if (category.getAmount() != null) amount = removeInvalidChars(category.getAmount().toString());
                 String substantiated = "";
-                if (category.getSubstantiated() != null) substantiated = category.getSubstantiated();
-                categoryData.add(new ArrayList(Arrays.asList(category.getCategory(), category.getSelected(), substantiated, amount)));
+                if (category.getSubstantiated() != null) substantiated = removeInvalidChars(category.getSubstantiated());
+                categoryData.add(new ArrayList(Arrays.asList(removeInvalidChars(category.getCategory()),
+                        removeInvalidChars(category.getSelected()), substantiated, amount)));
             }
 
             DataTable categoryDataTable = new DataTable(categoryTable, page);
@@ -270,9 +278,9 @@ public class DocumentCreator {
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Risk Assessment");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Priority: %s", riskAssessment.getPriority()));
             contentStream.newLineAtOffset(0, -leading);
@@ -280,9 +288,9 @@ public class DocumentCreator {
 
             // response
             contentStream.newLineAtOffset(0, -leading * 2);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Response");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("QA: %s", response.getResponse()));
             contentStream.endText();
@@ -296,9 +304,9 @@ public class DocumentCreator {
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case Links");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             BaseTable caseLinksTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
                     true);
 
@@ -306,7 +314,9 @@ public class DocumentCreator {
             caseLinksData.add(new ArrayList<>(Arrays.asList("Source case", "Link type", "Target case")));
 
             for (CaseLinks caseLink : caseLinks) {
-                caseLinksData.add(new ArrayList(Arrays.asList(caseLink.getSourceCaseId().toString(),caseLink.getDescription(), caseLink.getTargetCaseId().toString())));
+                caseLinksData.add(new ArrayList(Arrays.asList(removeInvalidChars(caseLink.getSourceCaseId().toString()),
+                        removeInvalidChars(caseLink.getDescription()),
+                        removeInvalidChars(caseLink.getTargetCaseId().toString()))));
             }
             DataTable caseLinksDataTable = new DataTable(caseLinksTable, page);
             caseLinksDataTable.addListToTable(caseLinksData, DataTable.HASHEADER);
@@ -321,9 +331,9 @@ public class DocumentCreator {
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case Histoy");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
 
             BaseTable caseHistoryTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
                     true);
@@ -334,9 +344,9 @@ public class DocumentCreator {
                 if (caseHistoryEvent.getType() == null) caseHistoryEvent.setType("");
                 if (caseHistoryEvent.getDescription() == null) caseHistoryEvent.setDescription("");
                 if (caseHistoryEvent.getCreatedBy() == null) caseHistoryEvent.setCreatedBy("");
-                caseHistoryData.add(new ArrayList(Arrays.asList(caseHistoryEvent.getType(),
-                        caseHistoryEvent.getDescription(),
-                        caseHistoryEvent.getCreatedBy(),
+                caseHistoryData.add(new ArrayList(Arrays.asList(removeInvalidChars(caseHistoryEvent.getType()),
+                        removeInvalidChars(caseHistoryEvent.getDescription()),
+                        removeInvalidChars(caseHistoryEvent.getCreatedBy()),
                         caseHistoryEvent.getCreated().toString())));
             }
             DataTable caseHistoryDataTable = new DataTable(caseHistoryTable, page);
@@ -368,7 +378,8 @@ public class DocumentCreator {
         data.add(new ArrayList<>(Arrays.asList("Reference type", "Reference")));
         List<Reference> references = individual.getReferences();
         for (Reference reference : references) {
-            data.add(new ArrayList(Arrays.asList(reference.getRefType(), reference.getReference())));
+            data.add(new ArrayList(Arrays.asList(removeInvalidChars(reference.getRefType()),
+                    removeInvalidChars(reference.getReference()))));
         }
         return data;
     }
@@ -377,38 +388,50 @@ public class DocumentCreator {
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText((String.format("Complainant: %s", complainant.getPartyId())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Forename: %s", complainant.getForename()));
+            contentStream.showText(String.format("Forename: %s", removeInvalidChars(complainant.getForename())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Surname: %s", complainant.getSurname()));
+            contentStream.showText(String.format("Surname: %s", removeInvalidChars(complainant.getSurname())));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Date of birth: %s", complainant.getDateOfBirth()));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Nationality: %s", complainant.getNationality()));
+            contentStream.showText(String.format("Nationality: %s", removeInvalidChars(complainant.getNationality())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Telephone: %s", complainant.getTelephone()));
+            contentStream.showText(String.format("Telephone: %s", removeInvalidChars(complainant.getTelephone())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Email: %s", complainant.getEmail()));
+            contentStream.showText(String.format("Email: %s", removeInvalidChars(complainant.getEmail())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, fontSize);
+            contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Address");
-            contentStream.setFont(PDType1Font.HELVETICA, fontSize);
+            contentStream.setFont(normalFont, fontSize);
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("House name/number: %s", complainant.getAddress().getNumber()));
+            contentStream.showText(String.format("House name/number: %s", removeInvalidChars(complainant.getAddress().getNumber())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address line 1: %s", complainant.getAddress().getAddressLine1()));
+            contentStream.showText(String.format("Address line 1: %s", removeInvalidChars(complainant.getAddress().getAddressLine1())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address Line 2: %s", complainant.getAddress().getAddressLine2()));
+            contentStream.showText(String.format("Address Line 2: %s", removeInvalidChars(complainant.getAddress().getAddressLine2())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address Line 3: %s", complainant.getAddress().getAddressLine3()));
+            contentStream.showText(String.format("Address Line 3: %s", removeInvalidChars(complainant.getAddress().getAddressLine3())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address Line 4: %s", complainant.getAddress().getAddressLine4()));
+            contentStream.showText(String.format("Address Line 4: %s", removeInvalidChars(complainant.getAddress().getAddressLine4())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address Line 5: %s", complainant.getAddress().getAddressLine5()));
+            contentStream.showText(String.format("Address Line 5: %s", removeInvalidChars(complainant.getAddress().getAddressLine5())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Address Line 6: %s", complainant.getAddress().getAddressLine6()));
+            contentStream.showText(String.format("Address Line 6: %s", removeInvalidChars(complainant.getAddress().getAddressLine6())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Postcode: %s", complainant.getAddress().getPostcode()));
+            contentStream.showText(String.format("Postcode: %s", removeInvalidChars(complainant.getAddress().getPostcode())));
         }
 
+    private String removeInvalidChars(String s) {
+        String result = "";
+        if (s != null) {
+            result = CharMatcher.ASCII.retainFrom(s);
+            result = CharMatcher.WHITESPACE.trimTrailingFrom(result);
+            result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
+            result = CharMatcher.JAVA_ISO_CONTROL.removeFrom(result);
+            result = result.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", " ");
+            result = result.replace("\"", "\"\"\"\"");
+        }
+        return result;
+    }
 
 }

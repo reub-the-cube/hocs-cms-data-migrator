@@ -5,10 +5,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.Address;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import javax.sql.DataSource;
@@ -34,12 +37,17 @@ public class CorrespondentExtractor {
 
     private final IndividualRepository individualRepository;
 
-    public CorrespondentExtractor(@Qualifier("cms") DataSource dataSource, IndividualRepository individualRepository) {
+    private final CasesRepository casesRepository;
+
+    public CorrespondentExtractor(@Qualifier("cms") DataSource dataSource, IndividualRepository individualRepository,
+                                  CasesRepository casesRepository) {
         this.dataSource = dataSource;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.individualRepository = individualRepository;
+        this.casesRepository = casesRepository;
     }
 
+    @Transactional
     public void getCorrespondentsForCase(BigDecimal caseId) {
 
         Correspondents correspondents = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
@@ -51,6 +59,7 @@ public class CorrespondentExtractor {
 
         Individual primaryCorrespondent;
         Individual otherCorrespondent = null;
+        ComplaintCase complaintCase = new ComplaintCase();
         log.debug("Case ID {} Complainant ID {} Representative ID {}", caseId, correspondents.getComplainantId(),
                        correspondents.getRepresentativeId());
 
@@ -63,13 +72,17 @@ public class CorrespondentExtractor {
             try {
                 primaryCorrespondent = getCorrespondentDetails(correspondents.getComplainantId());
                 primaryCorrespondent.setAddress(getAddress(correspondents.getComplainantId()));
-                primaryCorrespondent.setCaseId(caseId);
                 primaryCorrespondent.setPrimary(true);
                 primaryCorrespondent.setType(CorrespondentType.COMPLAINANT.toString());
+                complaintCase.setCaseId(caseId);
+                complaintCase.setComplainantId(correspondents.getComplainantId());
+                complaintCase.setRepresentativeId(correspondents.getComplainantId());
                 log.debug("Complainant ID {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
                 individualRepository.save(primaryCorrespondent);
+                casesRepository.deleteAllByCaseId(caseId);
+                casesRepository.save(complaintCase);
             } catch (DataAccessException e) {
-                log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondents.getComplainantId(), caseId);
+                log.error("Failed extracting correspondent details for complainant ID {} and case ID {}", correspondents.getComplainantId(), caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(
                         e.getMessage(), CORRESPONDENT_EXTRACTION_FAILED, e);
             }
@@ -78,18 +91,22 @@ public class CorrespondentExtractor {
             try {
                 primaryCorrespondent = getCorrespondentDetails(correspondents.getRepresentativeId());
                 primaryCorrespondent.setAddress(getAddress(correspondents.getRepresentativeId()));
-                primaryCorrespondent.setCaseId(caseId);
                 primaryCorrespondent.setType(CorrespondentType.THIRD_PARTY_REP.toString());
                 primaryCorrespondent.setPrimary(true);
                 otherCorrespondent = getCorrespondentDetails(correspondents.getComplainantId());
                 otherCorrespondent.setAddress(getAddress(correspondents.getComplainantId()));
-                otherCorrespondent.setCaseId(caseId);
                 otherCorrespondent.setType(CorrespondentType.COMPLAINANT.toString());
                 otherCorrespondent.setPrimary(false);
+                complaintCase.setCaseId(caseId);
+                complaintCase.setComplainantId(correspondents.getComplainantId());
+                complaintCase.setRepresentativeId(correspondents.getRepresentativeId());
+
                 log.debug("Representative {} data extracted. Case ID {}", correspondents.getRepresentativeId(), caseId);
                 log.debug("Complainant {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
                 individualRepository.save(primaryCorrespondent);
                 individualRepository.save(otherCorrespondent);
+                casesRepository.deleteAllByCaseId(caseId);
+                casesRepository.save(complaintCase);
             } catch (DataAccessException e) {
                 log.error("Failed extracting correspondent details for complainant ID {} representative ID {} and case ID", correspondents.getComplainantId(), correspondents.getRepresentativeId(), caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(e.getMessage(),  CORRESPONDENT_EXTRACTION_FAILED, e);

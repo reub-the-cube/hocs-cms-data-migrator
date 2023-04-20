@@ -10,33 +10,29 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.math.BigDecimal;
-import java.util.UUID;
+
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "progress")
-public class Progress {
+@Table(name = "cases")
+public class ComplaintCase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private Long id;
 
-    @Column(name = "extraction_id")
-    private UUID extractionId;
+    @Column(name = "case_id")
+    private BigDecimal caseId;
 
-    @Column
-    private long success;
+    @Column(name = "representative_id")
+    private BigDecimal representativeId;
 
-    @Column
-    private long failure;
-
-    @Column
-    private long total;
+    @Column(name = "complainant_id")
+    private BigDecimal complainantId;
 }

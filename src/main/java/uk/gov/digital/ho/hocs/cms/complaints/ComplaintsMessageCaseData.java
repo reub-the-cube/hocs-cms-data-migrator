@@ -7,11 +7,13 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
+import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -32,6 +35,7 @@ public class ComplaintsMessageCaseData {
     private final CaseDataRepository caseDataRepository;
     private final CategoriesRepository categoriesRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
+    private final CasesRepository casesRepository;
     private final CaseDataTypes caseDataTypes;
 
     public ComplaintsMessageCaseData(IndividualRepository individualRepository,
@@ -39,22 +43,34 @@ public class ComplaintsMessageCaseData {
                                      CategoriesRepository categoriesRepository,
                                      RiskAssessmentRepository riskAssessmentRepository,
                                      CaseHistoryRepository caseHistoryRepository,
+                                     CasesRepository casesRepository,
                                      CaseDataTypes caseDataTypes) {
         this.individualRepository = individualRepository;
         this.caseDataRepository = caseDataRepository;
         this.categoriesRepository = categoriesRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.caseHistoryRepository = caseHistoryRepository;
+        this.casesRepository = casesRepository;
         this.caseDataTypes = caseDataTypes;
     }
 
     public List<CaseDataItem> extractCaseData(BigDecimal caseId) {
-        Individual individual = individualRepository.findIndividualComplainantByCaseId(caseId, "COMPLAINANT");
+
+        ComplaintCase complaintCase = casesRepository.findByCaseId(caseId);
+        Optional<Individual> individualOptional = individualRepository.findById(complaintCase.getComplainantId());
+        Individual individual = null;
+        if (individualOptional.isPresent()) {
+            individual = individualOptional.get();
+        } else {
+            throw new ApplicationExceptions.SendMigrationMessageException(
+                    String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
+                    LogEvent.NO_COMPLAINANT_FOUND_FOR_CASE_DATA);
+        }
         CaseData caseData = caseDataRepository.findByCaseId(caseId);
-        List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
         if (caseData == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }
+
         RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
         // populate case data hocs-6149
         List caseDataItems = new ArrayList();

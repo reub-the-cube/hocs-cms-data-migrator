@@ -35,7 +35,6 @@ public class ComplaintsService {
     private final DocumentExtractor documentExtractor;
     private final ComplaintsExtractor complaintsExtractor;
     private final ComplaintsRepository complaintsRepository;
-    private final ProgressRepository progressRepository;
     private final CorrespondentExtractor correspondentExtractor;
     private final CaseDataExtractor caseDataExtractor;
     private final CompensationExtractor compensationExtractor;
@@ -46,6 +45,7 @@ public class ComplaintsService {
     private final ResponseExtractor responseExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
     private final ComplaintMessageBuilder complaintMessageBuilder;
+    private final ExtractResult extractResult;
     private final MessageService messageService;
     private final ComplaintsMessageCaseData decsCaseData;
     private final DocumentCreator documentCreator;
@@ -54,7 +54,6 @@ public class ComplaintsService {
     public ComplaintsService(DocumentExtractor documentExtractor,
                              ComplaintsExtractor complaintsExtractor,
                              ComplaintsRepository complaintsRepository,
-                             ProgressRepository progressRepository,
                              CorrespondentExtractor correspondentExtractor,
                              CaseDataExtractor caseDataExtractor,
                              CompensationExtractor compensationExtractor,
@@ -66,13 +65,13 @@ public class ComplaintsService {
                              CaseHistoryExtractor caseHistoryExtractor,
                              ComplaintsMessageCaseData decsCaseData,
                              ComplaintMessageBuilder complaintMessageBuilder,
+                             ExtractResult extractResult,
                              MessageService messageService,
                              DocumentCreator documentCreator,
                              @Value("${migration.document}") String migrationDocument) {
         this.documentExtractor = documentExtractor;
         this.complaintsExtractor = complaintsExtractor;
         this.complaintsRepository = complaintsRepository;
-        this.progressRepository = progressRepository;
         this.correspondentExtractor = correspondentExtractor;
         this.caseDataExtractor = caseDataExtractor;
         this.compensationExtractor = compensationExtractor;
@@ -84,35 +83,39 @@ public class ComplaintsService {
         this.caseHistoryExtractor = caseHistoryExtractor;
         this.decsCaseData = decsCaseData;
         this.complaintMessageBuilder = complaintMessageBuilder;
+        this.extractResult = extractResult;
         this.messageService = messageService;
         this.documentCreator = documentCreator;
         this.migrationDocument = migrationDocument;
     }
 
-    @Transactional
     public void migrateComplaints(String startDate, String endDate, ComplaintExtractionType extractionType) {
         List<BigDecimal> complaintIds = complaintsExtractor.getComplaintIdsByDateRange(startDate, endDate, extractionType);
-        UUID extractionId = UUID.randomUUID();
-        log.info("Extraction ID {}", extractionId);
-        Progress progress = new Progress();
-        progress.setExtractionId(extractionId);
-        progressRepository.save(progress);
+        UUID extractionId = extractResult.saveExtractionId(complaintIds.size());
         for (BigDecimal complaintId : complaintIds) {
-            recordExtractResult(extractComplaint(extractionId, complaintId), extractionId);
+            log.info("Extract a single complaint started for complaint ID {}", complaintId);
+            if (extractResult.recordExtractResult(extractComplaint(extractionId, complaintId), extractionId)) {
+                log.info("Complaint extraction for complaint ID {}, extraction ID {} finished.", complaintId, extractionId);
+            }
         }
         log.info("Complaints extraction for extraction ID {} between dates {} and {} finished.", extractionId, startDate, endDate);
     }
 
-    @Transactional
-    public void migrateComplaint(String complaintId) {
-        UUID extractionId = UUID.randomUUID();
-        recordExtractResult(extractComplaint(extractionId, new BigDecimal(complaintId)), extractionId);
-        log.info("Complaint extraction for complaint ID {}, extraction ID {} finished", complaintId, extractionId);
+    public void migrateComplaints(List<String> complaintIds) {
+        UUID extractionId = extractResult.saveExtractionId(complaintIds.size());
+        for (String complaintId: complaintIds) {
+            log.info("Extract a single complaint started for complaint ID {}", complaintId);
+            if (extractResult.recordExtractResult(extractComplaint(extractionId, new BigDecimal(complaintId)), extractionId)) {
+                log.info("Complaint extraction for complaint ID {}, extraction ID {} finished.", complaintId, extractionId);
+            }
+        }
     }
 
-    private void recordExtractResult(boolean result, UUID extractionId) {
-        if (result) progressRepository.incrementSuccess(1, extractionId);
-        else progressRepository.incrementFailure(1, extractionId);
+    public void migrateComplaint(String complaintId) {
+        UUID extractionId = extractResult.saveExtractionId(1);
+        if (extractResult.recordExtractResult(extractComplaint(extractionId, new BigDecimal(complaintId)), extractionId)) {
+            log.info("Complaint extraction for complaint ID {}, extraction ID {} finished.", complaintId, extractionId);
+        }
     }
 
     private boolean extractComplaint(UUID extractionId, BigDecimal complaintId) {
@@ -201,8 +204,17 @@ public class ComplaintsService {
         }
 
         // extract categories
-        categoriesExtractor.getSelectedCategoryData(complaintId);
-        subCategoriesExtractor.getSelectedSubCategoryData(complaintId);
+        try {
+            categoriesExtractor.getSelectedCategoryData(complaintId);
+            subCategoriesExtractor.getSelectedSubCategoryData(complaintId);
+            ComplaintExtractRecord categoriesStage = getComplaintExtractRecord(complaintId, extractionId, "Categories", true);
+            complaintsRepository.save(categoriesStage);
+        } catch (ApplicationExceptions.ExtractCategoriesException e) {
+            ComplaintExtractRecord categoriesStage = getComplaintExtractRecord(complaintId, extractionId, "Categories", false);
+            categoriesStage.setError(e.getEvent().toString());
+            categoriesStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(categoriesStage);
+        }
 
         // extract response
         responseExtractor.getResponse(complaintId);

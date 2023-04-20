@@ -10,3 +10,4 @@ CREATE TABLE IF NOT EXISTS progress
     success                    NUMERIC,
     failure                    NUMERIC
 );
+

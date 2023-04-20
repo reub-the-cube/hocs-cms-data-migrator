@@ -35,6 +35,7 @@ public class CompensationExtractor {
             amountclaimed, amountoffered, consolatorypayment
             from FLODS_UKBACOMPLAINTS_D00 where caseid = ?
             """;
+
     @Transactional
     public Compensation getCompensationDetails(BigDecimal caseId) {
         Compensation compensation;

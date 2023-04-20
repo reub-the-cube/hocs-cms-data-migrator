@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
 
@@ -13,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+
+import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.DOCUMENT_RETRIEVAL_FAILED;
 
 @Component
 @Slf4j
@@ -70,7 +74,9 @@ public class CategoriesExtractor {
             category.setCategory(categoryTitles.get(categoryName));
             categoriesRepository.save(category);
         } catch (DataAccessException e) {
-            log.error("Couldn't retrieve category data for CASE ID {}", caseId);
+            log.error("Couldn't retrieve category data for CASE ID {}. Error message: {}", caseId, e.getMessage());
+            throw new ApplicationExceptions.ExtractCategoriesException(e.getMessage(), LogEvent.CATEGORIES_EXTRACT_FAILED);
+
         }
     }
 
@@ -154,7 +160,7 @@ public class CategoriesExtractor {
         Map.entry(ADMIN_PROCESS_ERROR, getCategoryColumnNames("adminprocesserror", "adminprocesserror_status", "adminprocesserror_amount")),
         Map.entry(POOR_COMMUNICATION, getCategoryColumnNames("poorcommunication", "poorcommunication_status", "poorcommunication_amount")),
         Map.entry(WRONG_INFORMATION, getCategoryColumnNames("wronginformation", "wronginformation_status", "wronginformation_amount")),
-        Map.entry(LOST_DOCUMENTS, getCategoryColumnNames("lostdocument", "lostdocuments_status", "lostdocuments_amount")),
+        Map.entry(LOST_DOCUMENTS, getCategoryColumnNames("lostdocuments", "lostdocuments_status", "lostdocuments_amount")),
         Map.entry(CC_PHYSICAL_ENVIRONMENT, getCategoryColumnNames("ccphysicalenvironment", "ccphysicalenvironment_status", "ccphysicalenvironment_amount")),
         Map.entry(CC_AVAILABILITY_OF_SERVICE, getCategoryColumnNames("ccavailabilityofservice", "ccavailabilityofservice_status", "ccavailabilityofservice_amount")),
         Map.entry(CC_PROVISION_FOR_MINROS, getCategoryColumnNames("ccprovisionforminors", "ccprovisionforminors_status", "ccprovisionforminors_amount")),

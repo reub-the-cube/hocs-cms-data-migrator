@@ -35,6 +35,7 @@ dependencies {
 	implementation 'org.postgresql:postgresql:42.6.0'
 	implementation group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.1'
 	implementation group: 'com.github.dhorions', name: 'boxable', version: '1.7.0'
+	implementation group: 'com.google.guava', name: 'guava', version: '11.0.2'
 
 	implementation 'org.flywaydb:flyway-core:8.5.13'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'

@@ -99,17 +99,19 @@
       name: {{ .Release.Namespace }}-case-migrator-sqs
       key: sqs_url
 - name: SEND_MIGRATION_MESSAGE
+  value: 'disabled'
+- name: MIGRATION_DOCUMENT
   value: 'enabled'
 - name: CMS_EXTRACT_COMPLAINTS
-  value: 'disabled'
-- name: COMPLAINT_START_DATE
-  value: '2022-01-01'
-- name: COMPLAINT_END_DATE
-  value: '2023-12-31'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
   value: 'enabled'
+- name: COMPLAINT_START_DATE
+  value: '2022-01-08'
+- name: COMPLAINT_END_DATE
+  value: '2022-03-31'
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
+  value: 'disabled'
 - name: COMPLAINT_IDS
-  value: '131000000515'
+  value: '131000000515|131000342867|131000342197|131000347033'
 - name: CMS_EXTRACT_OPEN_COMPLAINTS
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS

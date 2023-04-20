@@ -1,0 +1,2 @@
+ALTER TABLE progress
+ADD COLUMN total NUMERIC NULL;

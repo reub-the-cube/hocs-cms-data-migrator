@@ -26,9 +26,6 @@ public class Individual {
     @Column(name = "partyid")
     private BigDecimal partyId;
 
-    @Column(name = "caseid")
-    private BigDecimal caseId;
-
     @Column
     private String forename;
 

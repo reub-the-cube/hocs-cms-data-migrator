@@ -13,7 +13,7 @@ import java.util.List;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.multiple.complaints", havingValue = "enabled", matchIfMissing = false)
+@ConditionalOnProperty(name = "cms.extract.selected.complaints", havingValue = "enabled", matchIfMissing = false)
 public class ExtractSelectedComplaintsRunner implements CommandLineRunner {
 
     private final ApplicationContext applicationContext;
@@ -33,12 +33,9 @@ public class ExtractSelectedComplaintsRunner implements CommandLineRunner {
     public void run(String... args) {
         log.info("List of complaint ids from the environment {}", complaintIds);
 
-        List<String> complaintIdList = getComplaintIds(complaintIds);
+        List<String> complaintIds = getComplaintIds(this.complaintIds);
 
-        for (String complaintId: complaintIdList) {
-            log.info("Extract a single complaint started for complaint ID {}", complaintId);
-            complaintsService.migrateComplaint(complaintId);
-        }
+        complaintsService.migrateComplaints(complaintIds);
 
         System.exit(SpringApplication.exit(applicationContext, () -> 0));
     }
