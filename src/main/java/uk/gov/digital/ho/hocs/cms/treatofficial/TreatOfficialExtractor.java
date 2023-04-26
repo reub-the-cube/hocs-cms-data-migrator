@@ -2,12 +2,14 @@ package uk.gov.digital.ho.hocs.cms.treatofficial;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -30,7 +32,21 @@ public class TreatOfficialExtractor {
     }
 
     public List<BigDecimal> getCaseIdsByDateRange(String start, String end) {
-        return Collections.emptyList();
+        MapSqlParameterSource mapParameters = new MapSqlParameterSource();
+        mapParameters.addValue("startDate", start);
+        mapParameters.addValue("endDate", end);
+
+        List<Map<String, Object>> rows = namedParameterJdbcTemplate.queryForList(TREAT_OFFICIAL_CASE_ID_BY_DATE_RANGE, mapParameters);
+        log.info("{} Treat Official cases selected between {} and {}", rows.size(), start, end);
+
+        List<BigDecimal> cases = new ArrayList<>();
+        for (Map row : rows) {
+            Object result = row.get("caseId");
+            if (result instanceof BigDecimal bd) {
+                cases.add(bd);
+            }
+        }
+        return  cases;
     }
 
 }

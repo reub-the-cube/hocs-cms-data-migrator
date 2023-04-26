@@ -116,4 +116,6 @@
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
+- name: CMS_EXTRACT_TREAT_OFFICIAL_CASES
+  value: 'disabled'
 {{- end -}}
