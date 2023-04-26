@@ -23,7 +23,6 @@ public class TreatOfficialService {
     private final ComplaintsRepository complaintsRepository;
     private final ExtractResult extractResult;
 
-
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
                                 ComplaintsRepository complaintsRepository,

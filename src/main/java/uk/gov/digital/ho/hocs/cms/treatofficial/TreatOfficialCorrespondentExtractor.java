@@ -4,12 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentDetails;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentEmail;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentName;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentPhoneNumber;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
+
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.Address;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
@@ -29,8 +31,6 @@ public class TreatOfficialCorrespondentExtractor {
 
     private static final String GET_CORRESPONDENT_IDS_FOR_CASE = "select xref1 as complainantId from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
     private static final String GET_THIRD_PARTY_CORRESPONDENT_IDS_FOR_CASE = "select ClientID as representativeId from LGNCC_INTLOGHDR where logid in (select InteractionID from LGNCC_ENQUIRYRELATION where CaseID = ?)";
-
-    // RICHARDS
     private static final String GET_CORRESPONDENT_NAME = "select forename1, surname from LGNOM_partyName where partyId = ?";
     private static final String GET_CORRESPONDENT_INDIVIDUAL_DETAILS = "select dateofbirth, nationality from LGNOM_individual where partyId = ?";
     private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select phonenum from LGNOM_phoneDetails where partyId = ?";
