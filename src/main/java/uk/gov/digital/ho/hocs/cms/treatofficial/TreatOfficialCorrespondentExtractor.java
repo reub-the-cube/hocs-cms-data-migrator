@@ -69,7 +69,7 @@ public class TreatOfficialCorrespondentExtractor {
 
         extractPrimaryCorrespondent(caseId, correspondents);
 
-        extractThirdPartyCorrespondent(caseId, thirdPartyCorrespondents);
+        extractThirdPartyCorrespondents(caseId, thirdPartyCorrespondents);
 
     }
 
@@ -91,7 +91,7 @@ public class TreatOfficialCorrespondentExtractor {
         }
     }
 
-    private void extractThirdPartyCorrespondent(BigDecimal caseId, List<TreatOfficialCorrespondents> correspondents) {
+    private void extractThirdPartyCorrespondents(BigDecimal caseId, List<TreatOfficialCorrespondents> correspondents) {
         for (TreatOfficialCorrespondents correspondent : correspondents) {
             try {
                 Individual individual;
