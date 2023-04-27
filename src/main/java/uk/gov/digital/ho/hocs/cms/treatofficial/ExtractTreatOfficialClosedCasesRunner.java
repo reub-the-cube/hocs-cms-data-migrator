@@ -10,18 +10,18 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @Slf4j
-@ConditionalOnProperty(name = "cms.extract.treat.official.cases", havingValue = "enabled", matchIfMissing = false)
-public class ExtractTreatOfficialCasesRunner implements CommandLineRunner {
+@ConditionalOnProperty(name = "cms.extract.treat.official.closed.cases", havingValue = "enabled", matchIfMissing = false)
+public class ExtractTreatOfficialClosedCasesRunner implements CommandLineRunner {
 
     private final String startDate;
     private final String endDate;
     private final ApplicationContext applicationContext;
     private final TreatOfficialService treatOfficialService;
 
-    public ExtractTreatOfficialCasesRunner(@Value("${complaint.start.date}") String startDate,
-                                           @Value("${complaint.end.date}") String endDate,
-                                           ApplicationContext applicationContext,
-                                           TreatOfficialService treatOfficialService) {
+    public ExtractTreatOfficialClosedCasesRunner(@Value("${treat.official.case.start.date}") String startDate,
+                                                 @Value("${treat.official.case.end.date}") String endDate,
+                                                 ApplicationContext applicationContext,
+                                                 TreatOfficialService treatOfficialService) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.applicationContext = applicationContext;

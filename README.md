@@ -36,7 +36,7 @@ These will be run using Helm and Kubernetes jobs. These instructions will be upd
 Each runner / extractor will need an environment variable set to `enabled` along with the example usages below
 Expected use case for deployment would have one extractor enabled at a time.
 
-### Extract multiple specfic CMS complaints
+### Extract multiple specfic CMS complaints (including treat official)
 
 ```yaml
 - name: CMS_EXTRACT_COMPLAINTS
@@ -48,15 +48,25 @@ Expected use case for deployment would have one extractor enabled at a time.
 - name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
   value: 'enabled'
 - name: COMPLAINT_START_DATE
-  value: ''                                 # Not relevant for this extractor
+  value: ''                                                 # Not relevant for this extractor
 - name: COMPLAINT_END_DATE
-  value: ''                                 # Not relevant for this extractor
+  value: ''                                                 # Not relevant for this extractor
 - name: COMPLAINT_IDS
-  value: '{TO BE SET}'                      # Pipe delimited list of CMS Case IDs e.g. 2000001|2000002|2000003
+  value: '{TO BE SET}'                                      # Pipe delimited list of CMS Case IDs e.g. 2000001|2000002|2000003
 - name: SEND_MIGRATION_MESSAGE              
-  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+  value: 'enabled'                                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
 - name: MIGRATION_DOCUMENT                  
-  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+  value: 'enabled'                                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+- name: CMS_EXTRACT_TREAT_OFFICIAL_CLOSED_CASES             # Date range extractor for TO
+  value: 'disabled'
+- name: TREAT_OFFICIAL_CASE_START_DATE
+  value: '2022-01-08'
+- name: TREAT_OFFICIAL_CASE_END_DATE
+  value: '2022-03-31'
+- name: CMS_EXTRACT_SELECTED_TREAT_OFFICIAL_CLOSED_CASES
+  value: 'enabled'
+- name: TREAT_OFFICIAL_IDS
+  value: '{TO BE SET}'
 ```
 
 ### Extract complaints by date range
@@ -128,6 +138,38 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
 ```
 
+### Extract closed treat official cases by date range
+
+```yaml
+- name: CMS_EXTRACT_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_OPEN_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_CLOSED_COMPLAINTS
+  value: 'disabled'
+- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+  value: 'disabled'
+- name: COMPLAINT_START_DATE
+  value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
+- name: COMPLAINT_END_DATE
+  value: '{TO BE SET}'                      # Inclusive end date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-12-31
+- name: COMPLAINT_IDS
+  value: ''                                 # Not relevant for this runner
+- name: SEND_MIGRATION_MESSAGE              
+  value: 'enabled'                          # Anything other than 'enabled' will extract only and prevent the message from being sent to DECS
+- name: MIGRATION_DOCUMENT                  
+  value: 'enabled'                          # Anything other than 'enabled' will prevent the case data PDF from being generated for the extracted case
+- name: CMS_EXTRACT_TREAT_OFFICIAL_CLOSED_CASES   # Date range extractor for TO
+  value: 'enabled'
+- name: TREAT_OFFICIAL_CASE_START_DATE
+  value: '2022-01-08'
+- name: TREAT_OFFICIAL_CASE_END_DATE
+  value: '2022-03-31'
+- name: CMS_EXTRACT_SELECTED_TREAT_OFFICIAL_CLOSED_CASES
+  value: 'disabled'
+- name: TREAT_OFFICIAL_IDS
+  value: '{TO BE SET}'
+```
 
 ### Versioning
 

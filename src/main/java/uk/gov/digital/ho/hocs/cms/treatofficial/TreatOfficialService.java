@@ -3,9 +3,9 @@ package uk.gov.digital.ho.hocs.cms.treatofficial;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
-import uk.gov.digital.ho.hocs.cms.domain.model.Progress;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ProgressRepository;
 
@@ -22,38 +22,41 @@ public class TreatOfficialService {
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
     private final ComplaintsRepository complaintsRepository;
 
+    private final ExtractResult extractResult;
+
+
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
                                 ComplaintsRepository complaintsRepository,
+                                ExtractResult extractResult,
                                 ProgressRepository progressRepository) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
+        this.extractResult = extractResult;
         this.complaintsRepository = complaintsRepository;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
         List<BigDecimal> treatOfficialIds = treatOfficialExtractor.getCaseIdsByDateRange(startDate, endDate);
-        UUID extractionId = UUID.randomUUID();
-        log.info("Extraction ID {}", extractionId);
-        Progress progress = new Progress();
-        progress.setExtractionId(extractionId);
-        progressRepository.save(progress);
+        UUID extractionId = extractResult.saveExtractionId(treatOfficialIds.size());
         for (BigDecimal treatOfficialId : treatOfficialIds) {
-            recordExtractResult(extractTreatOfficial(extractionId, treatOfficialId), extractionId);
+            log.info("Extract a single Treat Official complaint started for complaint ID {}", treatOfficialId);
+            if (extractResult.recordExtractResult(extractTreatOfficial(extractionId, treatOfficialId), extractionId)) {
+                log.info("Treat Official complaint extraction for complaint ID {}, extraction ID {} finished.", treatOfficialId, extractionId);
+            }
         }
         log.info("Treat Official extraction for extraction ID {} between dates {} and {} finished.", extractionId, startDate, endDate);
     }
 
-    public void migrateTreatOfficial(String caseId) {
-        UUID extractionId = UUID.randomUUID();
-        recordExtractResult(extractTreatOfficial(extractionId, new BigDecimal(caseId)), extractionId);
-        log.info("Treat Official extraction for case ID {}, extraction ID {} finished", caseId, extractionId);
-    }
-
-    private void recordExtractResult(boolean result, UUID extractionId) {
-        if (result) progressRepository.incrementSuccess(1, extractionId);
-        else progressRepository.incrementFailure(1, extractionId);
+    public void migrateTreatOfficials(List<String> complaintIds) {
+        UUID extractionId = extractResult.saveExtractionId(complaintIds.size());
+        for (String complaintId: complaintIds) {
+            log.info("Extract a single Treat Official complaint started for complaint ID {}", complaintId);
+            if (extractResult.recordExtractResult(extractTreatOfficial(extractionId, new BigDecimal(complaintId)), extractionId)) {
+                log.info("Treat Official  Complaint extraction for complaint ID {}, extraction ID {} finished.", complaintId, extractionId);
+            }
+        }
     }
 
     private boolean extractTreatOfficial(UUID extractionId, BigDecimal complaintId) {

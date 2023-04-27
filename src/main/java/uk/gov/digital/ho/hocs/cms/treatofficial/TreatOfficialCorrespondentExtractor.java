@@ -4,14 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentDetails;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentEmail;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentName;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentPhoneNumber;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
-import uk.gov.digital.ho.hocs.cms.correspondents.Correspondents;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.Address;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
@@ -20,9 +18,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+
 import java.util.List;
 
 import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CORRESPONDENT_EXTRACTION_FAILED;
@@ -80,11 +76,10 @@ public class TreatOfficialCorrespondentExtractor {
 
 
     private void extractPrimaryCorrespondent(BigDecimal caseId, TreatOfficialCorrespondents correspondents) {
-        Individual individual = new Individual();
         try {
+            Individual individual;
             individual = getCorrespondentDetails(correspondents.getComplainantId());
             individual.setAddress(getAddress(correspondents.getComplainantId()));
-            individual.setCaseId(caseId);
             individual.setPrimary(true);
             individual.setType(CorrespondentType.COMPLAINANT.toString());
             log.debug("Complainant ID {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
@@ -97,12 +92,11 @@ public class TreatOfficialCorrespondentExtractor {
     }
 
     private void extractThirdPartyCorrespondent(BigDecimal caseId, List<TreatOfficialCorrespondents> correspondents) {
-        Individual individual;
         for (TreatOfficialCorrespondents correspondent : correspondents) {
             try {
+                Individual individual;
                 individual = getCorrespondentDetails(correspondent.getRepresentativeId());
                 individual.setAddress(getAddress(correspondent.getRepresentativeId()));
-                individual.setCaseId(caseId);
                 individual.setType(CorrespondentType.THIRD_PARTY_REP.toString());
                 individual.setPrimary(false);
                 log.debug("Representative {} data extracted. Case ID {}", correspondent.getRepresentativeId(), caseId);
