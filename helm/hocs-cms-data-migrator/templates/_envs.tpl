@@ -116,7 +116,6 @@
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
-<<<<<<< HEAD
 - name: CMS_EXTRACT_TREAT_OFFICIAL_CLOSED_CASES
   value: 'disabled'
 - name: TREAT_OFFICIAL_CASE_START_DATE
@@ -127,4 +126,4 @@
   value: 'disabled'
 - name: TREAT_OFFICIAL_IDS
   value: '131000000515|131000342867'
-{{- end -}}git add
+{{- end -}}
