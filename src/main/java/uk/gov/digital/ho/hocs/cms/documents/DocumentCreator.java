@@ -429,7 +429,7 @@ public class DocumentCreator {
             result = CharMatcher.WHITESPACE.replaceFrom(result, " ");
             result = CharMatcher.JAVA_ISO_CONTROL.removeFrom(result);
             result = result.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", " ");
-            result = result.replace("\"", "\"\"\"\"");
+            result = result.replace("\"", "'");
         }
         return result;
     }
