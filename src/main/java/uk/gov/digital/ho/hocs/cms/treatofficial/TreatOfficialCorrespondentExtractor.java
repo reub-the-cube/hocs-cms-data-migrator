@@ -52,57 +52,53 @@ public class TreatOfficialCorrespondentExtractor {
 
     public void getCorrespondentsForCase(BigDecimal caseId) {
 
-        TreatOfficialCorrespondents correspondents = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
+        BigDecimal correspondentId = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
                 (rs, rowNum) -> {
-                    TreatOfficialCorrespondents c = new TreatOfficialCorrespondents();
-                    c.setComplainantId(rs.getBigDecimal("complainantid"));
-                    return c;
+                    String c = new String();
+                    c.equals(rs.getBigDecimal("complainantid"));
+                    return new BigDecimal(c);
                 }, caseId);
 
-
-        List<TreatOfficialCorrespondents>  thirdPartyCorrespondents = jdbcTemplate.query(GET_THIRD_PARTY_CORRESPONDENT_IDS_FOR_CASE,
+        List<BigDecimal> thirdPartyCorrespondentIds = jdbcTemplate.query(GET_THIRD_PARTY_CORRESPONDENT_IDS_FOR_CASE,
                 (rs, rowNum) -> {
-                    TreatOfficialCorrespondents c = new TreatOfficialCorrespondents();
-                    c.setRepresentativeId(rs.getBigDecimal("representativeId"));
-                    return c;
+                    String c = new String();
+                    c.equals(rs.getBigDecimal("representativeId"));
+                    return new BigDecimal(c);
                 }, caseId);
 
-        extractPrimaryCorrespondent(caseId, correspondents);
+        extractPrimaryCorrespondent(caseId, correspondentId);
 
-        extractThirdPartyCorrespondents(caseId, thirdPartyCorrespondents);
-
+        extractThirdPartyCorrespondents(caseId, thirdPartyCorrespondentIds);
     }
 
-
-
-    private void extractPrimaryCorrespondent(BigDecimal caseId, TreatOfficialCorrespondents correspondents) {
+    private void extractPrimaryCorrespondent(BigDecimal caseId, BigDecimal correspondentId) {
         try {
             Individual individual;
-            individual = getCorrespondentDetails(correspondents.getComplainantId());
-            individual.setAddress(getAddress(correspondents.getComplainantId()));
+            individual = getCorrespondentDetails(correspondentId);
+            individual.setAddress(getAddress(correspondentId));
             individual.setPrimary(true);
             individual.setType(CorrespondentType.COMPLAINANT.toString());
-            log.debug("Complainant ID {} data extracted. Case ID {}", correspondents.getComplainantId(), caseId);
+            log.debug("Complainant ID {} data extracted. Case ID {}", correspondentId, caseId);
             individualRepository.save(individual);
         } catch (DataAccessException e) {
-            log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondents.getComplainantId(), caseId);
+            log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondentId, caseId);
             throw new ApplicationExceptions.ExtractCorrespondentException(
                     e.getMessage(), CORRESPONDENT_EXTRACTION_FAILED, e);
         }
     }
 
-    private void extractThirdPartyCorrespondents(BigDecimal caseId, List<TreatOfficialCorrespondents> correspondents) {
-        for (TreatOfficialCorrespondents correspondent : correspondents) {
+    private void extractThirdPartyCorrespondents(BigDecimal caseId, List<BigDecimal> correspondentIds) {
+        for (BigDecimal correspondentId : correspondentIds) {
             try {
                 Individual individual;
-                individual = getCorrespondentDetails(correspondent.getRepresentativeId());
-                individual.setAddress(getAddress(correspondent.getRepresentativeId()));
+                individual = getCorrespondentDetails(correspondentId);
+                individual.setAddress(getAddress(correspondentId));
                 individual.setType(CorrespondentType.THIRD_PARTY_REP.toString());
                 individual.setPrimary(false);
-                log.debug("Representative {} data extracted. Case ID {}", correspondent.getRepresentativeId(), caseId);
+                log.debug("Representative {} data extracted. Case ID {}", correspondentIds, caseId);
                 individualRepository.save(individual);
             } catch (DataAccessException e) {
-                log.error("Failed extracting correspondent details for representative ID {} and case ID", correspondent.getRepresentativeId(), caseId);
+                log.error("Failed extracting correspondent details for representative ID {} and case ID", correspondentId, caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(e.getMessage(),  CORRESPONDENT_EXTRACTION_FAILED, e);
             }
         }

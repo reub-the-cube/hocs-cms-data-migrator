@@ -41,45 +41,45 @@ public class TreatOfficialService {
         List<BigDecimal> treatOfficialIds = treatOfficialExtractor.getCaseIdsByDateRange(startDate, endDate);
         UUID extractionId = extractResult.saveExtractionId(treatOfficialIds.size());
         for (BigDecimal treatOfficialId : treatOfficialIds) {
-            log.info("Extract a single Treat Official complaint started for complaint ID {}", treatOfficialId);
+            log.info("Extract a single Treat Official case started for case ID {}", treatOfficialId);
             if (extractResult.recordExtractResult(extractTreatOfficial(extractionId, treatOfficialId), extractionId)) {
-                log.info("Treat Official complaint extraction for complaint ID {}, extraction ID {} finished.", treatOfficialId, extractionId);
+                log.info("Treat Official case extraction for case ID {}, extraction ID {} finished.", treatOfficialId, extractionId);
             }
         }
         log.info("Treat Official extraction for extraction ID {} between dates {} and {} finished.", extractionId, startDate, endDate);
     }
 
-    public void migrateTreatOfficials(List<String> complaintIds) {
-        UUID extractionId = extractResult.saveExtractionId(complaintIds.size());
-        for (String complaintId: complaintIds) {
-            log.info("Extract a single Treat Official complaint started for complaint ID {}", complaintId);
-            if (extractResult.recordExtractResult(extractTreatOfficial(extractionId, new BigDecimal(complaintId)), extractionId)) {
-                log.info("Treat Official  Complaint extraction for complaint ID {}, extraction ID {} finished.", complaintId, extractionId);
+    public void migrateTreatOfficials(List<String> caseIds) {
+        UUID extractionId = extractResult.saveExtractionId(caseIds.size());
+        for (String caseId: caseIds) {
+            log.info("Extract a single Treat Official case started for case ID {}", caseId);
+            if (extractResult.recordExtractResult(extractTreatOfficial(extractionId, new BigDecimal(caseId)), extractionId)) {
+                log.info("Treat Official case extraction for case ID {}, extraction ID {} finished.", caseId, extractionId);
             }
         }
     }
 
-    private boolean extractTreatOfficial(UUID extractionId, BigDecimal complaintId) {
+    private boolean extractTreatOfficial(UUID extractionId, BigDecimal caseId) {
         //extract correspondent
         try {
-            treatOfficialCorrespondentExtractor.getCorrespondentsForCase(complaintId);
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, extractionId, "Correspondents", true);
+            treatOfficialCorrespondentExtractor.getCorrespondentsForCase(caseId);
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(caseId, extractionId, "Correspondents", true);
             complaintsRepository.save(correspondentStage);
         } catch (ApplicationExceptions.ExtractCorrespondentException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(complaintId, extractionId, "Correspondents", false);
+            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(caseId, extractionId, "Correspondents", false);
             correspondentStage.setError(e.getEvent().toString());
             correspondentStage.setErrorMessage(e.getMessage());
             complaintsRepository.save(correspondentStage);
-            log.error("Failed extracting correspondents for complaint ID {}", complaintId);
+            log.error("Failed extracting correspondents for case ID {}", caseId);
             return false;
         }
         return true;
     }
 
-    private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal complaintId, UUID extractionId, String stage, boolean extracted) {
+    private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal caseId, UUID extractionId, String stage, boolean extracted) {
         ComplaintExtractRecord cer = new ComplaintExtractRecord();
         cer.setExtractionId(extractionId);
-        cer.setCaseId(complaintId);
+        cer.setCaseId(caseId);
         cer.setComplaintExtracted(extracted);
         cer.setStage(stage);
         return cer;
