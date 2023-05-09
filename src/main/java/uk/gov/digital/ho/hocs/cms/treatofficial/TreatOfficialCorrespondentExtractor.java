@@ -54,16 +54,16 @@ public class TreatOfficialCorrespondentExtractor {
 
         BigDecimal correspondentId = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
                 (rs, rowNum) -> {
-                    String c = new String();
-                    c.equals(rs.getBigDecimal("complainantid"));
-                    return new BigDecimal(c);
+                    BigDecimal complainantId;
+                    complainantId = rs.getBigDecimal("complainantid");
+                    return complainantId;
                 }, caseId);
 
         List<BigDecimal> thirdPartyCorrespondentIds = jdbcTemplate.query(GET_THIRD_PARTY_CORRESPONDENT_IDS_FOR_CASE,
                 (rs, rowNum) -> {
-                    String c = new String();
-                    c.equals(rs.getBigDecimal("representativeId"));
-                    return new BigDecimal(c);
+                    BigDecimal representativeId;
+                    representativeId = rs.getBigDecimal("representativeId");
+                    return representativeId;
                 }, caseId);
 
         extractPrimaryCorrespondent(caseId, correspondentId);
