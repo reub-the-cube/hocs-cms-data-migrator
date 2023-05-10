@@ -19,8 +19,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "complaints")
-public class ComplaintExtractRecord {
+@Table(name = "extraction_stages")
+public class ExtractRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,8 +33,8 @@ public class ComplaintExtractRecord {
     @Column(name = "case_id")
     private BigDecimal caseId;
 
-    @Column(name = "complaint_extracted")
-    private boolean complaintExtracted;
+    @Column(name = "extracted")
+    private boolean extracted;
 
     @Column
     private String stage;

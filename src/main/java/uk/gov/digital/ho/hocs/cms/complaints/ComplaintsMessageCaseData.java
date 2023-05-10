@@ -5,13 +5,13 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDataItem;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
@@ -32,21 +32,21 @@ public class ComplaintsMessageCaseData {
     private final CaseHistoryRepository caseHistoryRepository;
 
     private final IndividualRepository individualRepository;
-    private final CaseDataRepository caseDataRepository;
+    private final CaseDataComplaintRepository caseDataComplaintRepository;
     private final CategoriesRepository categoriesRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final CasesRepository casesRepository;
     private final CaseDataTypes caseDataTypes;
 
     public ComplaintsMessageCaseData(IndividualRepository individualRepository,
-                                     CaseDataRepository caseDataRepository,
+                                     CaseDataComplaintRepository caseDataComplaintRepository,
                                      CategoriesRepository categoriesRepository,
                                      RiskAssessmentRepository riskAssessmentRepository,
                                      CaseHistoryRepository caseHistoryRepository,
                                      CasesRepository casesRepository,
                                      CaseDataTypes caseDataTypes) {
         this.individualRepository = individualRepository;
-        this.caseDataRepository = caseDataRepository;
+        this.caseDataComplaintRepository = caseDataComplaintRepository;
         this.categoriesRepository = categoriesRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.caseHistoryRepository = caseHistoryRepository;
@@ -66,8 +66,8 @@ public class ComplaintsMessageCaseData {
                     String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
                     LogEvent.NO_COMPLAINANT_FOUND_FOR_CASE_DATA);
         }
-        CaseData caseData = caseDataRepository.findByCaseId(caseId);
-        if (caseData == null) {
+        CaseDataComplaint caseDataComplaint = caseDataComplaintRepository.findByCaseId(caseId);
+        if (caseDataComplaint == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }
 
@@ -76,10 +76,10 @@ public class ComplaintsMessageCaseData {
         List caseDataItems = new ArrayList();
         CaseDataItem caseDataItem = new CaseDataItem();
         caseDataItem.setName("deadline");
-        caseDataItem.setValue(caseData.getSlaDate());
+        caseDataItem.setValue(caseDataComplaint.getSlaDate());
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("DateReceived");
-        caseDataItem.setValue(caseData.getReceiveDate());
+        caseDataItem.setValue(caseDataComplaint.getReceiveDate());
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("ComplainantDOB");
         caseDataItem.setValue(individual.getDateOfBirth().toString());
@@ -98,21 +98,21 @@ public class ComplaintsMessageCaseData {
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("CompType");
-        caseDataItem.setValue(caseData.getCurrentType());
+        caseDataItem.setValue(caseDataComplaint.getCurrentType());
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("CaseSummary");
-        caseDataItem.setValue(caseData.getDescription());
+        caseDataItem.setValue(caseDataComplaint.getDescription());
         caseDataItems.add(caseDataItem);
         // Categories
         caseDataItems.addAll(extractCategories(caseId));
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("OwningCSU");
-        caseDataItem.setValue(caseData.getOwningCsu());
+        caseDataItem.setValue(caseDataComplaint.getOwningCsu());
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("CchCompType");
-        caseDataItem.setValue(caseData.getCurrentType());
+        caseDataItem.setValue(caseDataComplaint.getCurrentType());
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("SeveritySafeGuarding");
@@ -120,11 +120,11 @@ public class ComplaintsMessageCaseData {
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("BusArea");
-        caseDataItem.setValue(caseData.getBusinessArea());
+        caseDataItem.setValue(caseDataComplaint.getBusinessArea());
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("DateResponded");
-        caseDataItem.setValue(caseData.getClosedDt());
+        caseDataItem.setValue(caseDataComplaint.getClosedDt());
         caseDataItems.add(caseDataItem);
 
 

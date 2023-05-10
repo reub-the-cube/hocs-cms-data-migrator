@@ -9,9 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
 
 import javax.sql.DataSource;
 
@@ -19,26 +18,24 @@ import java.math.BigDecimal;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CaseDataTests {
+public class CaseDataComplaintTests {
 
     @Mock
     private DataSource dataSource;
 
     @Mock
-    private CaseDataRepository caseDataRepository;
+    private CaseDataComplaintRepository caseDataComplaintRepository;
 
-    private CaseDataExtractor caseDataExtractor;
+    private CaseDataComplaintExtractor caseDataComplaintExtractor;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
-        caseDataExtractor = new CaseDataExtractor(dataSource, caseDataRepository);
+        caseDataComplaintExtractor = new CaseDataComplaintExtractor(dataSource, caseDataComplaintRepository);
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
@@ -75,8 +72,8 @@ public class CaseDataTests {
         assertNull(CaseTypeMapping.getCaseType("other"));
     }
 
-    private CaseData getCaseData(String owningCsu) {
-        return new CaseData(
+    private CaseDataComplaint getCaseData(String owningCsu) {
+        return new CaseDataComplaint(
                 1L,
                 BigDecimal.ONE,
                 "caseReferefence",

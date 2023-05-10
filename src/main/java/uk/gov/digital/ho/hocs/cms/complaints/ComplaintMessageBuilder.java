@@ -7,10 +7,10 @@ import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
@@ -25,14 +25,14 @@ import java.util.Optional;
 public class ComplaintMessageBuilder {
 
     private final IndividualRepository individualRepository;
-    private final CaseDataRepository caseDataRepository;
+    private final CaseDataComplaintRepository caseDataComplaintRepository;
     private final CasesRepository casesRepository;
 
     public ComplaintMessageBuilder(IndividualRepository individualRepository,
-                                   CaseDataRepository caseDataRepository,
+                                   CaseDataComplaintRepository caseDataComplaintRepository,
                                    CasesRepository casesRepository) {
         this.individualRepository = individualRepository;
-        this.caseDataRepository = caseDataRepository;
+        this.caseDataComplaintRepository = caseDataComplaintRepository;
         this.casesRepository = casesRepository;
     }
 
@@ -69,14 +69,14 @@ public class ComplaintMessageBuilder {
             caseDetails.setAdditionalCorrespondents(additionalCorrespondents);
             }
 
-        CaseData caseData = caseDataRepository.findByCaseId(caseId);
-        if (caseData == null) {
+        CaseDataComplaint caseDataComplaint = caseDataComplaintRepository.findByCaseId(caseId);
+        if (caseDataComplaint == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }
-        caseDetails.setCaseStatus(caseData.getStatus());
-        caseDetails.setCreationDate(caseData.getReceiveDate());
-        caseDetails.setCaseStatusDate(caseData.getReceiveDate());
-        caseDetails.setCaseType(CaseTypeMapping.getCaseType(caseData.getOwningCsu()));
+        caseDetails.setCaseStatus(caseDataComplaint.getStatus());
+        caseDetails.setCreationDate(caseDataComplaint.getReceiveDate());
+        caseDetails.setCaseStatusDate(caseDataComplaint.getReceiveDate());
+        caseDetails.setCaseType(CaseTypeMapping.getCaseType(caseDataComplaint.getOwningCsu()));
         if (caseDetails.getCaseType() == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("NULL or UNKNOWN Case Types are ignored",
                     LogEvent.CASE_DATA_CASE_TYPE_IGNORED);

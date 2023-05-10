@@ -19,8 +19,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "case_data")
-public class CaseData {
+@Table(name = "case_data_complaint")
+public class CaseDataComplaint {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

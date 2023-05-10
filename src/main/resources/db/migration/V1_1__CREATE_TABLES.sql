@@ -10,13 +10,13 @@ CREATE TABLE IF NOT EXISTS documents
     temp_file_name             TEXT
 );
 
-DROP TABLE IF EXISTS complaints cascade;
+DROP TABLE IF EXISTS extraction_stages cascade;
 
-CREATE TABLE IF NOT EXISTS complaints
+CREATE TABLE IF NOT EXISTS extraction_stages
 (
     id                         BIGSERIAL PRIMARY KEY,
     case_id                    NUMERIC,
-    complaint_extracted        BOOLEAN,
+    extracted                  BOOLEAN,
     stage                      TEXT,
     error                      TEXT,
     error_message              TEXT

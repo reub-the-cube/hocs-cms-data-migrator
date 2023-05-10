@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
-import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintExtractRecord;
-import uk.gov.digital.ho.hocs.cms.domain.repository.ComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.domain.model.ExtractRecord;
+import uk.gov.digital.ho.hocs.cms.domain.repository.ExtractionStagesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ProgressRepository;
 
 import java.math.BigDecimal;
@@ -20,19 +20,19 @@ public class TreatOfficialService {
     private final TreatOfficialExtractor treatOfficialExtractor;
     private final ProgressRepository progressRepository;
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
-    private final ComplaintsRepository complaintsRepository;
+    private final ExtractionStagesRepository extractionStagesRepository;
     private final ExtractResult extractResult;
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
-                                ComplaintsRepository complaintsRepository,
+                                ExtractionStagesRepository extractionStagesRepository,
                                 ExtractResult extractResult,
                                 ProgressRepository progressRepository) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
         this.extractResult = extractResult;
-        this.complaintsRepository = complaintsRepository;
+        this.extractionStagesRepository = extractionStagesRepository;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -61,24 +61,24 @@ public class TreatOfficialService {
         //extract correspondent
         try {
             treatOfficialCorrespondentExtractor.getCorrespondentsForCase(caseId);
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(caseId, extractionId, "Correspondents", true);
-            complaintsRepository.save(correspondentStage);
+            ExtractRecord correspondentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Correspondents", true);
+            extractionStagesRepository.save(correspondentStage);
         } catch (ApplicationExceptions.ExtractCorrespondentException e) {
-            ComplaintExtractRecord correspondentStage = getComplaintExtractRecord(caseId, extractionId, "Correspondents", false);
+            ExtractRecord correspondentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Correspondents", false);
             correspondentStage.setError(e.getEvent().toString());
             correspondentStage.setErrorMessage(e.getMessage());
-            complaintsRepository.save(correspondentStage);
+            extractionStagesRepository.save(correspondentStage);
             log.error("Failed extracting correspondents for case ID {}", caseId);
             return false;
         }
         return true;
     }
 
-    private ComplaintExtractRecord getComplaintExtractRecord(BigDecimal caseId, UUID extractionId, String stage, boolean extracted) {
-        ComplaintExtractRecord cer = new ComplaintExtractRecord();
+    private ExtractRecord getTreatOfficialExtractRecord(BigDecimal caseId, UUID extractionId, String stage, boolean extracted) {
+        ExtractRecord cer = new ExtractRecord();
         cer.setExtractionId(extractionId);
         cer.setCaseId(caseId);
-        cer.setComplaintExtracted(extracted);
+        cer.setExtracted(extracted);
         cer.setStage(stage);
         return cer;
     }

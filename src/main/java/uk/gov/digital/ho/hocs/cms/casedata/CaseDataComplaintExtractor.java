@@ -6,8 +6,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.digital.ho.hocs.cms.domain.model.CaseData;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataRepository;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -15,11 +15,11 @@ import java.sql.Date;
 
 @Component
 @Slf4j
-public class CaseDataExtractor {
+public class CaseDataComplaintExtractor {
 
     private final DataSource dataSource;
 
-    private final CaseDataRepository caseDataRepository;
+    private final CaseDataComplaintRepository caseDataComplaintRepository;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -34,19 +34,19 @@ public class CaseDataExtractor {
 
     private final String FETCH_OPEN_CASE_DESCRIPTION = "select otherdescription from lgncc_casehdr where caseid = ?";
 
-    public CaseDataExtractor(@Qualifier("cms") DataSource dataSource, CaseDataRepository caseDataRepository) {
+    public CaseDataComplaintExtractor(@Qualifier("cms") DataSource dataSource, CaseDataComplaintRepository caseDataComplaintRepository) {
         this.dataSource = dataSource;
-        this.caseDataRepository = caseDataRepository;
+        this.caseDataComplaintRepository = caseDataComplaintRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Transactional
-    public void getCaseData(BigDecimal caseId) {
+    public void getCaseDataComplaint(BigDecimal caseId) {
 
-        caseDataRepository.deleteAllByCaseId(caseId);
+        caseDataComplaintRepository.deleteAllByCaseId(caseId);
 
-        CaseData caseData = jdbcTemplate.queryForObject(FETCH_CASE_DATA, (rs, rowNum) -> {
-            CaseData cd = new CaseData();
+        CaseDataComplaint caseDataComplaint = jdbcTemplate.queryForObject(FETCH_CASE_DATA, (rs, rowNum) -> {
+            CaseDataComplaint cd = new CaseDataComplaint();
             cd.setCaseReference(rs.getString("casereference"));
             cd.setReceiveDate(convertDateToString(rs.getDate("ukbareceiveddate")));
             cd.setSlaDate(convertDateToString((rs.getDate("casesladate"))));
@@ -64,21 +64,21 @@ public class CaseDataExtractor {
 
         // lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open
         try {
-            if (caseData.getStatus().equalsIgnoreCase("closed")) {
-                caseData.setDescription(jdbcTemplate.queryForObject(FETCH_CLOSED_CASE_DESCRIPTION, String.class, caseId));
+            if (caseDataComplaint.getStatus().equalsIgnoreCase("closed")) {
+                caseDataComplaint.setDescription(jdbcTemplate.queryForObject(FETCH_CLOSED_CASE_DESCRIPTION, String.class, caseId));
             } else {
-                caseData.setDescription(jdbcTemplate.queryForObject(FETCH_OPEN_CASE_DESCRIPTION, String.class, caseId));
+                caseDataComplaint.setDescription(jdbcTemplate.queryForObject(FETCH_OPEN_CASE_DESCRIPTION, String.class, caseId));
             }
         }
         catch (DataAccessException e) {
             // query for object throws exception if no rows returned so we add empty string to description
             log.error("No Case Data description for Case ID: {}", caseId);
-            caseData.setDescription("");
+            caseDataComplaint.setDescription("");
         }
 
         // persist case data
-        caseData.setCaseId(caseId);
-        caseDataRepository.save(caseData);
+        caseDataComplaint.setCaseId(caseId);
+        caseDataComplaintRepository.save(caseDataComplaint);
 
     }
 

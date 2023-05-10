@@ -1,4 +1,4 @@
-ALTER TABLE complaints
+ALTER TABLE extraction_stages
 ADD COLUMN extraction_id UUID NULL;
 
 DROP TABLE IF EXISTS progress cascade;
