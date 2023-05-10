@@ -11,7 +11,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
@@ -32,21 +32,21 @@ public class ComplaintsMessageCaseData {
     private final CaseHistoryRepository caseHistoryRepository;
 
     private final IndividualRepository individualRepository;
-    private final CaseDataComplaintRepository caseDataComplaintRepository;
+    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
     private final CategoriesRepository categoriesRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final CasesRepository casesRepository;
     private final CaseDataTypes caseDataTypes;
 
     public ComplaintsMessageCaseData(IndividualRepository individualRepository,
-                                     CaseDataComplaintRepository caseDataComplaintRepository,
+                                     CaseDataComplaintsRepository caseDataComplaintsRepository,
                                      CategoriesRepository categoriesRepository,
                                      RiskAssessmentRepository riskAssessmentRepository,
                                      CaseHistoryRepository caseHistoryRepository,
                                      CasesRepository casesRepository,
                                      CaseDataTypes caseDataTypes) {
         this.individualRepository = individualRepository;
-        this.caseDataComplaintRepository = caseDataComplaintRepository;
+        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.categoriesRepository = categoriesRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.caseHistoryRepository = caseHistoryRepository;
@@ -66,7 +66,7 @@ public class ComplaintsMessageCaseData {
                     String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
                     LogEvent.NO_COMPLAINANT_FOUND_FOR_CASE_DATA);
         }
-        CaseDataComplaint caseDataComplaint = caseDataComplaintRepository.findByCaseId(caseId);
+        CaseDataComplaint caseDataComplaint = caseDataComplaintsRepository.findByCaseId(caseId);
         if (caseDataComplaint == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }

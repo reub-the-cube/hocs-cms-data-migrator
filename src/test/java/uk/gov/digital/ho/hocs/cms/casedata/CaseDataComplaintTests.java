@@ -10,7 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
 
 import javax.sql.DataSource;
 
@@ -26,7 +26,7 @@ public class CaseDataComplaintTests {
     private DataSource dataSource;
 
     @Mock
-    private CaseDataComplaintRepository caseDataComplaintRepository;
+    private CaseDataComplaintsRepository caseDataComplaintsRepository;
 
     private CaseDataComplaintExtractor caseDataComplaintExtractor;
 
@@ -35,7 +35,7 @@ public class CaseDataComplaintTests {
 
     @BeforeEach
     void setUp() {
-        caseDataComplaintExtractor = new CaseDataComplaintExtractor(dataSource, caseDataComplaintRepository);
+        caseDataComplaintExtractor = new CaseDataComplaintExtractor(dataSource, caseDataComplaintsRepository);
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 

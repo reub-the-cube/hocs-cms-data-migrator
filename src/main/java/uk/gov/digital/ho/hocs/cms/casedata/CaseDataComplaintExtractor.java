@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -19,7 +19,7 @@ public class CaseDataComplaintExtractor {
 
     private final DataSource dataSource;
 
-    private final CaseDataComplaintRepository caseDataComplaintRepository;
+    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -34,16 +34,16 @@ public class CaseDataComplaintExtractor {
 
     private final String FETCH_OPEN_CASE_DESCRIPTION = "select otherdescription from lgncc_casehdr where caseid = ?";
 
-    public CaseDataComplaintExtractor(@Qualifier("cms") DataSource dataSource, CaseDataComplaintRepository caseDataComplaintRepository) {
+    public CaseDataComplaintExtractor(@Qualifier("cms") DataSource dataSource, CaseDataComplaintsRepository caseDataComplaintsRepository) {
         this.dataSource = dataSource;
-        this.caseDataComplaintRepository = caseDataComplaintRepository;
+        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Transactional
     public void getCaseDataComplaint(BigDecimal caseId) {
 
-        caseDataComplaintRepository.deleteAllByCaseId(caseId);
+        caseDataComplaintsRepository.deleteAllByCaseId(caseId);
 
         CaseDataComplaint caseDataComplaint = jdbcTemplate.queryForObject(FETCH_CASE_DATA, (rs, rowNum) -> {
             CaseDataComplaint cd = new CaseDataComplaint();
@@ -78,7 +78,7 @@ public class CaseDataComplaintExtractor {
 
         // persist case data
         caseDataComplaint.setCaseId(caseId);
-        caseDataComplaintRepository.save(caseDataComplaint);
+        caseDataComplaintsRepository.save(caseDataComplaint);
 
     }
 

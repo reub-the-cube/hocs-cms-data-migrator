@@ -5,7 +5,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 
 import java.math.BigDecimal;
 
-public interface CaseDataComplaintRepository extends CrudRepository<CaseDataComplaint, Long> {
+public interface CaseDataComplaintsRepository extends CrudRepository<CaseDataComplaint, Long> {
 
     void deleteAllByCaseId(BigDecimal caseId);
 

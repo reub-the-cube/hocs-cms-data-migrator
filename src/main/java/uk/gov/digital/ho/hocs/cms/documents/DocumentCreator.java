@@ -25,7 +25,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.Response;
 import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
@@ -49,7 +49,7 @@ import java.util.Optional;
 public class DocumentCreator {
 
     private final IndividualRepository individualRepository;
-    private final CaseDataComplaintRepository caseDataComplaintRepository;
+    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
     private final CompensationRepository compensationRepository;
     private final CategoriesRepository categoriesRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
@@ -62,7 +62,7 @@ public class DocumentCreator {
     private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA.pdf";
 
     public DocumentCreator(IndividualRepository individualRepository,
-                           CaseDataComplaintRepository caseDataComplaintRepository,
+                           CaseDataComplaintsRepository caseDataComplaintsRepository,
                            CompensationRepository compensationRepository,
                            CategoriesRepository categoriesRepository,
                            RiskAssessmentRepository riskAssessmentRepository,
@@ -72,7 +72,7 @@ public class DocumentCreator {
                            CasesRepository casesRepository,
                            DocumentS3Client documentS3Client) {
         this.individualRepository = individualRepository;
-        this.caseDataComplaintRepository = caseDataComplaintRepository;
+        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.compensationRepository = compensationRepository;
         this.categoriesRepository = categoriesRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
@@ -173,7 +173,7 @@ public class DocumentCreator {
             }
 
             // Add case data to document
-            CaseDataComplaint casedata = caseDataComplaintRepository.findByCaseId(caseId);
+            CaseDataComplaint casedata = caseDataComplaintsRepository.findByCaseId(caseId);
             page = new PDPage();
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);

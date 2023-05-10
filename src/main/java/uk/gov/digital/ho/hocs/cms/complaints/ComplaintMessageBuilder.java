@@ -10,7 +10,7 @@ import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 
@@ -25,14 +25,14 @@ import java.util.Optional;
 public class ComplaintMessageBuilder {
 
     private final IndividualRepository individualRepository;
-    private final CaseDataComplaintRepository caseDataComplaintRepository;
+    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
     private final CasesRepository casesRepository;
 
     public ComplaintMessageBuilder(IndividualRepository individualRepository,
-                                   CaseDataComplaintRepository caseDataComplaintRepository,
+                                   CaseDataComplaintsRepository caseDataComplaintsRepository,
                                    CasesRepository casesRepository) {
         this.individualRepository = individualRepository;
-        this.caseDataComplaintRepository = caseDataComplaintRepository;
+        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.casesRepository = casesRepository;
     }
 
@@ -69,7 +69,7 @@ public class ComplaintMessageBuilder {
             caseDetails.setAdditionalCorrespondents(additionalCorrespondents);
             }
 
-        CaseDataComplaint caseDataComplaint = caseDataComplaintRepository.findByCaseId(caseId);
+        CaseDataComplaint caseDataComplaint = caseDataComplaintsRepository.findByCaseId(caseId);
         if (caseDataComplaint == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }
