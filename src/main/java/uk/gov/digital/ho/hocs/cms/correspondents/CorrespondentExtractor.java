@@ -63,9 +63,14 @@ public class CorrespondentExtractor {
         log.debug("Case ID {} Complainant ID {} Representative ID {}", caseId, correspondents.getComplainantId(),
                        correspondents.getRepresentativeId());
 
-        if (correspondents.isRepresentativeIdNull() || correspondents.isComplainantIdNull()) {
+        if (correspondents.isComplainantIdNull()) {
             throw new ApplicationExceptions.ExtractCorrespondentException(
                     String.format("Failed extracting correspondent IDs for case ID %s", caseId),  CORRESPONDENT_EXTRACTION_FAILED);
+        }
+
+        // if there is no reprentative id make it equal to complainant id
+        if (correspondents.isRepresentativeIdNull()) {
+            correspondents.setRepresentativeId(correspondents.getComplainantId());
         }
 
         if (correspondents.isComplainantPrimaryCorrespondent()) {
