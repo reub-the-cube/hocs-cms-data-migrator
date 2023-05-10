@@ -220,7 +220,16 @@ public class ComplaintsService {
         responseExtractor.getResponse(complaintId);
 
         // extract case history
-        caseHistoryExtractor.getCaseHistory(complaintId);
+        try {
+            caseHistoryExtractor.getCaseHistory(complaintId);
+            ComplaintExtractRecord caseHistoryStage = getComplaintExtractRecord(complaintId, extractionId, "Case history", true);
+            complaintsRepository.save(caseHistoryStage);
+        } catch (ApplicationExceptions.ExtractCaseHistoryException e) {
+            ComplaintExtractRecord caseHistoryStage = getComplaintExtractRecord(complaintId, extractionId, "Case history", false);
+            caseHistoryStage.setError(e.getEvent().toString());
+            caseHistoryStage.setErrorMessage(e.getMessage());
+            complaintsRepository.save(caseHistoryStage);
+        }
 
 
         // create cms migration document
