@@ -2,9 +2,12 @@ package uk.gov.digital.ho.hocs.cms.treatofficial;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataTreatOfficialsRepository;
 
@@ -25,7 +28,7 @@ public class CaseDataTreatOfficialExtractor {
 
     private final String FETCH_CASE_DATA_CLOSEDCASEVIEW = "select OpenedDateTime, TypeID, allocatedToDeptID, CaseRef, targetFixDateTime, otherDescription, Title, closedDateTime, Severity, Priority, CaseStatus from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
 
-    private final String FETCH_CASE_DATA_TREATOFFICIALEFORM = "select letterTopic, ResponseDate, tx_rejectnotes from LGNES_TreatOfficialEform where caseid = ?";
+    private final String FETCH_CASE_DATA_TREATOFFICIALEFORM = "SELECT letterTopic, ResponseDate, tx_rejectnotes FROM LGNEF_EFORMINSTANCEVERSION INNER JOIN LGNES_TreatOfficialEform ON LGNEF_EFORMINSTANCEVERSION.datarecordid = LGNES_TreatOfficialEform.uniqueid WHERE LGNEF_EFORMINSTANCEVERSION.caseid = ?";
 
 
     public CaseDataTreatOfficialExtractor(@Qualifier("cms") DataSource dataSource, CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository) {
@@ -56,17 +59,22 @@ public class CaseDataTreatOfficialExtractor {
             return caseData;
         }, caseId);
 
-        HashMap<String, String> eFormQueryValues = jdbcTemplate.queryForObject(FETCH_CASE_DATA_TREATOFFICIALEFORM, (rs, rowNum) -> {
-            HashMap<String, String> query = new HashMap<>();
-            query.put("letterTopic",rs.getString("letterTopic"));
-            query.put("ResponseDate",rs.getString("ResponseDate"));
-            query.put("tx_rejectnotes",rs.getString("tx_rejectnotes"));
-            return query;
-        }, caseId);
+        HashMap<String, String> eFormQueryValues;
+        try {
+            eFormQueryValues = jdbcTemplate.queryForObject(FETCH_CASE_DATA_TREATOFFICIALEFORM, (rs, rowNum) -> {
+                HashMap<String, String> query = new HashMap<>();
+                query.put("letterTopic",rs.getString("letterTopic"));
+                query.put("ResponseDate",rs.getString("ResponseDate"));
+                query.put("tx_rejectnotes",rs.getString("tx_rejectnotes"));
+                return query;
+            }, caseId);
 
-        caseDataTreatOfficial.setLetterTopic(eFormQueryValues.get("letterTopic"));
-        caseDataTreatOfficial.setResponseDate(eFormQueryValues.get("ResponseDate"));
-        caseDataTreatOfficial.setTxRejectNotes(eFormQueryValues.get("tx_rejectnotes"));
+            caseDataTreatOfficial.setLetterTopic(eFormQueryValues.get("letterTopic"));
+            caseDataTreatOfficial.setResponseDate(eFormQueryValues.get("ResponseDate"));
+            caseDataTreatOfficial.setTxRejectNotes(eFormQueryValues.get("tx_rejectnotes"));
+        } catch (DataAccessException e) {
+            log.error("Couldn't retrieve case-data from TREATOFFICIALEFORM for CASE ID {}. Error message: {}", caseId, e.getMessage());
+        }
 
         caseDataTreatOfficial.setCaseId(caseId);
         caseDataTreatOfficialsRepository.save(caseDataTreatOfficial);
