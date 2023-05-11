@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS case_data_complaints cascade;
+DROP TABLE IF EXISTS case_data cascade;
 
-CREATE TABLE IF NOT EXISTS case_data_complaints
+CREATE TABLE IF NOT EXISTS case_data
 (
     id                         BIGSERIAL PRIMARY KEY,
     caseid                     Numeric,
@@ -17,4 +17,4 @@ CREATE TABLE IF NOT EXISTS case_data_complaints
     businessarea               TEXT,
     status                     TEXT,
     description                TEXT
- );
+);
