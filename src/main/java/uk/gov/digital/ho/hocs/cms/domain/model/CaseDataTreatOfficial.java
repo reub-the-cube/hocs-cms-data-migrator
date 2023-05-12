@@ -30,7 +30,7 @@ public class CaseDataTreatOfficial {
     private BigDecimal caseId;
 
     @Column(name = "typeid")
-    private BigDecimal typeId;
+    private String typeId;
 
     @Column(name = "lettertopic")
     private String letterTopic;
@@ -39,7 +39,7 @@ public class CaseDataTreatOfficial {
     private String openedDateTime;
 
     @Column(name = "allocatedtodeptid")
-    private BigDecimal allocatedToDeptId;
+    private String allocatedToDeptId;
 
     @Column(name = "responsedate")
     private String responseDate;
@@ -63,12 +63,12 @@ public class CaseDataTreatOfficial {
     private String closedDateTime;
 
     @Column(name = "severity")
-    private String severity;
+    private BigDecimal severity;
 
     @Column(name = "priority")
-    private String priority;
+    private BigDecimal priority;
 
     @Column(name = "status")
-    private String status;
+    private BigDecimal status;
 
 }

@@ -18,6 +18,7 @@ import java.util.UUID;
 public class TreatOfficialService {
 
     private final TreatOfficialExtractor treatOfficialExtractor;
+    private final CaseDataTreatOfficialExtractor caseDataTreatOfficialExtractor;
     private final ProgressRepository progressRepository;
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
     private final ExtractionStagesRepository extractionStagesRepository;
@@ -25,12 +26,14 @@ public class TreatOfficialService {
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
+                                CaseDataTreatOfficialExtractor caseDataTreatOfficialExtractor,
                                 ExtractionStagesRepository extractionStagesRepository,
                                 ExtractResult extractResult,
                                 ProgressRepository progressRepository) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
+        this.caseDataTreatOfficialExtractor = caseDataTreatOfficialExtractor;
         this.extractResult = extractResult;
         this.extractionStagesRepository = extractionStagesRepository;
     }
@@ -58,6 +61,21 @@ public class TreatOfficialService {
     }
 
     private boolean extractTreatOfficial(UUID extractionId, BigDecimal caseId) {
+
+        //extract case-data
+        try {
+            caseDataTreatOfficialExtractor.getCaseDataTreatOfficial(caseId);
+            ExtractRecord caseDataStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case data Treat Official", true);
+            extractionStagesRepository.save(caseDataStage);
+        } catch (ApplicationExceptions.ExtractCaseDataException e) {
+            ExtractRecord caseDataStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case Data Treat Official", false);
+            caseDataStage.setError(e.getEvent().toString());
+            caseDataStage.setErrorMessage(e.getMessage());
+            extractionStagesRepository.save(caseDataStage);
+            log.error("Failed extracting case data treat official for case ID {}", caseId);
+            return false;
+        }
+
         //extract correspondent
         try {
             treatOfficialCorrespondentExtractor.getCorrespondentsForCase(caseId);
