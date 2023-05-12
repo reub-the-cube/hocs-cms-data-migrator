@@ -11,6 +11,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataTreatOfficialsReposi
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.HashMap;
 
 @Component
 @Slf4j
@@ -24,10 +25,8 @@ public class CaseDataTreatOfficialExtractor {
 
     private final String FETCH_CASE_DATA_CLOSEDCASEVIEW = "select OpenedDateTime, TypeID, allocatedToDeptID, CaseRef, targetFixDateTime, otherDescription, Title, closedDateTime, Severity, Priority, CaseStatus from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
 
-    private final String FETCH_CASE_DATA_TREATOFFICIALEFORM = """
-            select letterTopic, ResponseDate, tx_rejectnotes
-            from LGNES_TreatOfficialEform where caseid = ?
-            """;
+    private final String FETCH_CASE_DATA_TREATOFFICIALEFORM = "select letterTopic, ResponseDate, tx_rejectnotes from LGNES_TreatOfficialEform where caseid = ?";
+
 
     public CaseDataTreatOfficialExtractor(@Qualifier("cms") DataSource dataSource, CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository) {
         this.dataSource = dataSource;
@@ -56,6 +55,18 @@ public class CaseDataTreatOfficialExtractor {
 
             return caseData;
         }, caseId);
+
+        HashMap<String, String> eFormQueryValues = jdbcTemplate.queryForObject(FETCH_CASE_DATA_TREATOFFICIALEFORM, (rs, rowNum) -> {
+            HashMap<String, String> query = new HashMap<>();
+            query.put("letterTopic",rs.getString("letterTopic"));
+            query.put("ResponseDate",rs.getString("ResponseDate"));
+            query.put("tx_rejectnotes",rs.getString("tx_rejectnotes"));
+            return query;
+        }, caseId);
+
+        caseDataTreatOfficial.setLetterTopic(eFormQueryValues.get("letterTopic"));
+        caseDataTreatOfficial.setResponseDate(eFormQueryValues.get("ResponseDate"));
+        caseDataTreatOfficial.setTxRejectNotes(eFormQueryValues.get("tx_rejectnotes"));
 
         caseDataTreatOfficial.setCaseId(caseId);
         caseDataTreatOfficialsRepository.save(caseDataTreatOfficial);
