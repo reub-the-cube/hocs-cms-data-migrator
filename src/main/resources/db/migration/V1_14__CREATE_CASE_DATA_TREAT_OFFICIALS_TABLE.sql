@@ -12,11 +12,10 @@ DROP TABLE IF EXISTS case_data_treat_officials cascade;
 CREATE TABLE IF NOT EXISTS case_data_treat_officials
 (
     id                         BIGSERIAL PRIMARY KEY,
-    caseid                     Numeric,
-    typeid                     TEXT,
+    typeid                     Numeric,
     lettertopic                TEXT,
     openeddatetime             TEXT,
-    allocatedtodeptid          TEXT,
+    allocatedtodeptid          Numeric,
     responsedate               TEXT,
     tx_rejectnotes             TEXT,
     caseref                    TEXT,
@@ -24,7 +23,7 @@ CREATE TABLE IF NOT EXISTS case_data_treat_officials
     otherdescription           TEXT,
     title                      TEXT,
     closeddatetime             TEXT,
-    severity                   Numeric,
-    priority                   Numeric,
-    status                     Numeric
+    severity                   TEXT,
+    priority                   TEXT,
+    status                     TEXT
 );
