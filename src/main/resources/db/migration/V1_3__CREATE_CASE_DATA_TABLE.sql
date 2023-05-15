@@ -17,4 +17,4 @@ CREATE TABLE IF NOT EXISTS case_data
     businessarea               TEXT,
     status                     TEXT,
     description                TEXT
-);
+ );
