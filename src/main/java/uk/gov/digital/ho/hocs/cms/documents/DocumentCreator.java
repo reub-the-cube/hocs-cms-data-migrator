@@ -332,7 +332,7 @@ public class DocumentCreator {
             contentStream.beginText();
             contentStream.newLineAtOffset(100, 700);
             contentStream.setFont(boldFont, fontSize);
-            contentStream.showText("Case Histoy");
+            contentStream.showText("Case History");
             contentStream.setFont(normalFont, fontSize);
 
             BaseTable caseHistoryTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
