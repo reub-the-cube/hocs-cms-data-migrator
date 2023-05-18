@@ -75,7 +75,11 @@ public class ComplaintMessageBuilder {
         }
         caseDetails.setCaseStatus(caseDataComplaint.getStatus());
         caseDetails.setCreationDate(caseDataComplaint.getReceiveDate());
-        caseDetails.setCaseStatusDate(caseDataComplaint.getReceiveDate());
+        if (caseDetails.getCaseStatus().equalsIgnoreCase("closed")) {
+            caseDetails.setCaseStatusDate(caseDataComplaint.getClosedDt());
+        } else {
+            caseDetails.setCaseStatusDate(caseDataComplaint.getReceiveDate());
+        }
         caseDetails.setCaseType(CaseTypeMapping.getCaseType(caseDataComplaint.getOwningCsu()));
         if (caseDetails.getCaseType() == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("NULL or UNKNOWN Case Types are ignored",
