@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.complaints;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.casedata.CaseTypeMapping;
+import uk.gov.digital.ho.hocs.cms.casedata.QueueNameMapping;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
@@ -81,6 +82,11 @@ public class ComplaintMessageBuilder {
             caseDetails.setCaseStatusDate(caseDataComplaint.getReceiveDate());
         }
         caseDetails.setCaseType(CaseTypeMapping.getCaseType(caseDataComplaint.getOwningCsu()));
+        // if there is no owning csu use queue name instead
+        if (caseDetails.getCaseType() == null) {
+            caseDetails.setCaseType(QueueNameMapping.getCaseType(caseDataComplaint.getQueueName()));
+        }
+
         if (caseDetails.getCaseType() == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("NULL or UNKNOWN Case Types are ignored",
                     LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
