@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.ExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ExtractionStagesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ProgressRepository;
@@ -22,12 +23,14 @@ public class TreatOfficialService {
     private final ProgressRepository progressRepository;
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
     private final ExtractionStagesRepository extractionStagesRepository;
+    private final TreatOfficialMessageBuilder treatOfficialMessageBuilder;
     private final ExtractResult extractResult;
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
                                 CaseDataTreatOfficialExtractor caseDataTreatOfficialExtractor,
                                 ExtractionStagesRepository extractionStagesRepository,
+                                TreatOfficialMessageBuilder treatOfficialMessageBuilder,
                                 ExtractResult extractResult,
                                 ProgressRepository progressRepository) {
         this.progressRepository = progressRepository;
@@ -36,6 +39,7 @@ public class TreatOfficialService {
         this.caseDataTreatOfficialExtractor = caseDataTreatOfficialExtractor;
         this.extractResult = extractResult;
         this.extractionStagesRepository = extractionStagesRepository;
+        this.treatOfficialMessageBuilder = treatOfficialMessageBuilder;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -89,6 +93,15 @@ public class TreatOfficialService {
             log.error("Failed extracting correspondents for case ID {}", caseId);
             return false;
         }
+
+        //populate message
+        try {
+            CaseDetails message = treatOfficialMessageBuilder.buildMessage(caseId);
+
+        } catch (ApplicationExceptions.SendMigrationMessageException e) {
+
+        }
+
         return true;
     }
 
