@@ -14,9 +14,11 @@ import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentType;
 
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.model.Address;
+import uk.gov.digital.ho.hocs.cms.domain.model.CorrespondentTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.TreatOfficialCorrespondentsRepository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -44,10 +46,15 @@ public class TreatOfficialCorrespondentExtractor {
 
     private final IndividualRepository individualRepository;
 
-    public TreatOfficialCorrespondentExtractor(@Qualifier("cms") DataSource dataSource, IndividualRepository individualRepository) {
+    private final TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository;
+
+    public TreatOfficialCorrespondentExtractor(@Qualifier("cms") DataSource dataSource,
+                                               IndividualRepository individualRepository,
+                                               TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository) {
         this.dataSource = dataSource;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.individualRepository = individualRepository;
+        this.treatOfficialCorrespondentsRepository = treatOfficialCorrespondentsRepository;
     }
 
     public void getCorrespondentsForCase(BigDecimal caseId) {
@@ -80,6 +87,12 @@ public class TreatOfficialCorrespondentExtractor {
             individual.setType(CorrespondentType.COMPLAINANT.toString());
             log.debug("Complainant ID {} data extracted. Case ID {}", correspondentId, caseId);
             individualRepository.save(individual);
+
+            CorrespondentTreatOfficial correspondentTreatOfficial = new CorrespondentTreatOfficial();
+            correspondentTreatOfficial.setCaseId(caseId);
+            correspondentTreatOfficial.setIsPrimary(true);
+            correspondentTreatOfficial.setCorrespondentId(individual.getPartyId());
+            treatOfficialCorrespondentsRepository.save(correspondentTreatOfficial);
         } catch (DataAccessException e) {
             log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondentId, caseId);
             throw new ApplicationExceptions.ExtractCorrespondentException(
@@ -97,6 +110,12 @@ public class TreatOfficialCorrespondentExtractor {
                 individual.setPrimary(false);
                 log.debug("Representative {} data extracted. Case ID {}", correspondentIds, caseId);
                 individualRepository.save(individual);
+
+                CorrespondentTreatOfficial correspondentTreatOfficial = new CorrespondentTreatOfficial();
+                correspondentTreatOfficial.setCaseId(caseId);
+                correspondentTreatOfficial.setIsPrimary(false);
+                correspondentTreatOfficial.setCorrespondentId(individual.getPartyId());
+                treatOfficialCorrespondentsRepository.save(correspondentTreatOfficial);
             } catch (DataAccessException e) {
                 log.error("Failed extracting correspondent details for representative ID {} and case ID", correspondentId, caseId);
                 throw new ApplicationExceptions.ExtractCorrespondentException(e.getMessage(),  CORRESPONDENT_EXTRACTION_FAILED, e);
