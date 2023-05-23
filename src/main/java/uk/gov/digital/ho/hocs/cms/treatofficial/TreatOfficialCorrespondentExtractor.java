@@ -73,6 +73,8 @@ public class TreatOfficialCorrespondentExtractor {
                     return representativeId;
                 }, caseId);
 
+        //treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
+
         extractPrimaryCorrespondent(caseId, correspondentId);
 
         extractThirdPartyCorrespondents(caseId, thirdPartyCorrespondentIds);
@@ -92,7 +94,7 @@ public class TreatOfficialCorrespondentExtractor {
             correspondentTreatOfficial.setCaseId(caseId);
             correspondentTreatOfficial.setIsPrimary(true);
             correspondentTreatOfficial.setCorrespondentId(individual.getPartyId());
-            treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
+            //treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
             treatOfficialCorrespondentsRepository.save(correspondentTreatOfficial);
         } catch (DataAccessException e) {
             log.error("Failed extracting correspondent details for complainant ID {} and case ID", correspondentId, caseId);
@@ -116,7 +118,7 @@ public class TreatOfficialCorrespondentExtractor {
                 correspondentTreatOfficial.setCaseId(caseId);
                 correspondentTreatOfficial.setIsPrimary(false);
                 correspondentTreatOfficial.setCorrespondentId(individual.getPartyId());
-                treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
+                //treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
                 treatOfficialCorrespondentsRepository.save(correspondentTreatOfficial);
             } catch (DataAccessException e) {
                 log.error("Failed extracting correspondent details for representative ID {} and case ID", correspondentId, caseId);

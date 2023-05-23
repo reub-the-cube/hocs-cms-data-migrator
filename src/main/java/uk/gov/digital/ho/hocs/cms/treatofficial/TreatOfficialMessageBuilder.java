@@ -5,28 +5,35 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
+import uk.gov.digital.ho.hocs.cms.domain.message.Correspondent;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.CorrespondentTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataTreatOfficialsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.TreatOfficialCorrespondentsRepository;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Component
 @Slf4j
 public class TreatOfficialMessageBuilder {
 
+    public static final String TO_CASETYPE = "TO";
+    public static final String CASE_STATUS_CLOSED = "Closed";
     private final IndividualRepository individualRepository;
-
     private final TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository;
+    private final CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository;
 
-    public TreatOfficialMessageBuilder(IndividualRepository individualRepository, TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository) {
+    public TreatOfficialMessageBuilder(IndividualRepository individualRepository,
+                                       TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository,
+                                       CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository) {
         this.individualRepository = individualRepository;
         this.treatOfficialCorrespondentsRepository = treatOfficialCorrespondentsRepository;
+        this.caseDataTreatOfficialsRepository = caseDataTreatOfficialsRepository;
     }
 
     public CaseDetails buildMessage(BigDecimal caseId) {
@@ -35,13 +42,33 @@ public class TreatOfficialMessageBuilder {
         Optional<Individual> primaryCorrespondent = getPrimaryCorrespondent(caseLink);
         List<Optional<Individual>> representativeCorrespondents = getRepresentativeCorrespondents(caseLink);
 
-        Individual individual = null;
-        individual = primaryCorrespondent.get();
+        Individual primary = null;
+        primary = primaryCorrespondent.get();
 
         List<Individual> representatives = getRepresentatives(representativeCorrespondents);
 
+        // populate correspondent part of message
+        CaseDetails caseDetails = new CaseDetails();
+        caseDetails.setPrimaryCorrespondent(extractedMigrationMessageCorrespondentDetails(primary));
 
-        return null;
+        List<Correspondent> additionalCorrespondents = new ArrayList<>();
+        for (Individual representative : representatives) {
+            additionalCorrespondents.add(extractedMigrationMessageCorrespondentDetails(representative));
+        }
+        caseDetails.setAdditionalCorrespondents(additionalCorrespondents);
+
+        // populate casedata
+        CaseDataTreatOfficial caseDataTreatOfficial = caseDataTreatOfficialsRepository.findByCaseId(caseId);
+        if (caseDataTreatOfficial == null) {
+            throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
+        }
+
+        caseDetails.setCaseStatus(CASE_STATUS_CLOSED);
+        caseDetails.setCreationDate(caseDataTreatOfficial.getOpenedDateTime());
+        caseDetails.setCaseStatusDate(caseDataTreatOfficial.getClosedDateTime());
+        caseDetails.setCaseType(TO_CASETYPE);
+
+        return caseDetails;
     }
 
     public List<Individual> getRepresentatives(List<Optional<Individual>> representatives) {
@@ -82,6 +109,19 @@ public class TreatOfficialMessageBuilder {
                     LogEvent.MIGRATION_MESSAGE_FAILED);
         }
         return individualRepository.findById(correspondentId);
+    }
+
+    private Correspondent extractedMigrationMessageCorrespondentDetails(Individual individual) {
+        Correspondent correspondent = new Correspondent();
+        correspondent.setFullName(String.format("%s %s", individual.getForename(), individual.getSurname()));
+        correspondent.setEmail(individual.getEmail());
+        correspondent.setCorrespondentType(individual.getType());
+        correspondent.setAddress1(individual.getAddress().getAddressLine1());
+        correspondent.setAddress2(individual.getAddress().getAddressLine2());
+        correspondent.setAddress3(individual.getAddress().getAddressLine3());
+        correspondent.setPostcode(individual.getAddress().getPostcode());
+        correspondent.setTelephone(individual.getTelephone());
+        return correspondent;
     }
 
 }

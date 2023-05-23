@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.treatofficial;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
@@ -11,6 +12,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ExtractionStagesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ProgressRepository;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +26,9 @@ public class TreatOfficialService {
     private final TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor;
     private final ExtractionStagesRepository extractionStagesRepository;
     private final TreatOfficialMessageBuilder treatOfficialMessageBuilder;
+    private final TreatOfficialMessageCaseData treatOfficialMessageCaseData;
+    private final MessageService messageService;
+
     private final ExtractResult extractResult;
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
@@ -32,7 +37,9 @@ public class TreatOfficialService {
                                 ExtractionStagesRepository extractionStagesRepository,
                                 TreatOfficialMessageBuilder treatOfficialMessageBuilder,
                                 ExtractResult extractResult,
-                                ProgressRepository progressRepository) {
+                                ProgressRepository progressRepository,
+                                TreatOfficialMessageCaseData treatOfficialMessageCaseData,
+                                MessageService messageService) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
@@ -40,6 +47,8 @@ public class TreatOfficialService {
         this.extractResult = extractResult;
         this.extractionStagesRepository = extractionStagesRepository;
         this.treatOfficialMessageBuilder = treatOfficialMessageBuilder;
+        this.treatOfficialMessageCaseData = treatOfficialMessageCaseData;
+        this.messageService = messageService;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -97,9 +106,17 @@ public class TreatOfficialService {
         //populate message
         try {
             CaseDetails message = treatOfficialMessageBuilder.buildMessage(caseId);
-
+            message.addCaseDataItems(treatOfficialMessageCaseData.extractCaseData(caseId));
+            message.setSourceCaseId(caseId.toString());
+            message.setCaseAttachments(Collections.emptyList());    //Todo: Another ticket to add TO case attachments.
+            messageService.sendMigrationMessage(message);
         } catch (ApplicationExceptions.SendMigrationMessageException e) {
-
+            ExtractRecord correspondentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Migration message", false);
+            correspondentStage.setError(e.getEvent().toString());
+            correspondentStage.setErrorMessage(e.getMessage());
+            extractionStagesRepository.save(correspondentStage);
+            log.error("Failed sending migration message for case ID {}", caseId + " skipping case...");
+            return false;
         }
 
         return true;
