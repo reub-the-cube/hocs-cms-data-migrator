@@ -45,7 +45,7 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
   value: 'enabled'
 - name: COMPLAINT_START_DATE
   value: ''                                                 # Not relevant for this extractor
@@ -78,7 +78,7 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
   value: 'disabled'
 - name: COMPLAINT_START_DATE
   value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
@@ -101,7 +101,7 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'enabled'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
   value: 'disabled'
 - name: COMPLAINT_START_DATE
   value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
@@ -124,7 +124,7 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'enabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
   value: 'disabled'
 - name: COMPLAINT_START_DATE
   value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01
@@ -147,7 +147,7 @@ Expected use case for deployment would have one extractor enabled at a time.
   value: 'disabled'
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: 'disabled'
-- name: CMS_EXTRACT_MULTIPLE_COMPLAINTS
+- name: CMS_EXTRACT_SELECTED_COMPLAINTS
   value: 'disabled'
 - name: COMPLAINT_START_DATE
   value: '{TO BE SET}'                      # Inclusive start date of complaints to be extracted in yyyy-mm-dd format e.g. 2022-01-01

@@ -15,7 +15,7 @@ public class QueueNameMapping {
         queueNameMapping.put("CSU-Crime Directorate", CaseType.COMP.name());
         queueNameMapping.put("NRO-Harmondsworth", CaseType.COMP.name());
         queueNameMapping.put("NRO-CRTS 6", CaseType.COMP.name());
-        queueNameMapping.put("HMPO Complex", CaseType.COMP.name());
+        queueNameMapping.put("HMPO Complex", CaseType.POGR.name());
         queueNameMapping.put("NRO-NEYH Pending", CaseType.COMP.name());
         queueNameMapping.put("Windrush Complaints", CaseType.COMP.name());
         queueNameMapping.put("OoSS Allocations CCT", CaseType.COMP.name());
