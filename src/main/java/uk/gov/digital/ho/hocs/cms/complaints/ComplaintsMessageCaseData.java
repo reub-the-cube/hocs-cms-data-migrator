@@ -108,7 +108,11 @@ public class ComplaintsMessageCaseData {
         caseDataItems.addAll(extractCategories(caseId));
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("OwningCSU");
-        caseDataItem.setValue(caseDataComplaint.getOwningCsu());
+        if (caseDataComplaint.getOwningCsu() == null) {
+            caseDataItem.setValue("Unknown");
+        } else {
+            caseDataItem.setValue(caseDataComplaint.getOwningCsu());
+        }
         caseDataItems.add(caseDataItem);
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("CchCompType");
