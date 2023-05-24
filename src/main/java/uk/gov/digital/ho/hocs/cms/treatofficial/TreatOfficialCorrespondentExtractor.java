@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentDetails;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentEmail;
 import uk.gov.digital.ho.hocs.cms.correspondents.CorrespondentName;
@@ -57,6 +58,7 @@ public class TreatOfficialCorrespondentExtractor {
         this.treatOfficialCorrespondentsRepository = treatOfficialCorrespondentsRepository;
     }
 
+    @Transactional
     public void getCorrespondentsForCase(BigDecimal caseId) {
 
         BigDecimal correspondentId = jdbcTemplate.queryForObject(GET_CORRESPONDENT_IDS_FOR_CASE,
@@ -73,14 +75,15 @@ public class TreatOfficialCorrespondentExtractor {
                     return representativeId;
                 }, caseId);
 
-        //treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
+        treatOfficialCorrespondentsRepository.deleteAllByCaseId(caseId);
 
         extractPrimaryCorrespondent(caseId, correspondentId);
 
         extractThirdPartyCorrespondents(caseId, thirdPartyCorrespondentIds);
     }
 
-    private void extractPrimaryCorrespondent(BigDecimal caseId, BigDecimal correspondentId) {
+    @Transactional
+    void extractPrimaryCorrespondent(BigDecimal caseId, BigDecimal correspondentId) {
         try {
             Individual individual;
             individual = getCorrespondentDetails(correspondentId);
@@ -103,7 +106,8 @@ public class TreatOfficialCorrespondentExtractor {
         }
     }
 
-    private void extractThirdPartyCorrespondents(BigDecimal caseId, List<BigDecimal> correspondentIds) {
+    @Transactional
+    void extractThirdPartyCorrespondents(BigDecimal caseId, List<BigDecimal> correspondentIds) {
         for (BigDecimal correspondentId : correspondentIds) {
             try {
                 Individual individual;
