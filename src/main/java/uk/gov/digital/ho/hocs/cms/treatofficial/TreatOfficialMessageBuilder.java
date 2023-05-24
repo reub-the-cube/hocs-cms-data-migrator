@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 public class TreatOfficialMessageBuilder {
 
-    public static final String TO_CASETYPE = "TO";
+    public static final String TREAT_OFFICIAL_CASE_TYPE = "TO";
     public static final String CASE_STATUS_CLOSED = "Closed";
     private final IndividualRepository individualRepository;
     private final TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository;
@@ -66,7 +66,7 @@ public class TreatOfficialMessageBuilder {
         caseDetails.setCaseStatus(CASE_STATUS_CLOSED);
         caseDetails.setCreationDate(caseDataTreatOfficial.getOpenedDateTime());
         caseDetails.setCaseStatusDate(caseDataTreatOfficial.getClosedDateTime());
-        caseDetails.setCaseType(TO_CASETYPE);
+        caseDetails.setCaseType(TREAT_OFFICIAL_CASE_TYPE);
 
         return caseDetails;
     }
