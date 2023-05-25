@@ -88,6 +88,10 @@ public class CaseDataComplaintTests {
                 owningCsu,
                 "businessArea",
                 "status",
-                "description");
+                "description",
+                BigDecimal.ONE,
+                "10/02/23",
+                BigDecimal.ONE
+                );
     }
 }
