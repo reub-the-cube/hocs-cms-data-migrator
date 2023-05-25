@@ -68,4 +68,13 @@ public class CaseDataComplaint {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "severity")
+    private BigDecimal severity;
+
+    @Column(name = "responsedate")
+    private String responseDate;
+
+    @Column(name = "channel")
+    private BigDecimal channel;
 }

@@ -29,6 +29,32 @@ public class CaseDataComplaintExtractor {
              from FLODS_UKBACOMPLAINTS_D00 where caseid = ?
              """;
 
+    private final String FETCH_CASE_DATA_SEVERITY_RESPONSE_DATE_CHANNEL = """
+            SELECT 
+            CASES.Severity AS SEVERITY,
+            COMP.ResponseDate AS RESPONSE_DATE,
+            INTX.INITCHANNEL AS CHANNEL
+            FROM LGNCC_CASEHDR CASES
+            INNER JOIN LGNCC_ENQUIRY ENQ ON CASES.enquiryId = ENQ.id
+            LEFT OUTER JOIN LGNCC_ENQUIRYRELATION REL ON CASES.caseId = REL.caseId AND REL.RELATION = 1
+            LEFT OUTER JOIN LGNCC_INTLOGHDR INTX ON REL.INTERACTIONID = INTX.LOGID
+            INNER JOIN LGNEF_EFORMINSTANCEVERSION AS EFORM ON CASES.caseId = EFORM.CASEID
+            INNER JOIN UKBA_COMPLAINTFORMS COMP ON EFORM.DATARECORDID = COMP.UNIQUEID
+            WHERE CASES.caseId = ?
+            UNION ALL
+            SELECT
+            CASES.Severity AS SEVERITY,
+            COMP.ResponseDate AS RESPONSE_DATE,
+            INTX.INITCHANNEL AS CHANNEL
+            FROM LGNCC_CLOSEDCASEHDR CASES
+            INNER JOIN LGNCC_ENQUIRY ENQ ON CASES.enquiryId = ENQ.id
+            LEFT OUTER JOIN LGNCC_ENQUIRYRELATION REL ON CASES.caseId = REL.caseId AND REL.RELATION = 1
+            LEFT OUTER JOIN LGNCC_INTLOGHDR INTX ON REL.INTERACTIONID = INTX.LOGID
+            INNER JOIN LGNEF_EFORMINSTANCEVERSION AS EFORM ON CASES.caseId = EFORM.CASEID
+            INNER JOIN UKBA_COMPLAINTFORMS COMP ON EFORM.DATARECORDID = COMP.UNIQUEID
+            WHERE CASES.caseId = ?
+            """;
+
     // Use lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open
     private final String FETCH_CLOSED_CASE_DESCRIPTION = "select otherdescription from lgncc_closedcasehdr where caseid = ?";
 
@@ -74,6 +100,24 @@ public class CaseDataComplaintExtractor {
             // query for object throws exception if no rows returned so we add empty string to description
             log.error("No Case Data description for Case ID: {}", caseId);
             caseDataComplaint.setDescription("");
+        }
+
+        // get severity, responsedate and initchannel from separate query
+        try {
+            CaseDataComplaint alternateQuery = jdbcTemplate.queryForObject(FETCH_CASE_DATA_SEVERITY_RESPONSE_DATE_CHANNEL, (rs, rowNum) -> {
+                CaseDataComplaint query = new CaseDataComplaint();
+                query.setSeverity(rs.getBigDecimal("severity"));
+                query.setResponseDate(rs.getString("response_date"));
+                query.setChannel(rs.getBigDecimal("channel"));
+                return query;
+            },  caseId, caseId);
+
+            caseDataComplaint.setSeverity(alternateQuery.getSeverity());
+            caseDataComplaint.setResponseDate(alternateQuery.getResponseDate());
+            caseDataComplaint.setChannel(alternateQuery.getChannel());
+
+            } catch (DataAccessException e) {
+                log.error("Couldn't retrieve case-data; severity,responsedate and initchannel for CASE ID {}. Error message: {}", caseId, e.getMessage());
         }
 
         // persist case data
