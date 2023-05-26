@@ -24,13 +24,14 @@ import static uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent.CORRESPONDENT
 public class CorrespondentExtractor {
 
     private static final String GET_CORRESPONDENT_IDS_FOR_CASE = "select complainantid, representativeid from FLODS_UKBACOMPLAINTS_D00 where caseid = ?";
-    private static final String GET_CORRESPONDENT_NAME = "select forename1, surname from LGNOM_partyName where partyId = ?";
+    private static final String GET_CORRESPONDENT_NAME = "select top 1 forename1, surname from LGNOM_partyName where " +
+            "  partyId = ? ORDER BY CASE currentName WHEN 1 THEN 1 ELSE 0  END desc, LastModifiedDate DESC, ID DESC";
     private static final String GET_CORRESPONDENT_INDIVIDUAL_DETAILS = "select dateofbirth, nationality from LGNOM_individual where partyId = ?";
-    private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select phonenum from LGNOM_phoneDetails where partyId = ?";
-    private static final String GET_CORRESPONDENT_EMAIL = "select emailaddress from LGNOM_emailDetails where partyId = ?";
-    private static final String GET_CORRESPONDENT_ADDRESS = "select ID, addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = ?";
+    private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select top 1 phonenum from LGNOM_phoneDetails where partyId = ? ORDER BY CASE preferred WHEN 1 THEN 1 ELSE 0  END desc, LastModifiedDate DESC, phoneId DESC";
+    private static final String GET_CORRESPONDENT_EMAIL = "select top 1 emailaddress from LGNOM_emailDetails where partyId = ? ORDER BY CASE preferred WHEN 1 THEN 1 ELSE 0  END desc, LastModifiedDate DESC, emailId DESC";
+    private static final String GET_CORRESPONDENT_ADDRESS = "select top 1 ID, addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = ?  " +
+            "  ORDER BY CASE preferred WHEN 1 THEN 1 ELSE 0  END desc, LastModifiedDate DESC, ID DESC";
     private static final String GET_CORRESPONDENT_REFERENCE = "select ID, reftype, reference from LGNUK_REFERENCE where partyId = ?";
-
     private final DataSource dataSource;
 
     private final JdbcTemplate jdbcTemplate;
