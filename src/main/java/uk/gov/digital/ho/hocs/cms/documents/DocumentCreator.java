@@ -204,6 +204,10 @@ public class DocumentCreator {
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Closed Date: %s", removeInvalidChars(casedata.getClosedDt())));
             contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Severity: %s", removeInvalidChars(casedata.getSeverity().toString())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Channel: %s", removeInvalidChars(casedata.getChannel().toString())));
+            contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Owning CSU: %s", removeInvalidChars(casedata.getOwningCsu())));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Business Area: %s", removeInvalidChars(casedata.getBusinessArea())));
