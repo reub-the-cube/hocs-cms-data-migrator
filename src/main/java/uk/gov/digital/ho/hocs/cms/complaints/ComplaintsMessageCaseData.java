@@ -75,12 +75,6 @@ public class ComplaintsMessageCaseData {
         // populate case data hocs-6149
         List caseDataItems = new ArrayList();
         CaseDataItem caseDataItem = new CaseDataItem();
-        caseDataItem.setName("deadline");
-        caseDataItem.setValue(caseDataComplaint.getSlaDate());
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("DateReceived");
-        caseDataItem.setValue(caseDataComplaint.getReceiveDate());
-        caseDataItem = new CaseDataItem();
         caseDataItem.setName("ComplainantDOB");
         caseDataItem.setValue(individual.getDateOfBirth().toString());
         caseDataItems.add(caseDataItem);

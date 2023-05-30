@@ -65,7 +65,8 @@ public class MessageServiceTest {
 				.creationDate("2020-07-01")
 				.caseStatus("Closed")
 				.caseStatusDate("2020-07-01")
-				.creationDate("2020-07-01")
+				.dateReceived("2020-07-01")
+				.deadlineDate("2022-07-31")
 				.caseData(items)
 				.caseAttachments(attachments)
 				.build();

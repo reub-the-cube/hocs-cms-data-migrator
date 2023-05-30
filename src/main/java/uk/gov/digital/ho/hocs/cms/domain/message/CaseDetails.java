@@ -30,6 +30,9 @@ public class CaseDetails {
     @Getter
     private List<CaseAttachment> caseAttachments;
 
+    private String dateReceived;
+    private String deadlineDate;
+
     public void addCaseDataIte(CaseDataItem cdi) {
         if (caseData == null) {
             caseData = new ArrayList<>();

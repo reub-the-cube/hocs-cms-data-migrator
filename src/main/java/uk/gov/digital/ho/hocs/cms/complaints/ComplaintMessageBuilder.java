@@ -76,6 +76,9 @@ public class ComplaintMessageBuilder {
         }
         caseDetails.setCaseStatus(caseDataComplaint.getStatus());
         caseDetails.setCreationDate(caseDataComplaint.getReceiveDate());
+        caseDetails.setDateReceived(caseDataComplaint.getReceiveDate());
+        caseDetails.setDeadlineDate(caseDataComplaint.getSlaDate());
+
         if (caseDetails.getCaseStatus().equalsIgnoreCase("closed")) {
             caseDetails.setCaseStatusDate(caseDataComplaint.getClosedDt());
         } else {
