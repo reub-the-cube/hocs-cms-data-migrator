@@ -19,7 +19,7 @@ public class ComplaintsExtractor {
            SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00
            WHERE CREATED_DT BETWEEN :startDate AND :endDate 
            AND casedeleteddate IS NULL
-           AND reason != 'Treat Official'
+           AND reason = 'Complaint'
            AND status = :status
            """;
 
@@ -27,7 +27,7 @@ public class ComplaintsExtractor {
             SELECT caseid FROM FLODS_UKBACOMPLAINTS_D00
             WHERE CREATED_DT BETWEEN :startDate AND :endDate
             AND casedeleteddate IS NULL
-            AND reason != 'Treat Official'
+            AND reason = 'Complaint'
             """;
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
