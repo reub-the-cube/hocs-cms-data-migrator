@@ -112,10 +112,12 @@ public class BorderForceMessageCaseData {
             caseDataItems.add(caseDataItem);
         }
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("ComplainantCompanyName");
-        caseDataItem.setValue(individual.getCompanyName());
-        caseDataItems.add(caseDataItem);
+        if (individual.getCompanyName() != null) {
+            caseDataItem = new CaseDataItem();
+            caseDataItem.setName("ComplainantCompanyName");
+            caseDataItem.setValue(individual.getCompanyName());
+            caseDataItems.add(caseDataItem);
+        }
 
         return caseDataItems;
     }
