@@ -58,4 +58,6 @@ public class Individual {
     @JoinColumn(name = "partyid", referencedColumnName = "partyid", nullable = false)
     private List<Reference> references;
 
+    @Column(name = "companyname")
+    private String companyName;
 }

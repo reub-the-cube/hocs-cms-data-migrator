@@ -32,6 +32,8 @@ public class CorrespondentExtractor {
     private static final String GET_CORRESPONDENT_ADDRESS = "select top 1 ID, addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = ?  " +
             "  ORDER BY CASE preferred WHEN 1 THEN 1 ELSE 0  END desc, LastModifiedDate DESC, ID DESC";
     private static final String GET_CORRESPONDENT_REFERENCE = "select ID, reftype, reference from LGNUK_REFERENCE where partyId = ?";
+
+    private static final String GET_CORRESPONDENT_COMPANY_NAME = "select UserDefinedText1 as companyname from LGNOM_individual where partyId = ? ";
     private final DataSource dataSource;
 
     private final JdbcTemplate jdbcTemplate;
@@ -162,6 +164,13 @@ public class CorrespondentExtractor {
             r.setReference(rs.getString("reference"));
             return r;
         }, partyId));
+
+        CorrespondentCompanyName correspondentCompanyName = jdbcTemplate.queryForObject(GET_CORRESPONDENT_COMPANY_NAME, (rs, rowNum) -> {
+            CorrespondentCompanyName cn = new CorrespondentCompanyName();
+            cn.setCompanyName(rs.getString("companyname"));
+            return cn;
+        }, partyId);
+        individual.setCompanyName(correspondentCompanyName.getCompanyName());
 
      return individual;
     }
