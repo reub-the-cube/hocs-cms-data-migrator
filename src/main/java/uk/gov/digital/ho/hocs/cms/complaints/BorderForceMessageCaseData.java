@@ -12,7 +12,6 @@ import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.RiskAssessment;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
-import uk.gov.digital.ho.hocs.cms.domain.repository.CaseHistoryRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
@@ -28,34 +27,30 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class ComplaintsMessageCaseData {
-    private final CaseHistoryRepository caseHistoryRepository;
+public class BorderForceMessageCaseData {
 
     private final IndividualRepository individualRepository;
-    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
-    private final CategoriesRepository categoriesRepository;
-    private final RiskAssessmentRepository riskAssessmentRepository;
     private final CasesRepository casesRepository;
-    private final CaseDataTypes caseDataTypes;
+    private final CaseDataComplaintsRepository caseDataComplaintsRepository;
+    private final RiskAssessmentRepository riskAssessmentRepository;
+    private final CategoriesRepository categoriesRepository;
+    private final BorderForceCaseDataTypes borderForceCaseDataTypes;
 
-    public ComplaintsMessageCaseData(IndividualRepository individualRepository,
-                                     CaseDataComplaintsRepository caseDataComplaintsRepository,
-                                     CategoriesRepository categoriesRepository,
-                                     RiskAssessmentRepository riskAssessmentRepository,
-                                     CaseHistoryRepository caseHistoryRepository,
-                                     CasesRepository casesRepository,
-                                     CaseDataTypes caseDataTypes) {
+
+    public BorderForceMessageCaseData(IndividualRepository individualRepository, CasesRepository casesRepository,
+                                      CaseDataComplaintsRepository caseDataComplaintsRepository,
+                                      RiskAssessmentRepository riskAssessmentRepository,
+                                      CategoriesRepository categoriesRepository,
+                                      BorderForceCaseDataTypes borderForceCaseDataTypes) {
         this.individualRepository = individualRepository;
-        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
-        this.categoriesRepository = categoriesRepository;
-        this.riskAssessmentRepository = riskAssessmentRepository;
-        this.caseHistoryRepository = caseHistoryRepository;
         this.casesRepository = casesRepository;
-        this.caseDataTypes = caseDataTypes;
+        this.caseDataComplaintsRepository = caseDataComplaintsRepository;
+        this.riskAssessmentRepository = riskAssessmentRepository;
+        this.categoriesRepository = categoriesRepository;
+        this.borderForceCaseDataTypes = borderForceCaseDataTypes;
     }
 
     public List<CaseDataItem> extractCaseData(BigDecimal caseId) {
-
         ComplaintCase complaintCase = casesRepository.findByCaseId(caseId);
         Optional<Individual> individualOptional = individualRepository.findById(complaintCase.getComplainantId());
         Individual individual = null;
@@ -66,20 +61,16 @@ public class ComplaintsMessageCaseData {
                     String.format("Complainant doesn't exist. Complainant ID {}", complaintCase.getComplainantId()),
                     LogEvent.NO_COMPLAINANT_FOUND_FOR_CASE_DATA);
         }
+
         CaseDataComplaint caseDataComplaint = caseDataComplaintsRepository.findByCaseId(caseId);
         if (caseDataComplaint == null) {
             throw new ApplicationExceptions.SendMigrationMessageException("No case data retrieved.", LogEvent.NO_CASE_DATA_TO_POPULATE_MESSAGE);
         }
 
         RiskAssessment riskAssessment = riskAssessmentRepository.findByCaseId(caseId);
-        // populate case data hocs-6149
+
         List caseDataItems = new ArrayList();
         CaseDataItem caseDataItem = new CaseDataItem();
-        caseDataItem.setName("ComplainantDOB");
-        caseDataItem.setValue(individual.getDateOfBirth().toString());
-        caseDataItems.add(caseDataItem);
-
-        caseDataItem = new CaseDataItem();
         caseDataItem.setName("ComplainantNationality");
         caseDataItem.setValue(individual.getNationality());
         caseDataItems.add(caseDataItem);
@@ -99,39 +90,12 @@ public class ComplaintsMessageCaseData {
         caseDataItem.setValue(caseDataComplaint.getCurrentType());
         caseDataItems.add(caseDataItem);
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("CaseSummary");
-        caseDataItem.setValue(caseDataComplaint.getDescription());
-        caseDataItems.add(caseDataItem);
         // Categories
         caseDataItems.addAll(extractCategories(caseId));
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("OwningCSU");
-        if (caseDataComplaint.getOwningCsu() == null) {
-            caseDataItem.setValue("Unknown");
-        } else {
-            caseDataItem.setValue(caseDataComplaint.getOwningCsu());
-        }
-        caseDataItems.add(caseDataItem);
-
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("CchCompType");
-        caseDataItem.setValue(caseDataComplaint.getCurrentType());
-        caseDataItems.add(caseDataItem);
-
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("SeverityReason");
-        caseDataItem.setValue(riskAssessment.getFromOrAffectingAChild());
-        caseDataItems.add(caseDataItem);
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("BusArea");
         caseDataItem.setValue(caseDataComplaint.getBusinessArea());
-        caseDataItems.add(caseDataItem);
-
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("Severity");
-        caseDataItem.setValue(caseDataComplaint.getSeverity().toString());
         caseDataItems.add(caseDataItem);
 
         if (caseDataComplaint.getResponseDate() != null) {
@@ -147,15 +111,6 @@ public class ComplaintsMessageCaseData {
             caseDataItem.setValue(caseDataComplaint.getResponseDate());
             caseDataItems.add(caseDataItem);
         }
-
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("Channel");
-        if (caseDataComplaint.getChannel() != null) {
-            caseDataItem.setValue(caseDataComplaint.getChannel().toString());
-        } else {
-            caseDataItem.setValue("Unknown");
-        }
-        caseDataItems.add(caseDataItem);
 
         return caseDataItems;
     }
@@ -174,7 +129,7 @@ public class ComplaintsMessageCaseData {
         List<CaseDataItem> caseDataItems = new ArrayList<>();
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
         Map<String, String> checkedCategories = mapCheckedCategories(categories);
-        for (Map.Entry<String, String> entry : caseDataTypes.getCategories().entrySet()) {
+        for (Map.Entry<String, String> entry : borderForceCaseDataTypes.getCategories().entrySet()) {
             if (checkedCategories.containsKey(entry.getKey())) {
                 caseDataItems.add(makeCaseDataItem(entry.getValue(), Boolean.TRUE.toString()));
             } else {
@@ -199,6 +154,4 @@ public class ComplaintsMessageCaseData {
         return caseDataItem;
     }
 
-
-
-}
+    }

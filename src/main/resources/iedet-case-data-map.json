@@ -1,0 +1,23 @@
+{
+  "categories" :
+  {
+    "Delay" : "CatDelay",
+    "Admin process error" : "CatAdminErr",
+    "Poor communication" : "CatPoorComm",
+    "Wrong information" : "CatWrongInfo",
+    "Lost documents" : "CatLost",
+    "CC Physical environment" : "CatPhysEnv",
+    "CC Availability of service" : "CatAvail",
+    "CC Provision for minors" : "CatProvMinor",
+    "CC Complaint handling" : "CatHandle",
+    "Rudeness" : "CatRude",
+    "Unfair treatment" : "CatUnfair",
+    "Other non professional" : "CatOtherUnprof",
+    "Theft" : "CatTheft",
+    "Assault" : "CatAssault",
+    "Sexual assault" : "CatSexAssault",
+    "Fraud" : "CatFraud",
+    "Racism" : "CatRacism"
+  }
+}
+

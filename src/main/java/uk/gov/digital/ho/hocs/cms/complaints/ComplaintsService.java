@@ -44,7 +44,10 @@ public class ComplaintsService {
     private final ComplaintMessageBuilder complaintMessageBuilder;
     private final ExtractResult extractResult;
     private final MessageService messageService;
-    private final ComplaintsMessageCaseData decsCaseData;
+    private final ComplaintsMessageCaseData complaintsMessageCaseData;
+    private final BorderForceMessageCaseData borderForceMessageCaseData;
+    private final POGRMessageCaseData pogrMessageCaseData;
+    private final IEDETMessageCaseData iedetMessageCaseData;
     private final DocumentCreator documentCreator;
     private final String migrationDocument;
 
@@ -60,7 +63,10 @@ public class ComplaintsService {
                              SubCategoriesExtractor subCategoriesExtractor,
                              ResponseExtractor responseExtractor,
                              CaseHistoryExtractor caseHistoryExtractor,
-                             ComplaintsMessageCaseData decsCaseData,
+                             ComplaintsMessageCaseData complaintsMessageCaseData,
+                             BorderForceMessageCaseData borderForceMessageCaseData,
+                             POGRMessageCaseData pogrMessageCaseData,
+                             IEDETMessageCaseData iedetMessageCaseData,
                              ComplaintMessageBuilder complaintMessageBuilder,
                              ExtractResult extractResult,
                              MessageService messageService,
@@ -78,7 +84,10 @@ public class ComplaintsService {
         this.subCategoriesExtractor = subCategoriesExtractor;
         this.responseExtractor = responseExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
-        this.decsCaseData = decsCaseData;
+        this.complaintsMessageCaseData = complaintsMessageCaseData;
+        this.borderForceMessageCaseData = borderForceMessageCaseData;
+        this.pogrMessageCaseData = pogrMessageCaseData;
+        this.iedetMessageCaseData = iedetMessageCaseData;
         this.complaintMessageBuilder = complaintMessageBuilder;
         this.extractResult = extractResult;
         this.messageService = messageService;
@@ -248,7 +257,22 @@ public class ComplaintsService {
         // populate message
         try {
         CaseDetails message = complaintMessageBuilder.buildMessage(complaintId);
-        message.addCaseDataItems(decsCaseData.extractCaseData(complaintId));
+
+        switch (message.getCaseType()) {
+            case "COMP":
+                message.addCaseDataItems(complaintsMessageCaseData.extractCaseData(complaintId));
+                break;
+            case "BF":
+                message.addCaseDataItems(borderForceMessageCaseData.extractCaseData(complaintId));
+                break;
+            case "POGR":
+                message.addCaseDataItems(pogrMessageCaseData.extractCaseData(complaintId));
+                break;
+            case "IEDET":
+                message.addCaseDataItems(iedetMessageCaseData.extractCaseData(complaintId));
+                break;
+        }
+
         message.setCaseAttachments(caseDetails.getCaseAttachments());
         // send migration message
         message.setSourceCaseId(complaintId.toString());
