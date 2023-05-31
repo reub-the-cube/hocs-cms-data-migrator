@@ -91,7 +91,7 @@ public class ComplaintMessageBuilder {
         }
 
         if (caseDetails.getCaseType() == null) {
-            throw new ApplicationExceptions.SendMigrationMessageException("NULL or UNKNOWN Case Types are ignored",
+            throw new ApplicationExceptions.SendMigrationMessageException("No matching Case Type found.",
                     LogEvent.CASE_DATA_CASE_TYPE_IGNORED);
         }
         return caseDetails;
