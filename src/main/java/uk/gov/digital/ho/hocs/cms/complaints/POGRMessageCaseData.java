@@ -94,6 +94,11 @@ public class POGRMessageCaseData {
         }
         caseDataItems.add(caseDataItem);
 
+        caseDataItem = new CaseDataItem();
+        caseDataItem.setName("ComplainantCompanyName");
+        caseDataItem.setValue(individual.getCompanyName());
+        caseDataItems.add(caseDataItem);
+
         return caseDataItems;
     }
 }
