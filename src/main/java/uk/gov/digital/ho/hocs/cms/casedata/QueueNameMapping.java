@@ -51,6 +51,16 @@ public class QueueNameMapping {
         queueNameMapping.put("NRO-MEE and International", CaseType.COMP.name());
         queueNameMapping.put("Escalations CCT", CaseType.COMP.name());
         queueNameMapping.put("Asylum Protection Hub Pilot", CaseType.COMP.name());
+        queueNameMapping.put("BPM", CaseType.COMP.name());
+        queueNameMapping.put("A template reply", CaseType.COMP.name());
+        queueNameMapping.put("DNA Test Fees", CaseType.COMP.name());
+        queueNameMapping.put("Minor Misconduct", CaseType.COMP.name());
+        queueNameMapping.put("Priority Allocations CCT", CaseType.COMP.name());
+        queueNameMapping.put("PSU", CaseType.COMP.name());
+        queueNameMapping.put("UNALLOCATED-Minor Misconduct", CaseType.COMP.name());
+        queueNameMapping.put("UNALLOCATED-Serious Misconduct", CaseType.COMP.name());
+        queueNameMapping.put("UNALLOCATED-Service", CaseType.COMP.name());
+        queueNameMapping.put(null, CaseType.COMP.name());
 
         return queueNameMapping.get(queueName);
     }
