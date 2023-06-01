@@ -86,6 +86,7 @@ public class DocumentExtractor {
         DocStore doc = null;
         try {
             doc = queryForDocument(documentId);
+            record.setFilename(doc.fileName);
         } catch (ApplicationExceptions.ExtractDocumentException e) {
             record.setDocumentExtracted(false);
             record.setFailureReason(e.getMessage());

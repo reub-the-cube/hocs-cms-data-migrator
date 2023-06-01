@@ -40,4 +40,7 @@ public class DocumentExtractRecord {
 
     @Column(name = "temp_file_name")
     private String tempFileName;
+
+    @Column(name = "filename")
+    private String filename;
 }
