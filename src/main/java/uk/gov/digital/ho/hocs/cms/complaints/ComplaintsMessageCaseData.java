@@ -120,7 +120,7 @@ public class ComplaintsMessageCaseData {
         caseDataItems.add(caseDataItem);
 
         caseDataItem = new CaseDataItem();
-        caseDataItem.setName("SeverityReason");
+        caseDataItem.setName("SeveritySafeGuarding");
         caseDataItem.setValue(riskAssessment.getFromOrAffectingAChild());
         caseDataItems.add(caseDataItem);
 

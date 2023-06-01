@@ -74,6 +74,7 @@ public class IEDETMessageCaseData {
         CaseDataItem caseDataItem = new CaseDataItem();
         caseDataItem.setName("ComplainantDOB");
         caseDataItem.setValue(individual.getDateOfBirth().toString());
+        caseDataItems.add(caseDataItem);
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("ComplainantNationality");
