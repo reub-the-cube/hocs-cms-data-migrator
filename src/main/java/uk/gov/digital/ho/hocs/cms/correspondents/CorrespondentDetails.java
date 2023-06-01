@@ -15,5 +15,6 @@ public class CorrespondentDetails {
 
     private LocalDate dateOfBirth;
     private String nationality;
+    private String companyName;
 
 }
