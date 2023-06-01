@@ -174,7 +174,7 @@ public class ComplaintsMessageCaseData {
         List<CaseDataItem> caseDataItems = new ArrayList<>();
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
         Map<String, String> checkedCategories = mapCheckedCategories(categories);
-        for (Map.Entry<String, String> entry : caseDataTypes.getCategories().entrySet()) {
+        for (Map.Entry<String, String> entry : caseDataTypes.getComp().entrySet()) {
             if (checkedCategories.containsKey(entry.getKey())) {
                 caseDataItems.add(makeCaseDataItem(entry.getValue(), Boolean.TRUE.toString()));
             } else {

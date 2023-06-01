@@ -34,20 +34,20 @@ public class BorderForceMessageCaseData {
     private final CaseDataComplaintsRepository caseDataComplaintsRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final CategoriesRepository categoriesRepository;
-    private final BorderForceCaseDataTypes borderForceCaseDataTypes;
+    private final CaseDataTypes caseDataTypes;
 
 
     public BorderForceMessageCaseData(IndividualRepository individualRepository, CasesRepository casesRepository,
                                       CaseDataComplaintsRepository caseDataComplaintsRepository,
                                       RiskAssessmentRepository riskAssessmentRepository,
                                       CategoriesRepository categoriesRepository,
-                                      BorderForceCaseDataTypes borderForceCaseDataTypes) {
+                                      CaseDataTypes caseDataTypes) {
         this.individualRepository = individualRepository;
         this.casesRepository = casesRepository;
         this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.categoriesRepository = categoriesRepository;
-        this.borderForceCaseDataTypes = borderForceCaseDataTypes;
+        this.caseDataTypes = caseDataTypes;
     }
 
     public List<CaseDataItem> extractCaseData(BigDecimal caseId) {
@@ -129,7 +129,7 @@ public class BorderForceMessageCaseData {
         List<CaseDataItem> caseDataItems = new ArrayList<>();
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
         Map<String, String> checkedCategories = mapCheckedCategories(categories);
-        for (Map.Entry<String, String> entry : borderForceCaseDataTypes.getCategories().entrySet()) {
+        for (Map.Entry<String, String> entry : caseDataTypes.getBorderforce().entrySet()) {
             if (checkedCategories.containsKey(entry.getKey())) {
                 caseDataItems.add(makeCaseDataItem(entry.getValue(), Boolean.TRUE.toString()));
             } else {

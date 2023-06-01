@@ -34,20 +34,20 @@ public class IEDETMessageCaseData {
     private final CaseDataComplaintsRepository caseDataComplaintsRepository;
     private final RiskAssessmentRepository riskAssessmentRepository;
     private final CategoriesRepository categoriesRepository;
-    private final IEDETCaseDataTypes iedetCaseDataTypes;
+    private final CaseDataTypes caseDataTypes;
 
 
     public IEDETMessageCaseData(IndividualRepository individualRepository, CasesRepository casesRepository,
                                 CaseDataComplaintsRepository caseDataComplaintsRepository,
                                 RiskAssessmentRepository riskAssessmentRepository,
                                 CategoriesRepository categoriesRepository,
-                                IEDETCaseDataTypes iedetCaseDataTypes) {
+                                CaseDataTypes caseDataTypes) {
         this.individualRepository = individualRepository;
         this.casesRepository = casesRepository;
         this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.riskAssessmentRepository = riskAssessmentRepository;
         this.categoriesRepository = categoriesRepository;
-        this.iedetCaseDataTypes = iedetCaseDataTypes;
+        this.caseDataTypes = caseDataTypes;
     }
 
     public List<CaseDataItem> extractCaseData(BigDecimal caseId) {
@@ -136,7 +136,7 @@ public class IEDETMessageCaseData {
         List<CaseDataItem> caseDataItems = new ArrayList<>();
         List<Categories> categories = categoriesRepository.findAllByCaseId(caseId);
         Map<String, String> checkedCategories = mapCheckedCategories(categories);
-        for (Map.Entry<String, String> entry : iedetCaseDataTypes.getCategories().entrySet()) {
+        for (Map.Entry<String, String> entry : caseDataTypes.getIedet().entrySet()) {
             if (checkedCategories.containsKey(entry.getKey())) {
                 caseDataItems.add(makeCaseDataItem(entry.getValue(), Boolean.TRUE.toString()));
             } else {
