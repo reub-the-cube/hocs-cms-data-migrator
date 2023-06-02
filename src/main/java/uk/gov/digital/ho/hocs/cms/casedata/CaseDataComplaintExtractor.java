@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.utils.CharacterDecoder;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -22,6 +23,8 @@ public class CaseDataComplaintExtractor {
     private final CaseDataComplaintsRepository caseDataComplaintsRepository;
 
     private final JdbcTemplate jdbcTemplate;
+
+    private final CharacterDecoder characterDecoder;
 
     private final String FETCH_CASE_DATA = """ 
             select casereference, ukbareceiveddate, casesladate, initialtype, currenttype,
@@ -60,10 +63,12 @@ public class CaseDataComplaintExtractor {
 
     private final String FETCH_OPEN_CASE_DESCRIPTION = "select otherdescription from lgncc_casehdr where caseid = ?";
 
-    public CaseDataComplaintExtractor(@Qualifier("cms") DataSource dataSource, CaseDataComplaintsRepository caseDataComplaintsRepository) {
+    public CaseDataComplaintExtractor(@Qualifier("cms") DataSource dataSource, CaseDataComplaintsRepository caseDataComplaintsRepository,
+                                      CharacterDecoder characterDecoder) {
         this.dataSource = dataSource;
         this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.characterDecoder = characterDecoder;
     }
 
     @Transactional
@@ -91,9 +96,20 @@ public class CaseDataComplaintExtractor {
         // lgncc_closedcasehdr.otherdescription if status is closed or lgncc_casehdr.otherdescription if status is open
         try {
             if (caseDataComplaint.getStatus().equalsIgnoreCase("closed")) {
-                caseDataComplaint.setDescription(jdbcTemplate.queryForObject(FETCH_CLOSED_CASE_DESCRIPTION, String.class, caseId));
+                CaseDataComplaint caseDescrion = jdbcTemplate.queryForObject(FETCH_CLOSED_CASE_DESCRIPTION, (rs, rowNum) -> {
+                    CaseDataComplaint cd = new CaseDataComplaint();
+                    cd.setDescription(characterDecoder.decodeWindows1252Charset(rs.getBytes("otherdescription")));
+                    return cd;
+                }, caseId);
+                caseDataComplaint.setDescription(caseDescrion.getDescription());
+
             } else {
-                caseDataComplaint.setDescription(jdbcTemplate.queryForObject(FETCH_OPEN_CASE_DESCRIPTION, String.class, caseId));
+                CaseDataComplaint caseDescrion = jdbcTemplate.queryForObject(FETCH_OPEN_CASE_DESCRIPTION, (rs, rowNum) -> {
+                    CaseDataComplaint cd = new CaseDataComplaint();
+                    cd.setDescription(characterDecoder.decodeWindows1252Charset(rs.getBytes("otherdescription")));
+                    return cd;
+                }, caseId);
+                caseDataComplaint.setDescription(caseDescrion.getDescription());
             }
         }
         catch (DataAccessException e) {

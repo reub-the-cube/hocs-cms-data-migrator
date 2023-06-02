@@ -4,6 +4,7 @@ import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.datatable.DataTable;
 import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.WordUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -36,8 +37,10 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -84,7 +87,7 @@ public class DocumentCreator {
     }
 
     private final float fontSize = 12;
-    private final float margin = 72;
+    private final float margin = 50;
     private final float leading = 1.5f * fontSize;
     private final PDFont normalFont = PDType1Font.COURIER;
     private final PDFont boldFont = PDType1Font.COURIER_BOLD;
@@ -116,7 +119,7 @@ public class DocumentCreator {
 
             contentStream.beginText();
             contentStream.setFont(boldFont, fontSize);
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.showText("Personal Details");
             contentStream.setFont(normalFont, fontSize);
             textForCorrespondent(contentStream, complainant);
@@ -127,7 +130,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             BaseTable complainantRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("References");
@@ -145,7 +148,7 @@ public class DocumentCreator {
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
                 contentStream.beginText();
-                contentStream.newLineAtOffset(100, 700);
+                contentStream.newLineAtOffset(margin, 700);
                 contentStream.setLeading(leading);
                 contentStream.setFont(boldFont, fontSize);
                 contentStream.showText(String.format("Representative: %s", representative.getPartyId()));
@@ -158,7 +161,7 @@ public class DocumentCreator {
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
                 contentStream.beginText();
-                contentStream.newLineAtOffset(100, 700);
+                contentStream.newLineAtOffset(margin, 700);
                 BaseTable representativeRefsTable = new BaseTable(680, 700, 20, 500, margin, document, page, true, true);
                 contentStream.setFont(boldFont, fontSize);
                 contentStream.showText("References");
@@ -178,7 +181,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setLeading(leading);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case Data");
@@ -194,8 +197,12 @@ public class DocumentCreator {
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Current Type: %s", removeInvalidChars(casedata.getCurrentType())));
             contentStream.newLineAtOffset(0, -leading);
-            contentStream.showText(String.format("Description: %s", removeInvalidChars(casedata.getDescription())));
-            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Description: "));
+            String[] description = makeParagraph(casedata.getDescription());
+            for (int i=0; i< description.length; i++) {
+                contentStream.showText(description[i]);
+                contentStream.newLineAtOffset(0, -leading);
+            }
             contentStream.showText(String.format("Current Work Queue: %s", removeInvalidChars(casedata.getQueueName())));
             contentStream.newLineAtOffset(0, -leading);
             contentStream.showText(String.format("Location: %s", removeInvalidChars(casedata.getLocation())));
@@ -222,7 +229,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Compensation");
             contentStream.setFont(normalFont, fontSize);
@@ -248,7 +255,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setFont(normalFont, fontSize);
             contentStream.showText("Complaint category breakdown");
             contentStream.setFont(normalFont, fontSize);
@@ -281,7 +288,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Risk Assessment");
             contentStream.setFont(normalFont, fontSize);
@@ -307,7 +314,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case Links");
             contentStream.setFont(normalFont, fontSize);
@@ -334,7 +341,7 @@ public class DocumentCreator {
             document.addPage(page);
             contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
             contentStream.beginText();
-            contentStream.newLineAtOffset(100, 700);
+            contentStream.newLineAtOffset(margin, 700);
             contentStream.setFont(boldFont, fontSize);
             contentStream.showText("Case History");
             contentStream.setFont(normalFont, fontSize);
@@ -363,7 +370,6 @@ public class DocumentCreator {
             document.save(baos);
             document.close();
             byte[] pdfBytes = baos.toByteArray();
-
             String tempFileName = documentS3Client.storeUntrustedDocument(CMS_CASE_DATA_FILENAME, pdfBytes, caseId);
 
             CaseAttachment caseAttachment = new CaseAttachment();
@@ -386,6 +392,11 @@ public class DocumentCreator {
                     removeInvalidChars(reference.getReference()))));
         }
         return data;
+    }
+
+    private String[] makeParagraph(String text) {
+        String desc = removeInvalidChars(text);
+        return WordUtils.wrap(desc, 60).split("\\r?\\n");
     }
 
     private void textForCorrespondent(PDPageContentStream contentStream, Individual complainant) throws IOException {

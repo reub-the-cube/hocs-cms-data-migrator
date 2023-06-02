@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataComplaint;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataComplaintsRepository;
+import uk.gov.digital.ho.hocs.cms.utils.CharacterDecoder;
 
 import javax.sql.DataSource;
 
@@ -30,12 +31,15 @@ public class CaseDataComplaintTests {
 
     private CaseDataComplaintExtractor caseDataComplaintExtractor;
 
+    private CharacterDecoder characterDecoder;
+
     @Mock
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
-        caseDataComplaintExtractor = new CaseDataComplaintExtractor(dataSource, caseDataComplaintsRepository);
+        caseDataComplaintExtractor = new CaseDataComplaintExtractor(dataSource, caseDataComplaintsRepository,
+                characterDecoder);
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
