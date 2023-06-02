@@ -164,7 +164,7 @@ public class DocumentCreator {
                 contentStream.showText("References");
                 contentStream.setFont(normalFont, fontSize);
                 contentStream.newLineAtOffset(0, -leading);
-                data = getReferences(complainant);
+                data = getReferences(representative);
                 DataTable representativeDataTable = new DataTable(representativeRefsTable, page);
                 representativeDataTable.addListToTable(data, DataTable.HASHEADER);
                 representativeRefsTable.draw();
