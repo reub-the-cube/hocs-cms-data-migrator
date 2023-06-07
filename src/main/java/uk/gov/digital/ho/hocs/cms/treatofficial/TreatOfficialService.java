@@ -3,6 +3,7 @@ package uk.gov.digital.ho.hocs.cms.treatofficial;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
@@ -28,8 +29,9 @@ public class TreatOfficialService {
     private final TreatOfficialMessageBuilder treatOfficialMessageBuilder;
     private final TreatOfficialMessageCaseData treatOfficialMessageCaseData;
     private final MessageService messageService;
-
     private final ExtractResult extractResult;
+    private final CaseLinkExtractor caseLinkExtractor;
+
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
@@ -39,7 +41,8 @@ public class TreatOfficialService {
                                 ExtractResult extractResult,
                                 ProgressRepository progressRepository,
                                 TreatOfficialMessageCaseData treatOfficialMessageCaseData,
-                                MessageService messageService) {
+                                MessageService messageService,
+                                CaseLinkExtractor caseLinkExtractor) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
@@ -49,6 +52,7 @@ public class TreatOfficialService {
         this.treatOfficialMessageBuilder = treatOfficialMessageBuilder;
         this.treatOfficialMessageCaseData = treatOfficialMessageCaseData;
         this.messageService = messageService;
+        this.caseLinkExtractor = caseLinkExtractor;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -85,7 +89,7 @@ public class TreatOfficialService {
             caseDataStage.setError(e.getEvent().toString());
             caseDataStage.setErrorMessage(e.getMessage());
             extractionStagesRepository.save(caseDataStage);
-            log.error("Failed extracting case data treat official for case ID {}", caseId);
+            log.error("Failed extracting Treat Official case data for case ID {}", caseId);
             return false;
         }
 
@@ -99,8 +103,21 @@ public class TreatOfficialService {
             correspondentStage.setError(e.getEvent().toString());
             correspondentStage.setErrorMessage(e.getMessage());
             extractionStagesRepository.save(correspondentStage);
-            log.error("Failed extracting correspondents for case ID {}", caseId);
+            log.error("Failed extracting correspondents for Treat Official case ID {}", caseId);
             return false;
+        }
+
+        //extract case-links
+        try {
+            caseLinkExtractor.getCaseLinks(caseId);
+            ExtractRecord caseLinksStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case links", true);
+            extractionStagesRepository.save(caseLinksStage);
+        } catch (ApplicationExceptions.ExtractCaseLinksException e) {
+            ExtractRecord caseLinksStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case links", false);
+            caseLinksStage.setError(e.getEvent().toString());
+            caseLinksStage.setErrorMessage(e.getMessage());
+            extractionStagesRepository.save(caseLinksStage);
+            log.error("Failed extracting case links for Treat Official case ID {}", caseId);
         }
 
         //populate message
@@ -115,7 +132,7 @@ public class TreatOfficialService {
             correspondentStage.setError(e.getEvent().toString());
             correspondentStage.setErrorMessage(e.getMessage());
             extractionStagesRepository.save(correspondentStage);
-            log.error("Failed sending migration message for case ID {}", caseId + " skipping case...");
+            log.error("Failed sending migration message for Treat Official case ID {}", caseId + " skipping case...");
             return false;
         }
 
