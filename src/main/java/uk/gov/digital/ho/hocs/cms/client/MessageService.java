@@ -57,7 +57,7 @@ public class MessageService {
         Set<ValidationMessage> validationResult = schema.validate(migrationJsonNode);
         if (!validationResult.isEmpty()) {
             for (ValidationMessage validationMessage : validationResult) {
-                log.error(validationMessage.getMessage());
+                log.error(validationMessage.getMessage() + ". Case ID: {}", caseDetails.getSourceCaseId());
             }
             throw new ApplicationExceptions.SendMigrationMessageException(
                     String.format("Migration message failed validation for case ID %s", caseDetails.getSourceCaseId()),  MIGRATION_MESSAGE_FAILED);
