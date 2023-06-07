@@ -22,6 +22,7 @@ import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.Categories;
 import uk.gov.digital.ho.hocs.cms.domain.model.Compensation;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
+import uk.gov.digital.ho.hocs.cms.domain.model.DocumentExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
 import uk.gov.digital.ho.hocs.cms.domain.model.Response;
@@ -32,6 +33,7 @@ import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CategoriesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CompensationRepository;
+import uk.gov.digital.ho.hocs.cms.domain.repository.DocumentsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ResponseRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.RiskAssessmentRepository;
@@ -61,6 +63,7 @@ public class DocumentCreator {
     private final CaseHistoryRepository caseHistoryRepository;
     private final CasesRepository casesRepository;
     private final DocumentS3Client documentS3Client;
+    private final DocumentsRepository documentsRepository;
 
     private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA.pdf";
 
@@ -73,7 +76,8 @@ public class DocumentCreator {
                            CaseLinksRepository caseLinksRepository,
                            CaseHistoryRepository caseHistoryRepository,
                            CasesRepository casesRepository,
-                           DocumentS3Client documentS3Client) {
+                           DocumentS3Client documentS3Client,
+                           DocumentsRepository documentsRepository) {
         this.individualRepository = individualRepository;
         this.caseDataComplaintsRepository = caseDataComplaintsRepository;
         this.compensationRepository = compensationRepository;
@@ -84,6 +88,7 @@ public class DocumentCreator {
         this.caseHistoryRepository = caseHistoryRepository;
         this.casesRepository = casesRepository;
         this.documentS3Client = documentS3Client;
+        this.documentsRepository = documentsRepository;
     }
 
     private final float fontSize = 12;
@@ -371,6 +376,15 @@ public class DocumentCreator {
             document.close();
             byte[] pdfBytes = baos.toByteArray();
             String tempFileName = documentS3Client.storeUntrustedDocument(CMS_CASE_DATA_FILENAME, pdfBytes, caseId);
+
+            // record document transfer
+            DocumentExtractRecord record = new DocumentExtractRecord();
+            record.setCaseId(caseId);
+            record.setDocumentId(caseId);
+            record.setFilename(CMS_CASE_DATA_FILENAME);
+            record.setTempFileName(tempFileName);
+            record.setDocumentExtracted(true);
+            documentsRepository.save(record);
 
             CaseAttachment caseAttachment = new CaseAttachment();
             caseAttachment.setDocumentPath(tempFileName);
