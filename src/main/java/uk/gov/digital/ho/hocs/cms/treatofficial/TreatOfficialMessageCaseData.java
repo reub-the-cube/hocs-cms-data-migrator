@@ -60,6 +60,11 @@ public class TreatOfficialMessageCaseData {
         caseDataItem.setValue(caseDataTreatOfficial.getTxRejectNotes());
         caseDataItems.add(caseDataItem);
 
+        caseDataItem = new CaseDataItem();
+        caseDataItem.setName("TargetDate");
+        caseDataItem.setValue(caseDataTreatOfficial.getTargetDate());
+        caseDataItems.add(caseDataItem);
+
         return caseDataItems;
     }
 

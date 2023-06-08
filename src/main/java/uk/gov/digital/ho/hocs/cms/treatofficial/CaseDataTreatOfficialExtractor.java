@@ -26,7 +26,7 @@ public class CaseDataTreatOfficialExtractor {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final String FETCH_CASE_DATA_CLOSEDCASEVIEW = "select OpenedDateTime, TypeID, allocatedToDeptID, CaseRef, targetFixDateTime, otherDescription, Title, closedDateTime, Severity, Priority, CaseStatus from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
+    private final String FETCH_CASE_DATA_CLOSEDCASEVIEW = "select OpenedDateTime, TypeID, allocatedToDeptID, CaseRef, targetFixDateTime, otherDescription, Title, closedDateTime, Severity, Priority, CaseStatus, TargetDate from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
 
     private final String FETCH_CASE_DATA_TREATOFFICIALEFORM = "SELECT letterTopic, ResponseDate, tx_rejectnotes FROM LGNEF_EFORMINSTANCEVERSION INNER JOIN LGNES_TreatOfficialEform ON LGNEF_EFORMINSTANCEVERSION.datarecordid = LGNES_TreatOfficialEform.uniqueid WHERE LGNEF_EFORMINSTANCEVERSION.caseid = ?";
 
@@ -55,7 +55,7 @@ public class CaseDataTreatOfficialExtractor {
             caseData.setSeverity(rs.getBigDecimal("Severity"));
             caseData.setPriority(rs.getBigDecimal("Priority"));
             caseData.setStatus(rs.getBigDecimal("CaseStatus"));
-
+            caseData.setTargetDate(convertDateToString(rs.getDate("TargetDate")));
             return caseData;
         }, caseId);
 

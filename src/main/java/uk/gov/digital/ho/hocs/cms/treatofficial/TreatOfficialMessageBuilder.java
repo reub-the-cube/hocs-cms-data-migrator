@@ -68,6 +68,9 @@ public class TreatOfficialMessageBuilder {
         caseDetails.setCaseStatusDate(caseDataTreatOfficial.getClosedDateTime());
         caseDetails.setCaseType(TREAT_OFFICIAL_CASE_TYPE);
 
+        caseDetails.setDateReceived(caseDataTreatOfficial.getOpenedDateTime());
+        caseDetails.setDeadlineDate(caseDataTreatOfficial.getTargetDate());
+
         return caseDetails;
     }
 

@@ -71,4 +71,6 @@ public class CaseDataTreatOfficial {
     @Column(name = "status")
     private BigDecimal status;
 
+    @Column(name = "targetdate")
+    private String targetDate;
 }
