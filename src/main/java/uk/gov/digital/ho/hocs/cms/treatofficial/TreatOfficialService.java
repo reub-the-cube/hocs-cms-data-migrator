@@ -11,6 +11,7 @@ import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.ExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ExtractionStagesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ProgressRepository;
+import uk.gov.digital.ho.hocs.cms.history.CaseHistoryExtractor;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -31,6 +32,8 @@ public class TreatOfficialService {
     private final MessageService messageService;
     private final ExtractResult extractResult;
     private final CaseLinkExtractor caseLinkExtractor;
+    private final CaseHistoryExtractor caseHistoryExtractor;
+
 
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
@@ -42,7 +45,8 @@ public class TreatOfficialService {
                                 ProgressRepository progressRepository,
                                 TreatOfficialMessageCaseData treatOfficialMessageCaseData,
                                 MessageService messageService,
-                                CaseLinkExtractor caseLinkExtractor) {
+                                CaseLinkExtractor caseLinkExtractor,
+                                CaseHistoryExtractor caseHistoryExtractor) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
@@ -53,6 +57,7 @@ public class TreatOfficialService {
         this.treatOfficialMessageCaseData = treatOfficialMessageCaseData;
         this.messageService = messageService;
         this.caseLinkExtractor = caseLinkExtractor;
+        this.caseHistoryExtractor = caseHistoryExtractor;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -118,6 +123,18 @@ public class TreatOfficialService {
             caseLinksStage.setErrorMessage(e.getMessage());
             extractionStagesRepository.save(caseLinksStage);
             log.error("Failed extracting case links for Treat Official case ID {}", caseId);
+        }
+
+        // extract case history
+        try {
+            caseHistoryExtractor.getCaseHistory(caseId);
+            ExtractRecord caseHistoryStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case history", true);
+            extractionStagesRepository.save(caseHistoryStage);
+        } catch (ApplicationExceptions.ExtractCaseHistoryException e) {
+            ExtractRecord caseHistoryStage = getTreatOfficialExtractRecord(caseId, extractionId, "Case history", false);
+            caseHistoryStage.setError(e.getEvent().toString());
+            caseHistoryStage.setErrorMessage(e.getMessage());
+            extractionStagesRepository.save(caseHistoryStage);
         }
 
         //populate message
