@@ -31,9 +31,12 @@ public class TreatOfficialMessageCaseData {
 
         List<CaseDataItem> caseDataItems = new ArrayList<>();
         CaseDataItem caseDataItem = new CaseDataItem();
-        caseDataItem.setName("LetterTopic");
-        caseDataItem.setValue(caseDataTreatOfficial.getLetterTopic());
-        caseDataItems.add(caseDataItem);
+
+        if (caseDataTreatOfficial.getLetterTopic() != null) {
+            caseDataItem.setName("LetterTopic");
+            caseDataItem.setValue(caseDataTreatOfficial.getLetterTopic());
+            caseDataItems.add(caseDataItem);
+        }
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("OpenedDateTime");
@@ -59,10 +62,12 @@ public class TreatOfficialMessageCaseData {
             caseDataItems.add(caseDataItem);
         }
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("tx_rejectnotes");
-        caseDataItem.setValue(caseDataTreatOfficial.getTxRejectNotes());
-        caseDataItems.add(caseDataItem);
+        if (caseDataTreatOfficial.getTxRejectNotes() != null) {
+            caseDataItem = new CaseDataItem();
+            caseDataItem.setName("tx_rejectnotes");
+            caseDataItem.setValue(caseDataTreatOfficial.getTxRejectNotes());
+            caseDataItems.add(caseDataItem);
+        }
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("TargetDate");
