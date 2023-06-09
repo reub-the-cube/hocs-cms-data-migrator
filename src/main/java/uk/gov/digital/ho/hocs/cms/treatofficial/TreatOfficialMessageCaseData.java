@@ -52,10 +52,12 @@ public class TreatOfficialMessageCaseData {
             caseDataItems.add(caseDataItem);
         }
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("ResponseDate");
-        caseDataItem.setValue(caseDataTreatOfficial.getResponseDate());
-        caseDataItems.add(caseDataItem);
+        if (caseDataTreatOfficial.getResponseDate() != null) {
+            caseDataItem = new CaseDataItem();
+            caseDataItem.setName("ResponseDate");
+            caseDataItem.setValue(caseDataTreatOfficial.getResponseDate());
+            caseDataItems.add(caseDataItem);
+        }
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("tx_rejectnotes");
