@@ -45,10 +45,12 @@ public class TreatOfficialMessageCaseData {
         caseDataItem.setValue(caseDataTreatOfficial.getTypeId());
         caseDataItems.add(caseDataItem);
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("AllocatedToDeptID");
-        caseDataItem.setValue(caseDataTreatOfficial.getAllocatedToDeptId());
-        caseDataItems.add(caseDataItem);
+        if (caseDataTreatOfficial.getAllocatedToDeptId() != null) {
+            caseDataItem = new CaseDataItem();
+            caseDataItem.setName("AllocatedToDeptID");
+            caseDataItem.setValue(caseDataTreatOfficial.getAllocatedToDeptId());
+            caseDataItems.add(caseDataItem);
+        }
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("ResponseDate");
