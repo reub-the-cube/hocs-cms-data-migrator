@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
 import uk.gov.digital.ho.hocs.cms.client.MessageService;
 import uk.gov.digital.ho.hocs.cms.complaints.ExtractResult;
+import uk.gov.digital.ho.hocs.cms.documents.DocumentExtractor;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
+import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseDetails;
 import uk.gov.digital.ho.hocs.cms.domain.model.ExtractRecord;
 import uk.gov.digital.ho.hocs.cms.domain.repository.ExtractionStagesRepository;
@@ -33,8 +35,7 @@ public class TreatOfficialService {
     private final ExtractResult extractResult;
     private final CaseLinkExtractor caseLinkExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
-
-
+    private final DocumentExtractor documentExtractor;
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
@@ -46,7 +47,8 @@ public class TreatOfficialService {
                                 TreatOfficialMessageCaseData treatOfficialMessageCaseData,
                                 MessageService messageService,
                                 CaseLinkExtractor caseLinkExtractor,
-                                CaseHistoryExtractor caseHistoryExtractor) {
+                                CaseHistoryExtractor caseHistoryExtractor,
+                                DocumentExtractor documentExtractor) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
@@ -58,6 +60,7 @@ public class TreatOfficialService {
         this.messageService = messageService;
         this.caseLinkExtractor = caseLinkExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
+        this.documentExtractor = documentExtractor;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -83,6 +86,23 @@ public class TreatOfficialService {
     }
 
     private boolean extractTreatOfficial(UUID extractionId, BigDecimal caseId) {
+        CaseDetails caseDetails = new CaseDetails();
+
+        //extract case-attachments
+        try {
+            List<CaseAttachment> attachments = documentExtractor.copyDocumentsForCase(caseId);
+            caseDetails.setCaseAttachments(attachments);
+            log.info("Extracted {} document(s) for Treat Official case {}", attachments.size(), caseId);
+            ExtractRecord documentsStage = getTreatOfficialExtractRecord(caseId, extractionId, "Documents", true);
+            extractionStagesRepository.save(documentsStage);
+        } catch (ApplicationExceptions.ExtractCaseException e) {
+            ExtractRecord documentsStage = getTreatOfficialExtractRecord(caseId, extractionId, "Documents", false);
+            documentsStage.setError(e.getEvent().toString());
+            documentsStage.setErrorMessage(e.getMessage());
+            extractionStagesRepository.save(documentsStage);
+            log.error("Failed documents for Treat Official case ID {}", caseId);
+            return false;
+        }
 
         //extract case-data
         try {
@@ -142,7 +162,7 @@ public class TreatOfficialService {
             CaseDetails message = treatOfficialMessageBuilder.buildMessage(caseId);
             message.addCaseDataItems(treatOfficialMessageCaseData.extractCaseData(caseId));
             message.setSourceCaseId(caseId.toString());
-            message.setCaseAttachments(Collections.emptyList());    //Todo: Another ticket to add TO case attachments.
+            message.setCaseAttachments(caseDetails.getCaseAttachments());
             messageService.sendMigrationMessage(message);
         } catch (ApplicationExceptions.SendMigrationMessageException e) {
             ExtractRecord correspondentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Migration message", false);
