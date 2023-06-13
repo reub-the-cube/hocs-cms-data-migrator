@@ -13,10 +13,12 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.CorrespondentTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.TreatOfficialCorrespondentsRepository;
@@ -38,13 +40,17 @@ public class TreatOfficialDocumentCreator {
 
     private final IndividualRepository individualRepository;
     private final TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository;
+    private final CaseLinksRepository caseLinksRepository;
+
 
     private final String CMS_CASE_DATA_FILENAME = "CMS_CASE_DATA.pdf";
 
     public TreatOfficialDocumentCreator(IndividualRepository individualRepository,
-                                        TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository) {
+                                        TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository,
+                                        CaseLinksRepository caseLinksRepository) {
         this.individualRepository = individualRepository;
         this.treatOfficialCorrespondentsRepository = treatOfficialCorrespondentsRepository;
+        this.caseLinksRepository = caseLinksRepository;
     }
 
     private final float fontSize = 12;
@@ -130,16 +136,40 @@ public class TreatOfficialDocumentCreator {
                 contentStream.endText();
                 contentStream.close();
 
+                // case links
+                List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
+                caseLinks.addAll(caseLinksRepository.findAllByTargetCaseId(caseId));
+                page = new PDPage();
+                document.addPage(page);
+                contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(margin, 700);
+                contentStream.setFont(boldFont, fontSize);
+                contentStream.showText("Case Links - lgncc_caselink");
+                contentStream.setFont(normalFont, fontSize);
+                BaseTable caseLinksTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
+                        true);
+
+                List<List> caseLinksData = new ArrayList<>();
+                caseLinksData.add(new ArrayList<>(Arrays.asList("Source case", "Link type", "Target case")));
+
+                for (CaseLinks caseLink : caseLinks) {
+                    caseLinksData.add(new ArrayList(Arrays.asList(removeInvalidChars(caseLink.getSourceCaseId().toString()),
+                            removeInvalidChars(caseLink.getDescription()),
+                            removeInvalidChars(caseLink.getTargetCaseId().toString()))));
+                }
+                DataTable caseLinksDataTable = new DataTable(caseLinksTable, page);
+                caseLinksDataTable.addListToTable(caseLinksData, DataTable.HASHEADER);
+                caseLinksTable.draw();
+                contentStream.endText();
+                contentStream.close();
 
             }
-
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
             document.close();
             byte[] pdfBytes = baos.toByteArray();
-            
-
 
         } catch (IOException e) {
             throw new ApplicationExceptions.CreateMigrationDocumentException(e.getMessage(),
