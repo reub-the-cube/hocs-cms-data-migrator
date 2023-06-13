@@ -1,6 +1,7 @@
 package uk.gov.digital.ho.hocs.cms.treatofficial;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import uk.gov.digital.ho.hocs.cms.caselinks.CaseLinkExtractor;
@@ -36,6 +37,9 @@ public class TreatOfficialService {
     private final CaseLinkExtractor caseLinkExtractor;
     private final CaseHistoryExtractor caseHistoryExtractor;
     private final DocumentExtractor documentExtractor;
+    private final TreatOfficialDocumentCreator treatOfficialDocumentCreator;
+    private final String migrationDocument;
+
 
     public TreatOfficialService(TreatOfficialExtractor treatOfficialExtractor,
                                 TreatOfficialCorrespondentExtractor treatOfficialCorrespondentExtractor,
@@ -48,7 +52,9 @@ public class TreatOfficialService {
                                 MessageService messageService,
                                 CaseLinkExtractor caseLinkExtractor,
                                 CaseHistoryExtractor caseHistoryExtractor,
-                                DocumentExtractor documentExtractor) {
+                                DocumentExtractor documentExtractor,
+                                TreatOfficialDocumentCreator treatOfficialDocumentCreator,
+                                @Value("${migration.document}") String migrationDocument) {
         this.progressRepository = progressRepository;
         this.treatOfficialExtractor = treatOfficialExtractor;
         this.treatOfficialCorrespondentExtractor = treatOfficialCorrespondentExtractor;
@@ -61,6 +67,8 @@ public class TreatOfficialService {
         this.caseLinkExtractor = caseLinkExtractor;
         this.caseHistoryExtractor = caseHistoryExtractor;
         this.documentExtractor = documentExtractor;
+        this.treatOfficialDocumentCreator = treatOfficialDocumentCreator;
+        this.migrationDocument = migrationDocument;
     }
 
     public void migrateTreatOfficials(String startDate, String endDate) {
@@ -156,6 +164,23 @@ public class TreatOfficialService {
             caseHistoryStage.setErrorMessage(e.getMessage());
             extractionStagesRepository.save(caseHistoryStage);
         }
+
+        //create migration document
+        if (migrationDocument.equalsIgnoreCase("enabled")) {
+            try {
+                CaseAttachment caseAttachment = treatOfficialDocumentCreator.createDocument(caseId);
+                //caseDetails.addCaseAttachment(caseAttachment);
+                ExtractRecord migrationDocumentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Migration document", true);
+                extractionStagesRepository.save(migrationDocumentStage);
+            } catch (ApplicationExceptions.CreateMigrationDocumentException e) {
+                ExtractRecord migrationDocumentStage = getTreatOfficialExtractRecord(caseId, extractionId, "Migration document", false);
+                migrationDocumentStage.setError(e.getEvent().toString());
+                migrationDocumentStage.setErrorMessage(e.getMessage());
+                extractionStagesRepository.save(migrationDocumentStage);
+                log.error("Failed creating Migration PDF for Treat Official case ID {}", caseId);
+            }
+        }
+
 
         //populate message
         try {
