@@ -119,10 +119,12 @@ public class ComplaintsMessageCaseData {
         caseDataItem.setValue(caseDataComplaint.getCurrentType());
         caseDataItems.add(caseDataItem);
 
-        caseDataItem = new CaseDataItem();
-        caseDataItem.setName("SeveritySafeGuarding");
-        caseDataItem.setValue(riskAssessment.getFromOrAffectingAChild());
-        caseDataItems.add(caseDataItem);
+        if (riskAssessment.getFromOrAffectingAChild() != null) {
+            caseDataItem = new CaseDataItem();
+            caseDataItem.setName("SeveritySafeGuarding");
+            caseDataItem.setValue(riskAssessment.getFromOrAffectingAChild());
+            caseDataItems.add(caseDataItem);
+        }
 
         caseDataItem = new CaseDataItem();
         caseDataItem.setName("BusArea");
