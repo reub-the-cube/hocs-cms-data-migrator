@@ -117,13 +117,13 @@
 - name: CMS_EXTRACT_CLOSED_COMPLAINTS
   value: '{{ .Values.extractClosedComplaints | default "disabled" }}'
 - name: CMS_EXTRACT_TREAT_OFFICIAL_CLOSED_CASES
-  value: 'disabled'
+  value: '{{ .Values.extractClosedTreatOfficial | default "disabled" }}'
 - name: TREAT_OFFICIAL_CASE_START_DATE
-  value: '2022-01-08'
+  value: '{{ .Values.treatOfficialStartDate | default "2022-01-08" }}'
 - name: TREAT_OFFICIAL_CASE_END_DATE
-  value: '2022-03-31'
+  value: '{{ .Values.treatOfficialEndDate | default "2022-03-31" }}'
 - name: CMS_EXTRACT_SELECTED_TREAT_OFFICIAL_CLOSED_CASES
-  value: 'disabled'
+  value: '{{ .Values.extractSelectedTreatOfficial | default "disabled" }}'
 - name: TREAT_OFFICIAL_IDS
-  value: '131000000515|131000342867'
+  value: '{{ .Values.selectedTreatOfficialIds | default "131000000515|131000342867" }}'
 {{- end -}}
