@@ -4,6 +4,7 @@ import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.datatable.DataTable;
 import com.google.common.base.CharMatcher;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.WordUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -13,11 +14,13 @@ import org.springframework.stereotype.Component;
 import uk.gov.digital.ho.hocs.cms.domain.exception.ApplicationExceptions;
 import uk.gov.digital.ho.hocs.cms.domain.exception.LogEvent;
 import uk.gov.digital.ho.hocs.cms.domain.message.CaseAttachment;
+import uk.gov.digital.ho.hocs.cms.domain.model.CaseDataTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.CaseLinks;
 import uk.gov.digital.ho.hocs.cms.domain.model.ComplaintCase;
 import uk.gov.digital.ho.hocs.cms.domain.model.CorrespondentTreatOfficial;
 import uk.gov.digital.ho.hocs.cms.domain.model.Individual;
 import uk.gov.digital.ho.hocs.cms.domain.model.Reference;
+import uk.gov.digital.ho.hocs.cms.domain.repository.CaseDataTreatOfficialsRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CaseLinksRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.CasesRepository;
 import uk.gov.digital.ho.hocs.cms.domain.repository.IndividualRepository;
@@ -40,6 +43,7 @@ public class TreatOfficialDocumentCreator {
 
     private final IndividualRepository individualRepository;
     private final TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository;
+    private final CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository;
     private final CaseLinksRepository caseLinksRepository;
 
 
@@ -47,9 +51,11 @@ public class TreatOfficialDocumentCreator {
 
     public TreatOfficialDocumentCreator(IndividualRepository individualRepository,
                                         TreatOfficialCorrespondentsRepository treatOfficialCorrespondentsRepository,
+                                        CaseDataTreatOfficialsRepository caseDataTreatOfficialsRepository,
                                         CaseLinksRepository caseLinksRepository) {
         this.individualRepository = individualRepository;
         this.treatOfficialCorrespondentsRepository = treatOfficialCorrespondentsRepository;
+        this.caseDataTreatOfficialsRepository = caseDataTreatOfficialsRepository;
         this.caseLinksRepository = caseLinksRepository;
     }
 
@@ -136,6 +142,44 @@ public class TreatOfficialDocumentCreator {
                 contentStream.endText();
                 contentStream.close();
             }
+
+            // case data
+            CaseDataTreatOfficial caseData = caseDataTreatOfficialsRepository.findByCaseId(caseId);
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(margin, 700);
+            contentStream.setLeading(leading);
+            contentStream.setFont(boldFont, fontSize);
+            contentStream.showText("Case Data");
+            contentStream.setFont(normalFont, fontSize);
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Reference: %s", removeInvalidChars(caseData.getCaseRef())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Date Received: %s", removeInvalidChars(caseData.getOpenedDateTime())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Due date: %s", removeInvalidChars(caseData.getTargetDate())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Description: "));
+            String[] description = makeParagraph(caseData.getOtherDescription());
+            for (int i=0; i< description.length; i++) {
+                contentStream.showText(description[i]);
+                contentStream.newLineAtOffset(0, -leading);
+            }
+            contentStream.showText(String.format("Title: %s", removeInvalidChars(caseData.getTitle())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Closed Date: %s", removeInvalidChars(caseData.getClosedDateTime())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Channel: %s", removeInvalidChars(caseData.getTypeId())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Severity: %s", removeInvalidChars(caseData.getSeverity().toString())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Priority: %s", removeInvalidChars(caseData.getPriority().toString())));
+            contentStream.newLineAtOffset(0, -leading);
+            contentStream.showText(String.format("Status: %s", removeInvalidChars(caseData.getStatus().toString())));
+            contentStream.endText();
+            contentStream.close();
 
             // case links
             List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
@@ -228,8 +272,6 @@ public class TreatOfficialDocumentCreator {
         return data;
     }
 
-
-
     private String removeInvalidChars(String s) {
         String result = "";
         if (s != null) {
@@ -243,5 +285,8 @@ public class TreatOfficialDocumentCreator {
         return result;
     }
 
-
+    private String[] makeParagraph(String text) {
+        String desc = removeInvalidChars(text);
+        return WordUtils.wrap(desc, 60).split("\\r?\\n");
     }
+}
