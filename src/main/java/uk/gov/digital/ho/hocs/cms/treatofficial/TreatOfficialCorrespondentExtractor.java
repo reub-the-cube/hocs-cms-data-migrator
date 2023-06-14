@@ -34,11 +34,13 @@ public class TreatOfficialCorrespondentExtractor {
 
     private static final String GET_CORRESPONDENT_IDS_FOR_CASE = "select xref1 as complainantId from LGNCC_CLOSEDCASEVIEW where CaseId = ?";
     private static final String GET_THIRD_PARTY_CORRESPONDENT_IDS_FOR_CASE = "select ClientID as representativeId from LGNCC_INTLOGHDR where logid in (select InteractionID from LGNCC_ENQUIRYRELATION where CaseID = ?)";
-    private static final String GET_CORRESPONDENT_NAME = "select forename1, surname from LGNOM_partyName where partyId = ?";
+    private static final String GET_CORRESPONDENT_NAME = "select top 1 forename1, surname from LGNOM_partyName where " +
+                    "  partyId = ? ORDER BY (CASE currentName WHEN 1 THEN 1 ELSE 0  END) desc, LastModifiedDate DESC ";
     private static final String GET_CORRESPONDENT_INDIVIDUAL_DETAILS = "select dateofbirth, nationality from LGNOM_individual where partyId = ?";
-    private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select phonenum from LGNOM_phoneDetails where partyId = ?";
-    private static final String GET_CORRESPONDENT_EMAIL = "select emailaddress from LGNOM_emailDetails where partyId = ?";
-    private static final String GET_CORRESPONDENT_ADDRESS = "select ID, addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = ?";
+    private static final String GET_CORRESPONDENT_PHONE_NUMBER = "select top 1 phonenum from LGNOM_phoneDetails where partyId = ? ORDER BY (CASE preferred WHEN 1 THEN 1 ELSE 0  END) desc, LastModifiedDate DESC ";
+    private static final String GET_CORRESPONDENT_EMAIL = "select top 1 emailaddress from LGNOM_emailDetails where partyId = ? ORDER BY (CASE preferred WHEN 1 THEN 1 ELSE 0  END) desc, LastModifiedDate DESC ";
+    private static final String GET_CORRESPONDENT_ADDRESS = "select top 1 ID, addressNum, addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, addressLine6, postCode from LGNOM_partyAddress where partyId = ?  " +
+            "  ORDER BY (CASE preferred WHEN 1 THEN 1 ELSE 0  END) desc, LastModifiedDate DESC ";
     private static final String GET_CORRESPONDENT_REFERENCE = "select ID, reftype, reference from LGNUK_REFERENCE where partyId = ?";
 
     private final DataSource dataSource;
