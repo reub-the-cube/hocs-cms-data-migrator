@@ -135,36 +135,35 @@ public class TreatOfficialDocumentCreator {
                 representativeRefsTable.draw();
                 contentStream.endText();
                 contentStream.close();
-
-                // case links
-                List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
-                caseLinks.addAll(caseLinksRepository.findAllByTargetCaseId(caseId));
-                page = new PDPage();
-                document.addPage(page);
-                contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-                contentStream.beginText();
-                contentStream.newLineAtOffset(margin, 700);
-                contentStream.setFont(boldFont, fontSize);
-                contentStream.showText("Case Links - lgncc_caselink");
-                contentStream.setFont(normalFont, fontSize);
-                BaseTable caseLinksTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
-                        true);
-
-                List<List> caseLinksData = new ArrayList<>();
-                caseLinksData.add(new ArrayList<>(Arrays.asList("Source case", "Link type", "Target case")));
-
-                for (CaseLinks caseLink : caseLinks) {
-                    caseLinksData.add(new ArrayList(Arrays.asList(removeInvalidChars(caseLink.getSourceCaseId().toString()),
-                            removeInvalidChars(caseLink.getDescription()),
-                            removeInvalidChars(caseLink.getTargetCaseId().toString()))));
-                }
-                DataTable caseLinksDataTable = new DataTable(caseLinksTable, page);
-                caseLinksDataTable.addListToTable(caseLinksData, DataTable.HASHEADER);
-                caseLinksTable.draw();
-                contentStream.endText();
-                contentStream.close();
-
             }
+
+            // case links
+            List<CaseLinks> caseLinks = caseLinksRepository.findAllBySourceCaseId(caseId);
+            caseLinks.addAll(caseLinksRepository.findAllByTargetCaseId(caseId));
+            page = new PDPage();
+            document.addPage(page);
+            contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(margin, 700);
+            contentStream.setFont(boldFont, fontSize);
+            contentStream.showText("Case Links - lgncc_caselink");
+            contentStream.setFont(normalFont, fontSize);
+            BaseTable caseLinksTable = new BaseTable(680, 700, 20, 500, margin, document, page, true,
+                    true);
+
+            List<List> caseLinksData = new ArrayList<>();
+            caseLinksData.add(new ArrayList<>(Arrays.asList("Source case", "Link type", "Target case")));
+
+            for (CaseLinks caseLink : caseLinks) {
+                caseLinksData.add(new ArrayList(Arrays.asList(removeInvalidChars(caseLink.getSourceCaseId().toString()),
+                        removeInvalidChars(caseLink.getDescription()),
+                        removeInvalidChars(caseLink.getTargetCaseId().toString()))));
+            }
+            DataTable caseLinksDataTable = new DataTable(caseLinksTable, page);
+            caseLinksDataTable.addListToTable(caseLinksData, DataTable.HASHEADER);
+            caseLinksTable.draw();
+            contentStream.endText();
+            contentStream.close();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             document.save(baos);
